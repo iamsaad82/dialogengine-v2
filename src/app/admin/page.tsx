@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 // Dashboard-Karte für Statistiken
@@ -34,6 +34,24 @@ function TabButton({ isActive, onClick, label }: { isActive: boolean; onClick: (
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [brandName, setBrandName] = useState('Brandenburg Dialog')
+  
+  // Lade den Markennamen aus den Einstellungen
+  useEffect(() => {
+    const fetchBrandName = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        if (response.ok) {
+          const data = await response.json()
+          setBrandName(data.brandName)
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden des Markennamens:', error)
+      }
+    }
+    
+    fetchBrandName()
+  }, [])
   
   // Beispiel-Daten für das Dashboard
   const stats = {
@@ -64,7 +82,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background">
       <header className="bg-primary text-primary-foreground p-4">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Brandenburg Dialog - Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold">{brandName} - Admin Dashboard</h1>
           <a 
             href="/"
             className="bg-primary-foreground/10 hover:bg-primary-foreground/20 px-4 py-2 rounded-md text-primary-foreground transition"
