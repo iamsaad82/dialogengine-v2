@@ -82,7 +82,23 @@ export default function BotSettings({ params }: { params: { id: string } }) {
     try {
       setSaving(true)
       
-      const response = await fetch(`/api/bots/${botId}/settings`, {
+      // Zuerst die Bot-Daten aktualisieren
+      const botResponse = await fetch(`/api/bots/${botId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          welcomeMessage: settings.welcomeMessage
+        })
+      })
+      
+      if (!botResponse.ok) {
+        throw new Error(`Speichern der Bot-Daten fehlgeschlagen: ${botResponse.status}`)
+      }
+      
+      // Dann die Einstellungen aktualisieren
+      const settingsResponse = await fetch(`/api/bots/${botId}/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -101,8 +117,8 @@ export default function BotSettings({ params }: { params: { id: string } }) {
         })
       })
       
-      if (!response.ok) {
-        throw new Error(`Speichern fehlgeschlagen: ${response.status}`)
+      if (!settingsResponse.ok) {
+        throw new Error(`Speichern der Einstellungen fehlgeschlagen: ${settingsResponse.status}`)
       }
       
       // Router-Refresh zur Aktualisierung der Daten
