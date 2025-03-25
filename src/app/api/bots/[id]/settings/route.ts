@@ -57,7 +57,10 @@ export async function PUT(
   const botId = parameters.id
   
   try {
+    console.log('PUT-Anfrage für Bot-Einstellungen erhalten, Bot-ID:', botId)
+    
     if (!botId) {
+      console.error('Keine Bot-ID angegeben')
       return new NextResponse(JSON.stringify({ error: 'Keine Bot-ID angegeben' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -70,6 +73,7 @@ export async function PUT(
     })
 
     if (!bot) {
+      console.error('Bot nicht gefunden, ID:', botId)
       return new NextResponse(JSON.stringify({ error: 'Bot nicht gefunden' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' }
@@ -77,9 +81,25 @@ export async function PUT(
     }
 
     const data = await req.json()
+    console.log('Erhaltene Daten:', data)
     
-    // Validiere die Eingabedaten
+    // Validiere die Eingabedaten und stelle sicher, dass alle Felder definiert sind
     const {
+      primaryColor = '#3b82f6',
+      botBgColor = 'rgba(248, 250, 252, 0.8)',
+      botTextColor = '#000000',
+      botAccentColor = '#3b82f6',
+      userBgColor = '',
+      userTextColor = '#ffffff',
+      enableFeedback = true,
+      enableAnalytics = true,
+      showSuggestions = true,
+      showCopyButton = true
+    } = data
+
+    // Erstelle ein Objekt mit allen Werten für den Upsert
+    const settingsData = {
+      botId,
       primaryColor,
       botBgColor,
       botTextColor,
@@ -90,42 +110,23 @@ export async function PUT(
       enableAnalytics,
       showSuggestions,
       showCopyButton
-    } = data
+    }
+    
+    console.log('Zu speichernde Einstellungen:', settingsData)
 
     // Upsert der Bot-Einstellungen (erstellen, falls nicht vorhanden, sonst aktualisieren)
     const settings = await prisma.botSettings.upsert({
       where: { botId },
-      create: {
-        botId,
-        primaryColor,
-        botBgColor,
-        botTextColor,
-        botAccentColor,
-        userBgColor,
-        userTextColor,
-        enableFeedback,
-        enableAnalytics,
-        showSuggestions,
-        showCopyButton
-      },
-      update: {
-        primaryColor,
-        botBgColor,
-        botTextColor,
-        botAccentColor,
-        userBgColor,
-        userTextColor,
-        enableFeedback,
-        enableAnalytics,
-        showSuggestions,
-        showCopyButton
-      }
+      create: settingsData,
+      update: settingsData
     })
+    
+    console.log('Einstellungen erfolgreich gespeichert:', settings)
 
     return NextResponse.json(settings)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Fehler beim Aktualisieren der Bot-Einstellungen:', error)
-    return new NextResponse(JSON.stringify({ error: 'Interner Serverfehler' }), {
+    return new NextResponse(JSON.stringify({ error: 'Interner Serverfehler', details: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     })

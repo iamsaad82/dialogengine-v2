@@ -83,6 +83,8 @@ export default function BotSettings({ params }: { params: { id: string } }) {
       setSaving(true)
       setError(null)
       
+      console.log('Speichere Einstellungen:', settings)
+      
       // Zuerst die Bot-Daten aktualisieren
       const botResponse = await fetch(`/api/bots/${botId}`, {
         method: 'PUT',
@@ -98,29 +100,39 @@ export default function BotSettings({ params }: { params: { id: string } }) {
         throw new Error(`Speichern der Bot-Daten fehlgeschlagen: ${botResponse.status}`)
       }
       
+      const botUpdateResult = await botResponse.json()
+      console.log('Bot-Update Ergebnis:', botUpdateResult)
+      
       // Dann die Einstellungen aktualisieren
+      const settingsObj = {
+        primaryColor: settings.primaryColor,
+        botBgColor: settings.botBgColor,
+        botTextColor: settings.botTextColor,
+        botAccentColor: settings.botAccentColor,
+        userBgColor: settings.userBgColor,
+        userTextColor: settings.userTextColor,
+        enableFeedback: settings.enableFeedback,
+        enableAnalytics: settings.enableAnalytics,
+        showSuggestions: settings.showSuggestions,
+        showCopyButton: settings.showCopyButton
+      }
+      
+      console.log('Sende Einstellungen an API:', settingsObj)
+      
       const settingsResponse = await fetch(`/api/bots/${botId}/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          primaryColor: settings.primaryColor,
-          botBgColor: settings.botBgColor,
-          botTextColor: settings.botTextColor,
-          botAccentColor: settings.botAccentColor,
-          userBgColor: settings.userBgColor,
-          userTextColor: settings.userTextColor,
-          enableFeedback: settings.enableFeedback,
-          enableAnalytics: settings.enableAnalytics,
-          showSuggestions: settings.showSuggestions,
-          showCopyButton: settings.showCopyButton
-        })
+        body: JSON.stringify(settingsObj)
       })
       
       if (!settingsResponse.ok) {
         throw new Error(`Speichern der Einstellungen fehlgeschlagen: ${settingsResponse.status}`)
       }
+      
+      const settingsUpdateResult = await settingsResponse.json()
+      console.log('Settings-Update Ergebnis:', settingsUpdateResult)
       
       // Lade die aktualisierten Daten
       const updatedBotResponse = await fetch(`/api/bots/${botId}`)
@@ -129,10 +141,12 @@ export default function BotSettings({ params }: { params: { id: string } }) {
       }
       
       const updatedBotData = await updatedBotResponse.json()
+      console.log('Aktualisierte Bot-Daten:', updatedBotData)
       setBot(updatedBotData)
       
       if (updatedBotData.settings) {
-        setSettings({
+        console.log('Verwende gespeicherte Einstellungen:', updatedBotData.settings)
+        const newSettings = {
           primaryColor: updatedBotData.settings.primaryColor || '#3b82f6',
           botBgColor: updatedBotData.settings.botBgColor || 'rgba(248, 250, 252, 0.8)',
           botTextColor: updatedBotData.settings.botTextColor || '#000000',
@@ -144,15 +158,22 @@ export default function BotSettings({ params }: { params: { id: string } }) {
           enableAnalytics: updatedBotData.settings.enableAnalytics || true,
           showSuggestions: updatedBotData.settings.showSuggestions || true,
           showCopyButton: updatedBotData.settings.showCopyButton || true
-        })
+        }
+        console.log('Setze neue Einstellungen:', newSettings)
+        setSettings(newSettings)
+      } else {
+        console.log('Keine Einstellungen in den aktualisierten Bot-Daten gefunden')
       }
       
       // Router-Refresh zur Aktualisierung der Daten
       router.refresh()
       
+      // Ändere den Status des Speichern-Buttons
+      setSaving(false)
+      
     } catch (err) {
+      console.error('Fehler beim Speichern:', err)
       setError(err instanceof Error ? err.message : 'Fehler beim Speichern')
-    } finally {
       setSaving(false)
     }
   }
