@@ -120,11 +120,6 @@ export default function AdminDashboard() {
             label="Statistiken"
           />
           <TabButton 
-            isActive={activeTab === 'settings'} 
-            onClick={() => setActiveTab('settings')}
-            label="Einstellungen"
-          />
-          <TabButton 
             isActive={activeTab === 'bots'} 
             onClick={() => setActiveTab('bots')}
             label="Bots"
@@ -223,37 +218,27 @@ export default function AdminDashboard() {
           
           {activeTab === 'settings' && (
             <div className="w-full bg-card rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold mb-4">Dashboard-Einstellungen</h2>
+              <h2 className="text-xl font-bold mb-4">Hinweis zu Einstellungen</h2>
               <p className="text-muted-foreground mb-6">
-                Konfigurieren Sie das Dashboard nach Ihren Bedürfnissen.
+                Die Einstellungen für jeden Bot können individuell vorgenommen werden.
               </p>
-              <div className="space-y-4">
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-medium">Willkommensnachricht</label>
-                  <textarea 
-                    className="min-h-[100px] p-3 rounded-md border"
-                    defaultValue="Willkommen! Wie kann ich Ihnen mit Informationen zur Stadtverwaltung Brandenburg an der Havel helfen?"
-                  />
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-medium">Bot-Name</label>
-                  <input 
-                    type="text" 
-                    className="p-2 rounded-md border"
-                    defaultValue="Brandenburg Dialog" 
-                  />
-                </div>
-                <div className="flex items-center gap-2 mt-4">
-                  <input type="checkbox" id="enable-feedback" defaultChecked />
-                  <label htmlFor="enable-feedback">Feedback-System aktivieren</label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="enable-analytics" defaultChecked />
-                  <label htmlFor="enable-analytics">Analytics aktivieren</label>
-                </div>
-                <button className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded-md">
-                  Einstellungen speichern
-                </button>
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-yellow-800">
+                  Um die Einstellungen eines Bots zu bearbeiten, gehen Sie zu 
+                  <a href="/admin/bots" className="text-primary font-medium mx-1 hover:underline">
+                    Bots
+                  </a>
+                  und wählen Sie den gewünschten Bot aus. Auf der Detailseite finden Sie alle spezifischen Einstellungsmöglichkeiten.
+                </p>
+              </div>
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-md mt-4">
+                <p className="text-blue-800">
+                  Für globale Anwendungseinstellungen (Brand-Name, Logo, etc.) besuchen Sie bitte die 
+                  <a href="/admin/settings" className="text-primary font-medium mx-1 hover:underline">
+                    Einstellungsseite
+                  </a>
+                  über die Seitenleiste.
+                </p>
               </div>
             </div>
           )}

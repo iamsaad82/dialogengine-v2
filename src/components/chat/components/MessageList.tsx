@@ -23,7 +23,7 @@ export function MessageList({
   messages, 
   isLoading = false, 
   messagesEndRef,
-  botName = 'Brandenburg Dialog',
+  botName = 'Stadtassistent',
   showCopyButton = true,
   enableFeedback = false,
   botId

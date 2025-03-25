@@ -26,7 +26,7 @@ interface MessageProps {
 export function Message({ 
   message, 
   isLastMessage = false,
-  botName = 'Brandenburg Dialog',
+  botName = 'Stadtassistent',
   showCopyButton = true,
   enableFeedback = false,
   botId = 'default'

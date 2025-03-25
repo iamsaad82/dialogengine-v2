@@ -266,6 +266,7 @@ export function useChat({
               
               // Willkommensnachricht, falls keine Nachrichten vorhanden sind
               if (messages.length === 0 && botData.welcomeMessage) {
+                console.log("CHAT-DEBUG-006: Verwende Bot-spezifische Willkommensnachricht:", botData.welcomeMessage);
                 setMessages([{
                   role: "assistant",
                   content: botData.welcomeMessage

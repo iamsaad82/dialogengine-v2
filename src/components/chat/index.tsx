@@ -18,7 +18,7 @@ interface ChatProps {
 }
 
 export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatProps) {
-  const [botName, setBotName] = useState<string>('Brandenburg Dialog')
+  const [botName, setBotName] = useState<string>('Stadtassistent')
   const [botPrimaryColor, setBotPrimaryColor] = useState<string | undefined>(undefined)
   const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
   const [enableFeedback, setEnableFeedback] = useState<boolean>(false)
