@@ -232,6 +232,12 @@ export function useChat({
           const res = await fetch(`/api/bots/${botId}`);
           if (res.ok) {
             const botData = await res.json();
+            console.log("CHAT-DEBUG-006: Geladene Bot-Daten:", {
+              id: botData.id,
+              name: botData.name,
+              welcomeMessage: botData.welcomeMessage
+            });
+            
             if (botData && botData.settings) {
               // Bot-Einstellungen im state speichern
               setBotSettings(botData.settings);
@@ -272,9 +278,9 @@ export function useChat({
                   content: botData.welcomeMessage
                 }]);
               }
-              
-              console.log("CHAT-DEBUG-006: Bot-Einstellungen geladen für Bot", botId);
             }
+          } else {
+            console.error("CHAT-DEBUG-006: Fehler beim Laden der Bot-Daten:", res.status);
           }
         } catch (error) {
           console.error("CHAT-DEBUG-006: Fehler beim Laden der Bot-Einstellungen:", error);

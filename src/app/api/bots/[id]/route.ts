@@ -28,8 +28,16 @@ export async function GET(
 
     // Wenn der Bot nicht gefunden wird, 404 zurückgeben
     if (!bot) {
+      console.log(`API-DEBUG-001: Bot mit ID ${botId} nicht gefunden`);
       return NextResponse.json({ error: 'Bot nicht gefunden' }, { status: 404 })
     }
+
+    // Debug-Log für die zurückgegebenen Daten
+    console.log(`API-DEBUG-001: Bot mit ID ${botId} gefunden:`, {
+      id: bot.id,
+      name: bot.name,
+      welcomeMessage: bot.welcomeMessage
+    });
 
     // Bot-Daten zurückgeben
     return NextResponse.json(bot)

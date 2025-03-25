@@ -74,9 +74,15 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
           const response = await fetch(`/api/bots/${botId}`)
           if (response.ok) {
             const botData = await response.json()
+            console.log("CHAT-DEBUG-002: Bot-Informationen geladen:", {
+              id: botData.id,
+              name: botData.name,
+              welcomeMessage: botData.welcomeMessage
+            });
+            
             if (botData) {
               // Bot-Name setzen
-              setBotName(botData.name || 'Brandenburg Dialog')
+              setBotName(botData.name || 'Stadtassistent')
               
               // Bot-Einstellungen setzen, wenn vorhanden
               if (botData.settings) {
