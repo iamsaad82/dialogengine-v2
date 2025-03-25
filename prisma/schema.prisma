@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Globale Anwendungseinstellungen
+model AppSettings {
+  id                        String   @id @default("global")
+  // Analytics
+  lunaryEnabled             Boolean  @default(false)
+  lunaryProjectId           String?
+  // Allgemeine UI-Einstellungen
+  brandName                 String   @default("Brandenburg Dialog")
+  logoUrl                   String?
+  defaultPrimaryColor       String   @default("#e63946")
+  // Nachrichten
+  defaultWelcomeMessage     String   @default("Willkommen! Wie kann ich Ihnen mit Informationen zur Stadtverwaltung Brandenburg an der Havel helfen?")
+  // Erweiterte Optionen
+  enableDebugMode           Boolean  @default(false)
+  cacheTimeout              Int      @default(3600) // In Sekunden
+  updatedAt                 DateTime @updatedAt
+}
+
+// Bot-Modell für die Verwaltung verschiedener Chatbots
+model Bot {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  avatarUrl       String?
+  welcomeMessage  String   @default("Willkommen! Wie kann ich Ihnen helfen?")
+  flowiseId       String   // Flowise Chatflow ID
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  settings        BotSettings?
+  conversations   Conversation[]
+}
+
+// Einstellungen für einen Bot
+model BotSettings {
+  id                String  @id @default(uuid())
+  primaryColor      String  @default("#3b82f6") // Standardfarbe (Blau)
+  // Neue Farbeinstellungen
+  botBgColor        String  @default("rgba(248, 250, 252, 0.8)")
+  botTextColor      String  @default("#000000")
+  botAccentColor    String  @default("#3b82f6")
+  userBgColor       String  @default("")
+  userTextColor     String  @default("#ffffff")
+  // Funktionsschalter
+  enableFeedback    Boolean @default(true)
+  enableAnalytics   Boolean @default(true)
+  showSuggestions   Boolean @default(true)
+  showCopyButton    Boolean @default(true)
+  botId            String   @unique
+  bot              Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+}
+
+// Gespräche mit Nutzern
+model Conversation {
+  id        String    @id @default(uuid())
+  sessionId String    @unique
+  botId     String
+  bot       Bot       @relation(fields: [botId], references: [id])
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Nachrichten in einer Konversation
+model Message {
+  id             String       @id @default(uuid())
+  content        String
+  role           String       // "user" oder "assistant"
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
