@@ -3,7 +3,11 @@ services:
     name: dialogengine-v2
     env: node
     region: frankfurt
-    buildCommand: rm -rf node_modules && rm -rf .next && npm cache clean --force && npm install && npm install tailwindcss@3.4.1 --force && npm run build
+    buildCommand: |
+      rm -rf node_modules && rm -rf .next && npm cache clean --force
+      npm install -g tailwindcss@3.4.1 postcss@8.4.35 postcss-import@15.1.0 autoprefixer@10.4.17
+      npm install
+      npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
