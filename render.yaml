@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: dialogengine-v2
+    name: brandenburg-dialog
     env: node
     region: frankfurt
-    buildCommand: pnpm install --no-frozen-lockfile --include=dev && pnpm run build
+    buildCommand: pnpm install --no-lockfile && pnpm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
