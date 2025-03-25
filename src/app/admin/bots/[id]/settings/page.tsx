@@ -81,6 +81,7 @@ export default function BotSettings({ params }: { params: { id: string } }) {
   const saveSettings = async () => {
     try {
       setSaving(true)
+      setError(null)
       
       // Zuerst die Bot-Daten aktualisieren
       const botResponse = await fetch(`/api/bots/${botId}`, {
@@ -119,6 +120,31 @@ export default function BotSettings({ params }: { params: { id: string } }) {
       
       if (!settingsResponse.ok) {
         throw new Error(`Speichern der Einstellungen fehlgeschlagen: ${settingsResponse.status}`)
+      }
+      
+      // Lade die aktualisierten Daten
+      const updatedBotResponse = await fetch(`/api/bots/${botId}`)
+      if (!updatedBotResponse.ok) {
+        throw new Error(`Laden der aktualisierten Daten fehlgeschlagen: ${updatedBotResponse.status}`)
+      }
+      
+      const updatedBotData = await updatedBotResponse.json()
+      setBot(updatedBotData)
+      
+      if (updatedBotData.settings) {
+        setSettings({
+          primaryColor: updatedBotData.settings.primaryColor || '#3b82f6',
+          botBgColor: updatedBotData.settings.botBgColor || 'rgba(248, 250, 252, 0.8)',
+          botTextColor: updatedBotData.settings.botTextColor || '#000000',
+          botAccentColor: updatedBotData.settings.botAccentColor || '#3b82f6',
+          userBgColor: updatedBotData.settings.userBgColor || '',
+          userTextColor: updatedBotData.settings.userTextColor || '#ffffff',
+          welcomeMessage: updatedBotData.welcomeMessage || '',
+          enableFeedback: updatedBotData.settings.enableFeedback || true,
+          enableAnalytics: updatedBotData.settings.enableAnalytics || true,
+          showSuggestions: updatedBotData.settings.showSuggestions || true,
+          showCopyButton: updatedBotData.settings.showCopyButton || true
+        })
       }
       
       // Router-Refresh zur Aktualisierung der Daten
