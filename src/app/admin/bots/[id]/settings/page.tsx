@@ -19,6 +19,10 @@ export default function BotSettings({ params }: { params: { id: string } }) {
     userBgColor: '',
     userTextColor: '#ffffff',
     welcomeMessage: '',
+    enableFeedback: true,
+    enableAnalytics: true,
+    showSuggestions: true,
+    showCopyButton: true
   })
   
   // UseEffect um die ID zu setzen
@@ -52,6 +56,10 @@ export default function BotSettings({ params }: { params: { id: string } }) {
             userBgColor: botData.settings.userBgColor || '',
             userTextColor: botData.settings.userTextColor || '#ffffff',
             welcomeMessage: botData.welcomeMessage || '',
+            enableFeedback: botData.settings.enableFeedback || true,
+            enableAnalytics: botData.settings.enableAnalytics || true,
+            showSuggestions: botData.settings.showSuggestions || true,
+            showCopyButton: botData.settings.showCopyButton || true
           })
         } else {
           setSettings(prev => ({
@@ -80,15 +88,16 @@ export default function BotSettings({ params }: { params: { id: string } }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          settings: {
-            primaryColor: settings.primaryColor,
-            botBgColor: settings.botBgColor,
-            botTextColor: settings.botTextColor,
-            botAccentColor: settings.botAccentColor,
-            userBgColor: settings.userBgColor,
-            userTextColor: settings.userTextColor,
-          },
-          welcomeMessage: settings.welcomeMessage
+          primaryColor: settings.primaryColor,
+          botBgColor: settings.botBgColor,
+          botTextColor: settings.botTextColor,
+          botAccentColor: settings.botAccentColor,
+          userBgColor: settings.userBgColor,
+          userTextColor: settings.userTextColor,
+          enableFeedback: settings.enableFeedback,
+          enableAnalytics: settings.enableAnalytics,
+          showSuggestions: settings.showSuggestions,
+          showCopyButton: settings.showCopyButton
         })
       })
       
