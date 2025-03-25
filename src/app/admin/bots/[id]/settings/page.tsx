@@ -189,48 +189,49 @@ export default function BotSettings({ params }: { params: { id: string } }) {
   
   // Vorschau-Sektion für die Bot-Stile
   const ChatBubblePreview = () => {
-    // Inline-Stil für die Vorschau
-    const previewStyle = document.createElement('style')
-    previewStyle.textContent = `
-      .preview-bot-bubble {
-        background-color: ${settings.botBgColor} !important;
-        color: ${settings.botTextColor};
-        border-radius: 12px;
-        padding: 12px;
-        max-width: 80%;
-        margin-bottom: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
-      .preview-user-bubble {
-        background: ${settings.userBgColor || `linear-gradient(135deg, ${settings.primaryColor}, ${settings.primaryColor}cc)`};
-        color: ${settings.userTextColor};
-        border-radius: 12px;
-        padding: 12px;
-        max-width: 80%;
-        margin-left: auto;
-        margin-bottom: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
-      .preview-avatar {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        margin-right: 8px;
-        background-color: white;
-        color: ${settings.botAccentColor};
-        border: 1px solid ${settings.botAccentColor};
-      }
-    `
-    document.head.appendChild(previewStyle)
-    
+    // Verwende useEffect, um die Vorschau zu aktualisieren, wenn sich die Einstellungen ändern
     useEffect(() => {
+      // Inline-Stil für die Vorschau
+      const previewStyle = document.createElement('style')
+      previewStyle.textContent = `
+        .preview-bot-bubble {
+          background-color: ${settings.botBgColor} !important;
+          color: ${settings.botTextColor};
+          border-radius: 12px;
+          padding: 12px;
+          max-width: 80%;
+          margin-bottom: 12px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .preview-user-bubble {
+          background: ${settings.userBgColor || `linear-gradient(135deg, ${settings.primaryColor}, ${settings.primaryColor}cc)`};
+          color: ${settings.userTextColor};
+          border-radius: 12px;
+          padding: 12px;
+          max-width: 80%;
+          margin-left: auto;
+          margin-bottom: 12px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .preview-avatar {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 6px;
+          margin-right: 8px;
+          background-color: white;
+          color: ${settings.botAccentColor};
+          border: 1px solid ${settings.botAccentColor};
+        }
+      `
+      document.head.appendChild(previewStyle)
+      
       return () => {
         previewStyle.remove()
       }
-    }, [])
+    }, [settings]) // Abhängigkeit von settings hinzugefügt, damit die Vorschau bei Änderungen aktualisiert wird
     
     return (
       <div className="preview-container border rounded-lg p-4 bg-background/50 mb-6">
@@ -245,8 +246,8 @@ export default function BotSettings({ params }: { params: { id: string } }) {
               </svg>
             </div>
             <div>
-              <div className="font-medium text-sm">Brandenburg Dialog</div>
-              <div className="text-sm">Hallo! Wie kann ich Ihnen helfen?</div>
+              <div className="font-medium text-sm">{bot?.name || 'Brandenburg Dialog'}</div>
+              <div className="text-sm">{settings.welcomeMessage || 'Hallo! Wie kann ich Ihnen helfen?'}</div>
             </div>
           </div>
           
