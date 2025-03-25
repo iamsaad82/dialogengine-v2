@@ -69,8 +69,9 @@ export default function SettingsPage() {
         throw new Error('Fehler beim Speichern der Einstellungen')
       }
       
-      const data = await response.json()
-      setSettings(data)
+      // Einstellungen neu laden
+      await fetchSettings()
+      
       setSuccessMessage('Einstellungen erfolgreich gespeichert')
       setError(null)
     } catch (err) {
