@@ -28,6 +28,12 @@ export async function GET(request: Request) {
     container.id = 'brandenburg-dialog-container';
     document.body.appendChild(container);
 
+    // Variablen für die Widget-Konfiguration
+    const botId = "${botId}";
+    const mode = "${mode}";
+    const position = "${position}";
+    const color = "${color}";
+
     // Styles hinzufügen
     const style = document.createElement('style');
     style.textContent = \`
@@ -117,7 +123,8 @@ export async function GET(request: Request) {
         
         const chat = document.createElement('div');
         chat.id = 'brandenburg-dialog-chat';
-        chat.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat"></iframe>\`;
+        chat.style.display = 'none'; // Initial verstecken
+        chat.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 100%;"></iframe>\`;
         document.body.appendChild(chat);
         
         bubble.addEventListener('click', function() {
@@ -129,7 +136,7 @@ export async function GET(request: Request) {
           }
         });
       } else if (mode === 'inline') {
-        container.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat"></iframe>\`;
+        container.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 500px;"></iframe>\`;
       } else if (mode === 'fullscreen') {
         const fullscreenChat = document.createElement('div');
         fullscreenChat.style.position = 'fixed';
