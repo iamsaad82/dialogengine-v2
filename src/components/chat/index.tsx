@@ -189,7 +189,61 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
     );
   }
 
-  // Für Fullscreen/Embedded-Modus, neue Toggle-Logik anwenden
+  // Für embedded bubble/inline ohne Switcher
+  if (embedded && mode !== 'fullscreen') {
+    return (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chat-dialog-title"
+        className={`
+          z-50 flex flex-col overflow-hidden shadow-lg bg-background
+          ${mode === 'bubble' ? 'fixed bottom-5 right-5 w-96 h-[600px] rounded-xl border' : ''}
+          ${mode === 'inline' ? 'w-full h-[500px] rounded-xl border' : ''}
+        `}
+      >
+        <ChatHeader 
+          mode={mode} 
+          onClose={toggleChat} 
+          onModeChange={cycleMode}
+          setMode={setMode}
+          botName={botName}
+          botPrimaryColor={botPrimaryColor}
+        />
+        
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {error && (
+            <div 
+              className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md" 
+              role="alert"
+              aria-live="assertive"
+            >
+              {error}
+            </div>
+          )}
+          
+          <MessageList 
+            messages={messages} 
+            isLoading={isLoading} 
+            messagesEndRef={messagesEndRef}
+            botName={botName}
+            showCopyButton={showCopyButton}
+            enableFeedback={enableFeedback}
+            botId={botId}
+          />
+          
+          <ChatInput 
+            isLoading={isLoading} 
+            onSend={sendMessage} 
+            onCancel={cancelMessage} 
+            botPrimaryColor={botPrimaryColor}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Für Fullscreen-Modus, neue Toggle-Logik anwenden
   return (
     <div className="transparent-container">
       {/* Segment-Control Toggle für Dialog/Klassisch im verbesserten Neumorphic-Stil */}
