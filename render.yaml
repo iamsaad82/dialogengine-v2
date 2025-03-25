@@ -8,11 +8,19 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: dialogengine-db
+          property: connectionString
       - key: NEXTAUTH_URL
         sync: false
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: LUNARY_PUBLIC_KEY
         sync: false
-    autoDeploy: true 
+    autoDeploy: true
+
+  - type: postgres
+    name: dialogengine-db
+    ipAllowList: []
+    plan: free # Kostenlose Tier (Kann für die Produktion auf "starter" geändert werden)
+    version: "14" 
