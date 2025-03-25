@@ -2,7 +2,7 @@ services:
   - type: web
     name: dialogengine-v2
     env: node
-    buildCommand: rm -rf node_modules && npm install && npm install @tailwindcss/postcss@4.0.15 && npm run build
+    buildCommand: rm -rf node_modules && npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
