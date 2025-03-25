@@ -38,12 +38,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
     messagesEndRef,
     botSettings 
   } = useChat({
-    initialMessages: [
-      {
-        role: 'assistant',
-        content: 'Willkommen! Wie kann ich Ihnen mit Informationen zur Stadtverwaltung Brandenburg an der Havel helfen?'
-      }
-    ],
+    initialMessages: [],
     initialMode,
     initialOpen: embedded, // Wenn eingebettet, dann direkt öffnen
     botId // Bot-ID an useChat übergeben
