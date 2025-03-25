@@ -58,7 +58,7 @@ export default function SettingsPage() {
       setSuccessMessage(null)
       
       const response = await fetch('/api/settings', {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
