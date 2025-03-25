@@ -1,52 +1,59 @@
 import { NextResponse } from "next/server"
+import prisma from "@/lib/db"
 
-export async function GET() {
-  // Das JavaScript für das Embed-Widget
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const botId = searchParams.get('botId')
+  const mode = searchParams.get('mode') || 'bubble'
+  const position = searchParams.get('position') || 'bottom-right'
+  const color = searchParams.get('color') || '#3b82f6'
+
+  if (!botId) {
+    return new Response('Bot ID erforderlich', { status: 400 })
+  }
+
+  // Bot-Daten abrufen
+  const bot = await prisma.bot.findUnique({
+    where: { id: botId }
+  })
+
+  if (!bot) {
+    return new Response('Bot nicht gefunden', { status: 404 })
+  }
+
+  // JavaScript-Code für das Widget
   const js = `(function() {
-    // Konfiguration aus dem Container-Element auslesen
-    const container = document.getElementById('brandenburg-dialog-container');
-    if (!container) {
-      console.error('Brandenburg Dialog: Container nicht gefunden');
-      return;
-    }
-    
-    // Parameter auslesen
-    const mode = container.getAttribute('data-mode') || 'bubble';
-    const color = container.getAttribute('data-color') || '#e63946';
-    const position = container.getAttribute('data-position') || 'bottom-right';
-    const botId = container.getAttribute('data-bot-id') || '';
-    
-    // CSS für das Widget erstellen
+    // Container erstellen
+    const container = document.createElement('div');
+    container.id = 'brandenburg-dialog-container';
+    document.body.appendChild(container);
+
+    // Styles hinzufügen
     const style = document.createElement('style');
     style.textContent = \`
       #brandenburg-dialog-container {
-        position: relative;
-        font-family: system-ui, sans-serif;
+        position: fixed;
+        z-index: 9999;
       }
       #brandenburg-dialog-iframe {
-        width: 100%;
-        height: 100%;
         border: none;
         border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
       #brandenburg-dialog-bubble {
-        position: fixed;
+        cursor: pointer;
         width: 60px;
         height: 60px;
         border-radius: 50%;
         background-color: \${color};
-        color: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease;
-        z-index: 9999;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
       #brandenburg-dialog-bubble:hover {
-        transform: scale(1.1);
+        transform: scale(1.05);
+        transition: transform 0.2s;
       }
       .brandenburg-dialog-bottom-right {
         bottom: 20px;
@@ -68,49 +75,36 @@ export async function GET() {
         position: fixed;
         bottom: 90px;
         right: 20px;
-        width: 380px;
-        height: 600px;
-        border-radius: 10px;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        z-index: 9998;
-        display: none;
       }
     \`;
     document.head.appendChild(style);
-    
+
     // Widget-URL erstellen
-    // Holen Sie das aktuelle Skript, um die Basis-URL zu extrahieren
     const scriptElement = document.currentScript;
     const scriptUrl = scriptElement ? scriptElement.src : '';
     let baseUrl = '';
     
     try {
-      // Ermittle die Basis-URL vom Skript-Pfad
       if (scriptUrl) {
         const urlObj = new URL(scriptUrl);
-        baseUrl = urlObj.origin; // nur Origin (Protokoll + Host + Port)
+        baseUrl = urlObj.origin;
       } else {
-        // Fallback auf den aktuellen Seitenursprung
         baseUrl = window.location.origin;
       }
       
-      // Vollständige URL mit Basis erstellen
       const chatPath = '/embed/chat';
       const widgetUrl = new URL(chatPath, baseUrl);
       
-      // Parameter hinzufügen
       widgetUrl.searchParams.append('mode', mode);
       widgetUrl.searchParams.append('color', encodeURIComponent(color));
+      widgetUrl.searchParams.append('botId', botId);
       
-      // Bot-ID hinzufügen, wenn vorhanden
-      if (botId) {
-        widgetUrl.searchParams.append('botId', botId);
-      }
-      
-      // Widget initialisieren
       if (mode === 'bubble') {
-        // Bubble-Modus: Chat-Icon in der Ecke
         const bubble = document.createElement('div');
         bubble.id = 'brandenburg-dialog-bubble';
         bubble.className = 'brandenburg-dialog-' + position;
@@ -121,13 +115,11 @@ export async function GET() {
         \`;
         document.body.appendChild(bubble);
         
-        // Chat-Container
         const chat = document.createElement('div');
         chat.id = 'brandenburg-dialog-chat';
-        chat.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="Brandenburg Dialog Chat"></iframe>\`;
+        chat.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat"></iframe>\`;
         document.body.appendChild(chat);
         
-        // Klick-Event auf Bubble
         bubble.addEventListener('click', function() {
           const chatEl = document.getElementById('brandenburg-dialog-chat');
           if (chatEl.style.display === 'none' || chatEl.style.display === '') {
@@ -137,10 +129,8 @@ export async function GET() {
           }
         });
       } else if (mode === 'inline') {
-        // Inline-Modus: Chat direkt in der Seite eingebettet
-        container.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="Brandenburg Dialog Chat"></iframe>\`;
+        container.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat"></iframe>\`;
       } else if (mode === 'fullscreen') {
-        // Vollbild-Modus
         const fullscreenChat = document.createElement('div');
         fullscreenChat.style.position = 'fixed';
         fullscreenChat.style.top = '0';
@@ -148,17 +138,15 @@ export async function GET() {
         fullscreenChat.style.width = '100%';
         fullscreenChat.style.height = '100%';
         fullscreenChat.style.zIndex = '9999';
-        fullscreenChat.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="Brandenburg Dialog Chat" style="width: 100%; height: 100%; border: none;"></iframe>\`;
+        fullscreenChat.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 100%; border: none;"></iframe>\`;
         container.appendChild(fullscreenChat);
       }
     } catch (error) {
-      console.error('Brandenburg Dialog: Fehler bei der URL-Konstruktion', error);
-      // Sicherstellen, dass der Container eine Fehlermeldung anzeigt
-      container.innerHTML = '<div style="color: red; padding: 10px;">Fehler beim Laden des Brandenburg Dialog Widgets</div>';
+      console.error('Fehler bei der URL-Konstruktion', error);
+      container.innerHTML = '<div style="color: red; padding: 10px;">Fehler beim Laden des Chat-Widgets</div>';
     }
   })();`
 
-  // Setze den Content-Type auf JavaScript
   return new NextResponse(js, {
     headers: {
       "Content-Type": "application/javascript",

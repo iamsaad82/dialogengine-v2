@@ -1,42 +1,44 @@
-import type { Metadata } from "next";
-import { Inter, Roboto_Mono } from "next/font/google";
-import "./tailwind.css";
-import "./globals.css";
+import { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import prisma from '@/lib/db'
 import { LunaryScript } from "@/components/LunaryScript";
 
-const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
+const inter = Inter({ subsets: ['latin'] })
 
-const robotoMono = Roboto_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
+// Lade die App-Einstellungen
+async function getAppSettings() {
+  const settings = await prisma.appSettings.findUnique({
+    where: { id: 'global' }
+  })
+  return settings || {
+    brandName: 'Brandenburg Dialog',
+    defaultWelcomeMessage: 'Willkommen! Wie kann ich Ihnen mit Informationen zur Stadtverwaltung Brandenburg an der Havel helfen?'
+  }
+}
 
-export const metadata: Metadata = {
-  title: "Brandenburg Dialog",
-  description: "Stadtassistent für Brandenburg an der Havel",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getAppSettings()
+  
+  return {
+    title: settings.brandName,
+    description: `Stadtassistent für ${settings.brandName}`,
+  }
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="de">
-      <body
-        className={`${inter.variable} ${robotoMono.variable} font-sans antialiased`}
-        style={{ fontFamily: 'var(--font-sans)' }}
-      >
+      <body className={inter.className}>
         {children}
         
         {/* Lunary Analytics Script (wird nur geladen, wenn in den Einstellungen aktiviert) */}
         <LunaryScript />
       </body>
     </html>
-  );
+  )
 }
