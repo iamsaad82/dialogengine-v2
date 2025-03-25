@@ -83,6 +83,9 @@ export async function PUT(
     const data = await req.json()
     console.log('Erhaltene Daten:', data)
     
+    // Prüfe, ob die Einstellungen in einem verschachtelten "settings"-Objekt sind
+    const settingsData = data.settings || data
+    
     // Validiere die Eingabedaten und stelle sicher, dass alle Felder definiert sind
     const {
       primaryColor = '#3b82f6',
@@ -95,10 +98,10 @@ export async function PUT(
       enableAnalytics = true,
       showSuggestions = true,
       showCopyButton = true
-    } = data
+    } = settingsData
 
     // Erstelle ein Objekt mit allen Werten für den Upsert
-    const settingsData = {
+    const settingsToSave = {
       botId,
       primaryColor,
       botBgColor,
@@ -112,13 +115,13 @@ export async function PUT(
       showCopyButton
     }
     
-    console.log('Zu speichernde Einstellungen:', settingsData)
+    console.log('Zu speichernde Einstellungen:', settingsToSave)
 
     // Upsert der Bot-Einstellungen (erstellen, falls nicht vorhanden, sonst aktualisieren)
     const settings = await prisma.botSettings.upsert({
       where: { botId },
-      create: settingsData,
-      update: settingsData
+      create: settingsToSave,
+      update: settingsToSave
     })
     
     console.log('Einstellungen erfolgreich gespeichert:', settings)
