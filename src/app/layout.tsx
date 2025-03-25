@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
+import "./tailwind.css";
 import "./globals.css";
 import { LunaryScript } from "@/components/LunaryScript";
 

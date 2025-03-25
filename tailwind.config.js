@@ -1,11 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: ["class"],
   theme: {
     container: {
       center: true,
@@ -71,6 +69,5 @@ module.exports = {
       },
     },
   },
-  // Plugins werden für Tailwind v4 nicht unbedingt benötigt, aber für Kompatibilität mit shadcn belassen
-  plugins: []
+  plugins: [require("@tailwindcss/typography")],
 } 

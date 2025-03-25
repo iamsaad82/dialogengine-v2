@@ -3,18 +3,7 @@ services:
     name: dialogengine-v2
     env: node
     region: frankfurt
-    buildCommand: |
-      rm -rf node_modules && rm -rf .next && npm cache clean --force
-      npm install -g tailwindcss@3.4.1 postcss@8.4.35 postcss-import@15.1.0 autoprefixer@10.4.17
-      npm install
-      # Backup für globals.css falls der Import fehlschlägt
-      cat > src/app/globals.css.backup << EOL
-      @tailwind base;
-      @tailwind components;
-      @tailwind utilities;
-      EOL
-      # Versuche zu bauen, ersetze globals.css wenn es fehlschlägt
-      npm run build || (cp src/app/globals.css.backup src/app/globals.css && npm run build)
+    buildCommand: pnpm install --no-frozen-lockfile --include=dev && pnpm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV

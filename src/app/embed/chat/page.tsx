@@ -1,11 +1,9 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
 import { Chat } from '@/components/chat'
 import { useEffect, useState } from 'react'
 
 export default function EmbeddedChat() {
-  const searchParams = useSearchParams()
   const [mode, setMode] = useState<'bubble' | 'inline' | 'fullscreen'>('inline')
   const [primaryColor, setPrimaryColor] = useState('#e63946')
   const [botId, setBotId] = useState<string | undefined>(undefined)
@@ -21,7 +19,9 @@ export default function EmbeddedChat() {
       setIsLoading(false)
     }, 100)
     
-    // Parameter aus der URL holen
+    // Parameter aus der URL holen mit nativem URLSearchParams
+    const searchParams = new URLSearchParams(window.location.search)
+    
     const modeParam = searchParams.get('mode')
     if (modeParam === 'bubble' || modeParam === 'inline' || modeParam === 'fullscreen') {
       setMode(modeParam)
@@ -73,7 +73,7 @@ export default function EmbeddedChat() {
       window.removeEventListener('message', handleMessage)
       clearTimeout(timer)
     }
-  }, [searchParams])
+  }, [])
 
   // Lade-Zustand während der Client-Hydration
   if (isLoading) {
