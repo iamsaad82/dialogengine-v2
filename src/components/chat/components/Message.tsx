@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import React from 'react'
 import { BotIcon, UserIcon, CopyIcon, CheckIcon, ThumbsUpIcon, ThumbsDownIcon } from './ui/icons'
 import { motion } from 'framer-motion'
-import Linkify from 'linkify-react'
+import ReactMarkdown from 'react-markdown'
 import classNames from 'classnames'
 import { LunaryClient } from '@/lib/lunary-client'
 
@@ -40,6 +40,77 @@ export function Message({
   useEffect(() => {
     setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
   }, [])
+  
+  // CSS-Styles für Markdown-Elemente
+  useEffect(() => {
+    // Füge CSS für die Formatierung hinzu, falls es noch nicht existiert
+    if (!document.getElementById('markdown-styles')) {
+      const styleSheet = document.createElement('style');
+      styleSheet.id = 'markdown-styles';
+      styleSheet.innerHTML = `
+        .phone-number {
+          display: inline-flex;
+          align-items: center;
+          background-color: #f0f4f8;
+          color: #2d3748;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 500;
+          white-space: nowrap;
+          margin: 0 1px;
+          border: 1px solid #e2e8f0;
+          cursor: pointer;
+          text-decoration: none;
+        }
+        
+        .phone-number:hover {
+          background-color: #e6eef7;
+        }
+        
+        .email-address, .url-address {
+          display: inline-flex;
+          align-items: center;
+          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+          color: rgba(var(--primary-rgb, 59, 130, 246), 1);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 500;
+          white-space: nowrap;
+          margin: 0 1px;
+          border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+          cursor: pointer;
+          text-decoration: none;
+        }
+        
+        .email-address:hover, .url-address:hover {
+          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.15);
+        }
+        
+        /* Vertikale Listen */
+        .list-vertical {
+          padding-left: 0.5rem;
+          margin: 0.5rem 0;
+          list-style-type: none;
+        }
+        
+        .list-item {
+          margin-bottom: 0.4rem;
+          line-height: 1.4;
+          display: flex;
+          align-items: flex-start;
+        }
+        
+        .list-item::before {
+          content: "•";
+          display: inline-block;
+          width: 1em;
+          margin-right: 0.5em;
+          font-weight: bold;
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
+  }, []);
   
   // Debug-Ausgabe beim Rendern einer Nachricht
   useEffect(() => {
@@ -170,7 +241,7 @@ export function Message({
     </div>
   )
 
-  // VERBESSERTE FORMATIERUNGSFUNKTION mit Markdown und Rich Media Unterstützung
+  // VERBESSERTE FORMATIERUNGSFUNKTION mit Markdown
   const renderContent = () => {
     console.log("MESSAGE-DEBUG-009: renderContent aufgerufen");
     
@@ -180,300 +251,36 @@ export function Message({
       return <div className="text-red-500">Ungültige Nachricht</div>;
     }
     
-    // Zurück zu einer direkteren HTML-Verarbeitung mit manueller Link-Erkennung
-    let processedContent = message.content;
-    
-    // Spezieller Fix für doppelte Sternchen (Fettdruck)
-    processedContent = processedContent.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    
-    // Einzelne Sternchen (Kursivdruck)
-    processedContent = processedContent.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    
-    // Telefonnummern erkennen und formatieren - optimierte Regex für deutsche Telefonnummern
-    // Verbesserte Version, die Postleitzahlen NICHT erkennt
-    const phoneRegex = /(?:\(?\d{3,6}\)?[-\s]?(?:\d{2,4}[-\s]?){1,3})|(?:\d{2,5}[-\s]\d{2,4}[-\s]\d{2,4})/g;
-    let phoneMatches = processedContent.match(phoneRegex);
-    if (phoneMatches) {
-      for (const phoneMatch of phoneMatches) {
-        // Prüfen, ob es sich um eine gültige Telefonnummer handelt
-        const digitCount = phoneMatch.replace(/[^\d]/g, '').length;
-        
-        // Zusätzliche Prüfung, um Postleitzahlen auszuschließen
-        // Deutsche Telefonnummern beginnen typischerweise mit 0
-        let isLikelyPhone = false;
-        
-        // Hat Klammern, Bindestriche oder besteht aus mehreren Zifferngruppen
-        if (phoneMatch.includes('(') || phoneMatch.includes(')') || 
-            phoneMatch.includes('-') || 
-            (phoneMatch.split(' ').length > 1 && !/^\d{5}$/.test(phoneMatch.replace(/\s/g, '')))) {
-          isLikelyPhone = true;
-        }
-        
-        // Beginnt mit typischen Vorwahlen
-        if (/^0\d{2,5}/.test(phoneMatch.replace(/[\s()-]/g, ''))) {
-          isLikelyPhone = true;
-        }
-        
-        // Ist eine 5-stellige Zahl, die KEINE Postleitzahl ist (unwahrscheinlich)
-        if (/^\d{5}$/.test(phoneMatch.replace(/\s/g, ''))) {
-          isLikelyPhone = false; // Wahrscheinlich eine Postleitzahl
-        }
-        
-        if (digitCount < 5 || digitCount > 15 || !isLikelyPhone) continue;
-        
-        // Telefonnummer als klickbaren Link formatieren
-        // Entferne alles außer Ziffern und + für den href-Wert
-        const cleanPhone = phoneMatch.replace(/[^\d+]/g, '');
-        const phoneLink = `<a href="tel:${cleanPhone}" class="phone-number">${phoneMatch}</a>`;
-        
-        // Ersetze die Telefonnummer durch den Link mit exaktem String-Matching
-        const escapedPhoneMatch = phoneMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regexPhone = new RegExp(`${escapedPhoneMatch}`, 'g');
-        processedContent = processedContent.replace(regexPhone, phoneLink);
-      }
-    }
-    
-    // E-Mail-Adressen erkennen und als klickbaren Link formatieren
-    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-    const emailMatches = [...processedContent.matchAll(emailRegex)];
-
-    for (const match of emailMatches) {
-      const emailMatch = match[0];
-      // Formatieren als klickbaren Link
-      const emailLink = `<a href="mailto:${emailMatch}" class="email-address">${emailMatch}</a>`;
-      
-      // Ersetze die E-Mail durch den Link mit exaktem String-Matching
-      const escapedEmailMatch = emailMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regexEmail = new RegExp(`\\b${escapedEmailMatch}\\b`, 'g');
-      processedContent = processedContent.replace(regexEmail, emailLink);
-    }
-    
-    // URLs erkennen und als klickbaren Link formatieren
-    const urlRegex = /\b(https?:\/\/|www\.)[^\s<\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}]+(?=\s|$|\)|\]|\}|"|'|<|$|\p{Emoji})/gu;
-    const urlMatches = [...processedContent.matchAll(urlRegex)];
-
-    for (const match of urlMatches) {
-      const urlMatch = match[0];
-      // URL als klickbaren Link formatieren
-      const href = urlMatch.startsWith('www.') ? `https://${urlMatch}` : urlMatch;
-      const urlLink = `<a href="${href}" target="_blank" rel="noopener noreferrer" class="url-address">${urlMatch}</a>`;
-      
-      // Ersetze die URL durch den Link mit exaktem String-Matching
-      const escapedUrlMatch = urlMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regexUrl = new RegExp(`${escapedUrlMatch}`, 'g');
-      processedContent = processedContent.replace(regexUrl, urlLink);
-    }
-    
-    // Konvertiere Listenelemente, bevor Zeilenumbrüche in <br> umgewandelt werden
-    const listLines = processedContent.split('\n');
-    const processedLines: string[] = [];
-    let inList = false;
-    let listType: 'bullet' | 'numbered' | null = null;
-    let listItems: (string | { number: string; text: string })[] = [];
-
-    for (let i = 0; i < listLines.length; i++) {
-      const line = listLines[i];
-      
-      // Verbesserte Regex-Muster für Listenelemente vs. Überschriften
-      const isHeading = /^\d+\.\s+[A-Z][a-zA-Z\s]*$/.test(line) && // Überschriften: digit + . + Großbuchstabe + Text
-                        line.trim().split(' ').length <= 4; // Überschriften sind in der Regel kürzer
-      
-      const bulletMatch = line.match(/^-\s+(.+)$/);
-      const numberedMatch = !isHeading ? line.match(/^\d+\.\s+(.+)$/) : null;
-      
-      if (bulletMatch) {
-        if (!inList || listType !== 'bullet') {
-          if (inList) {
-            // Beende vorherige Liste
-            processedLines.push(renderListItems(listItems, listType));
-            listItems = [];
-          }
-          inList = true;
-          listType = 'bullet';
-        }
-        listItems.push(bulletMatch[1].trim());
-      } else if (numberedMatch) {
-        if (!inList || listType !== 'numbered') {
-          if (inList) {
-            // Beende vorherige Liste
-            processedLines.push(renderListItems(listItems, listType));
-            listItems = [];
-          }
-          inList = true;
-          listType = 'numbered';
-        }
-        const numberMatch = line.match(/^\d+/);
-        if (numberMatch) {
-          listItems.push({
-            number: numberMatch[0],
-            text: numberedMatch[1].trim()
-          });
-        }
-      } else {
-        if (inList) {
-          // Beende Liste
-          processedLines.push(renderListItems(listItems, listType));
-          listItems = [];
-          inList = false;
-          listType = null;
-        }
-        processedLines.push(line);
-      }
-    }
-    
-    // Falls die letzte Zeile zu einer Liste gehört
-    if (inList) {
-      processedLines.push(renderListItems(listItems, listType));
-    }
-    
-    function renderListItems(
-      items: (string | { number: string; text: string })[], 
-      type: 'bullet' | 'numbered' | null
-    ): string {
-      if (items.length === 0) return '';
-      
-      // Bestimme, ob horizontale Darstellung basierend auf Länge und Anzahl der Elemente
-      const isShortList = items.length <= 3 && items.every(item => 
-        (typeof item === 'string' && item.length < 25) || 
-        (typeof item === 'object' && item.text.length < 25)
-      );
-      
-      if (isShortList) {
-        // Horizontale Darstellung für kurze Listen
-        const htmlItems = items.map(item => {
-          if (type === 'bullet') {
-            return `<span class="list-item-horizontal">• ${item as string}</span>`;
-          } else {
-            const numberedItem = item as { number: string; text: string };
-            return `<span class="list-item-horizontal">${numberedItem.number}. ${numberedItem.text}</span>`;
-          }
-        }).join('');
-        
-        return `<div class="list-horizontal">${htmlItems}</div>`;
-      } else {
-        // Vertikale Liste für längere Einträge
-        const htmlItems = items.map(item => {
-          if (type === 'bullet') {
-            // Entferne den Bullet-Punkt aus dem Text, da wir ihn über CSS setzen
-            return `<li class="list-item">${item as string}</li>`;
-          } else {
-            const numberedItem = item as { number: string; text: string };
-            return `<li class="list-item" style="padding-left: 0;">${numberedItem.number}. ${numberedItem.text}</li>`;
-          }
-        }).join('');
-        
-        return `<ul class="list-vertical">${htmlItems}</ul>`;
-      }
-    }
-    
-    // Kombiniere die verarbeiteten Zeilen
-    processedContent = processedLines.join('\n');
-    
-    // Überschriften
-    processedContent = processedContent.replace(/^#\s+(.+)$/gm, '<h3 class="text-lg font-bold mt-2 mb-0.5">$1</h3>');
-    processedContent = processedContent.replace(/^##\s+(.+)$/gm, '<h4 class="text-md font-semibold mt-1.5 mb-0.5">$1</h4>');
-    
-    // Zeilenumbrüche durch <br> ersetzen
-    processedContent = processedContent.replace(/\n/g, '<br>');
-    
-    // Füge CSS hinzu, um sicherzustellen, dass die Listen korrekt angezeigt werden
-    const inlineCSS = `
-      <style>
-        .phone-number {
-          display: inline-flex;
-          align-items: center;
-          background-color: #f0f4f8;
-          color: #2d3748;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-weight: 500;
-          white-space: nowrap;
-          margin: 0 1px;
-          border: 1px solid #e2e8f0;
-          cursor: pointer;
-          text-decoration: none;
-        }
-        
-        .phone-number:hover {
-          background-color: #e6eef7;
-        }
-        
-        .email-address, .url-address {
-          display: inline-flex;
-          align-items: center;
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
-          color: rgba(var(--primary-rgb, 59, 130, 246), 1);
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-weight: 500;
-          white-space: nowrap;
-          margin: 0 1px;
-          border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.2);
-          cursor: pointer;
-          text-decoration: none;
-        }
-        
-        .email-address:hover, .url-address:hover {
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.15);
-        }
-        
-        /* Vertikale Listen */
-        .list-vertical {
-          padding-left: 0.5rem;
-          margin: 0.5rem 0;
-          list-style-type: none;
-        }
-        
-        .list-item {
-          margin-bottom: 0.4rem;
-          line-height: 1.4;
-          display: flex;
-          align-items: flex-start;
-        }
-        
-        .list-item::before {
-          content: "•";
-          display: inline-block;
-          width: 1em;
-          margin-right: 0.5em;
-          font-weight: bold;
-        }
-        
-        /* Horizontale Listen */
-        .list-horizontal {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-          margin: 0.5rem 0;
-        }
-        
-        .list-item-horizontal {
-          display: inline-block;
-          background-color: rgba(var(--background-end-rgb, 240, 245, 255), 0.2);
-          padding: 0.25rem 0.75rem;
-          border-radius: 0.25rem;
-          font-size: 0.95em;
-        }
-
-        /* Überschriften mit konsistenten Abständen */
-        h3.text-lg {
-          margin-top: 1rem;
-          margin-bottom: 0.25rem;
-        }
-        
-        h4.text-md {
-          margin-top: 0.75rem;
-          margin-bottom: 0.25rem;
-        }
-      </style>
-    `;
-    
+    // Verwende react-markdown für die Formatierung
     return (
       <div className="prose prose-sm break-words pointer-events-auto">
-        <div 
-          dangerouslySetInnerHTML={{ __html: inlineCSS + processedContent }} 
-          className="rich-content"
-        />
+        <ReactMarkdown
+          components={{
+            a: ({node, ...props}) => (
+              <a 
+                {...props} 
+                className={
+                  props.href?.startsWith('tel:') 
+                    ? 'phone-number' 
+                    : props.href?.startsWith('mailto:') 
+                    ? 'email-address' 
+                    : 'url-address'
+                }
+                target={props.href?.startsWith('http') ? '_blank' : undefined}
+                rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+              />
+            ),
+            ul: ({node, ...props}) => <ul className="list-vertical" {...props} />,
+            ol: ({node, ...props}) => <ol className="list-vertical" {...props} />,
+            li: ({node, ...props}) => <li className="list-item" {...props} />,
+            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-2 mb-0.5" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
+            h4: ({node, ...props}) => <h4 className="text-md font-semibold mt-1.5 mb-0.5" {...props} />,
+          }}
+        >
+          {message.content}
+        </ReactMarkdown>
       </div>
     );
   }
