@@ -189,14 +189,37 @@ export function Message({
     // Einzelne Sternchen (Kursivdruck)
     processedContent = processedContent.replace(/\*([^*]+)\*/g, '<em>$1</em>');
     
-    // Telefonnummern erkennen und formatieren - optimierte Regex für verschiedene Formate
-    const phoneRegex = /(\(?\d{3,6}\)?[-\s]?(?:\d{1,4}[-\s]?){1,5})/g;
+    // Telefonnummern erkennen und formatieren - optimierte Regex für deutsche Telefonnummern
+    // Verbesserte Version, die Postleitzahlen NICHT erkennt
+    const phoneRegex = /(?:\(?\d{3,6}\)?[-\s]?(?:\d{2,4}[-\s]?){1,3})|(?:\d{2,5}[-\s]\d{2,4}[-\s]\d{2,4})/g;
     let phoneMatches = processedContent.match(phoneRegex);
     if (phoneMatches) {
       for (const phoneMatch of phoneMatches) {
         // Prüfen, ob es sich um eine gültige Telefonnummer handelt
         const digitCount = phoneMatch.replace(/[^\d]/g, '').length;
-        if (digitCount < 5 || digitCount > 15) continue;
+        
+        // Zusätzliche Prüfung, um Postleitzahlen auszuschließen
+        // Deutsche Telefonnummern beginnen typischerweise mit 0
+        let isLikelyPhone = false;
+        
+        // Hat Klammern, Bindestriche oder besteht aus mehreren Zifferngruppen
+        if (phoneMatch.includes('(') || phoneMatch.includes(')') || 
+            phoneMatch.includes('-') || 
+            (phoneMatch.split(' ').length > 1 && !/^\d{5}$/.test(phoneMatch.replace(/\s/g, '')))) {
+          isLikelyPhone = true;
+        }
+        
+        // Beginnt mit typischen Vorwahlen
+        if (/^0\d{2,5}/.test(phoneMatch.replace(/[\s()-]/g, ''))) {
+          isLikelyPhone = true;
+        }
+        
+        // Ist eine 5-stellige Zahl, die KEINE Postleitzahl ist (unwahrscheinlich)
+        if (/^\d{5}$/.test(phoneMatch.replace(/\s/g, ''))) {
+          isLikelyPhone = false; // Wahrscheinlich eine Postleitzahl
+        }
+        
+        if (digitCount < 5 || digitCount > 15 || !isLikelyPhone) continue;
         
         // Telefonnummer als klickbaren Link formatieren
         // Entferne alles außer Ziffern und + für den href-Wert
@@ -326,10 +349,11 @@ export function Message({
         // Vertikale Liste für längere Einträge
         const htmlItems = items.map(item => {
           if (type === 'bullet') {
-            return `<li class="list-item">• ${item as string}</li>`;
+            // Entferne den Bullet-Punkt aus dem Text, da wir ihn über CSS setzen
+            return `<li class="list-item">${item as string}</li>`;
           } else {
             const numberedItem = item as { number: string; text: string };
-            return `<li class="list-item">${numberedItem.number}. ${numberedItem.text}</li>`;
+            return `<li class="list-item" style="padding-left: 0;">${numberedItem.number}. ${numberedItem.text}</li>`;
           }
         }).join('');
         
@@ -390,7 +414,7 @@ export function Message({
         
         /* Vertikale Listen */
         .list-vertical {
-          padding-left: 1.5rem;
+          padding-left: 0.5rem;
           margin: 0.5rem 0;
           list-style-type: none;
         }
@@ -398,6 +422,16 @@ export function Message({
         .list-item {
           margin-bottom: 0.4rem;
           line-height: 1.4;
+          display: flex;
+          align-items: flex-start;
+        }
+        
+        .list-item::before {
+          content: "•";
+          display: inline-block;
+          width: 1em;
+          margin-right: 0.5em;
+          font-weight: bold;
         }
         
         /* Horizontale Listen */
