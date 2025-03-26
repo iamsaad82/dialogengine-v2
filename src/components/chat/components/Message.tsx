@@ -273,8 +273,13 @@ export function Message({
 
     for (let i = 0; i < listLines.length; i++) {
       const line = listLines[i];
+      
+      // Verbesserte Regex-Muster für Listenelemente vs. Überschriften
+      const isHeading = /^\d+\.\s+[A-Z][a-zA-Z\s]*$/.test(line) && // Überschriften: digit + . + Großbuchstabe + Text
+                        line.trim().split(' ').length <= 4; // Überschriften sind in der Regel kürzer
+      
       const bulletMatch = line.match(/^-\s+(.+)$/);
-      const numberedMatch = line.match(/^\d+\.\s+(.+)$/);
+      const numberedMatch = !isHeading ? line.match(/^\d+\.\s+(.+)$/) : null;
       
       if (bulletMatch) {
         if (!inList || listType !== 'bullet') {
