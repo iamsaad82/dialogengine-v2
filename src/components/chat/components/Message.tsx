@@ -251,7 +251,12 @@ export function Message({
       return <div className="text-red-500">Ungültige Nachricht</div>;
     }
     
-    // Verwende react-markdown für die Formatierung
+    // Verbesserte Vorverarbeitung des Inhalts für korrekte Abstände nach Doppelpunkten
+    let processedContent = message.content;
+    
+    // Füge bei Mustern wie "Telefon:(Nummer)" ein Leerzeichen nach dem Doppelpunkt ein
+    processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Ganztagsschule):([\S])/g, '$1: $2');
+    
     return (
       <div className="prose prose-sm break-words pointer-events-auto">
         <ReactMarkdown
@@ -277,9 +282,27 @@ export function Message({
             h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
             h3: ({node, ...props}) => <h3 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
             h4: ({node, ...props}) => <h4 className="text-md font-semibold mt-1.5 mb-0.5" {...props} />,
+            strong: ({node, ...props}) => {
+              // Prüft, ob der Text auf ":" endet, und fügt ein Leerzeichen danach ein
+              let childText = '';
+              if (props.children && typeof props.children === 'string') {
+                childText = props.children;
+              } else if (props.children && Array.isArray(props.children)) {
+                childText = props.children.map(child => 
+                  typeof child === 'string' ? child : ''
+                ).join('');
+              }
+              
+              // Wenn der Text mit einem Doppelpunkt endet, stellen wir sicher, dass ein Leerzeichen folgt
+              if (childText.endsWith(':')) {
+                return <strong {...props} className="contact-label" />;
+              }
+              
+              return <strong {...props} />;
+            }
           }}
         >
-          {message.content}
+          {processedContent}
         </ReactMarkdown>
       </div>
     );

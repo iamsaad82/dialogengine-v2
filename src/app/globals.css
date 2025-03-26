@@ -670,3 +670,73 @@ body.fullscreen-mode {
   position: relative;
   z-index: 60;
 }
+
+/* Verbesserte Listen-Formatierung, besonders für Kontaktdaten */
+.prose .list-item:has(strong:last-child:after(":")) strong:after,
+.prose li strong:last-child:after(":") {
+  content: ": ";  /* Doppelpunkt mit Leerzeichen */
+  margin-right: 0.25rem;
+}
+
+/* Optimierte Listen-Abstände */
+.prose ul li {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Verbesserte Darstellung für Kontaktdaten wie Telefon, E-Mail, Website */
+.prose a.phone-number,
+.prose a.email-address,
+.prose a.url-address {
+  display: inline-block;
+  padding-left: 0.25rem;
+}
+
+/* Bessere Abstände in verschachtelten Listen */
+.prose ul ul,
+.prose ol ol,
+.prose ul ol,
+.prose ol ul {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+  margin-left: 1.25rem !important;
+}
+
+/* Verbesserte Darstellung für Beschriftungen mit Doppelpunkten */
+.prose .contact-label:after {
+  content: " ";  /* Leerzeichen nach dem Doppelpunkt */
+  display: inline;
+}
+
+.prose li .contact-label {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  min-width: 100px;
+  display: inline-block;
+}
+
+/* Verbesserte Listen-Darstellung für Kontaktinfos */
+.prose ul li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 0.35rem !important;
+}
+
+.prose .list-item strong,
+.prose .list-item b {
+  margin-right: 0.5rem;
+}
+
+/* Für mobile Darstellung */
+@media (max-width: 640px) {
+  .prose li .contact-label {
+    min-width: auto;
+    margin-right: 0.25rem;
+  }
+  
+  .prose ul li {
+    flex-direction: column;
+  }
+}
