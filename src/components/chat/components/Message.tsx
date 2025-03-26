@@ -257,15 +257,57 @@ export function Message({
       processedContent = processedContent.replace(regexUrl, urlLink);
     }
     
-    // Listen-Elemente mit besserer Formatierung
-    processedContent = processedContent.replace(/^-\s+(.+)$/gm, '<li>$1</li>');
+    // Listen-Elemente mit besserer Formatierung - neue Implementation
+    // Einfache Listen mit "-" am Anfang
+    processedContent = processedContent.replace(/^-\s+(.+)$/gm, match => {
+      const text = match.replace(/^-\s+/, '').trim();
+      return `<li class="min-list-item">• ${text}</li>`;
+    });
     
     // Nummerierte Listen
-    processedContent = processedContent.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+    processedContent = processedContent.replace(/^\d+\.\s+(.+)$/gm, (match, p1) => {
+      const numberMatch = match.match(/^\d+/);
+      const number = numberMatch ? numberMatch[0] : '•';
+      const text = p1.trim();
+      return `<li class="min-list-item">${number}. ${text}</li>`;
+    });
     
-    // Wandle Listen-Elemente in <ul>-Listen um
-    if (processedContent.includes('<li>')) {
-      processedContent = processedContent.replace(/(<li>.*?<\/li>)+/g, match => `<ul class="list-disc ml-5 mt-2">${match}</ul>`);
+    // Wandle Listen-Elemente in <ul>-Listen um - mit Erkennung für kurze Listeneinträge
+    if (processedContent.includes('<li class="min-list-item">')) {
+      // Analysiere Listenelemente, um zu entscheiden, ob horizontale Darstellung möglich ist
+      const listItems = [];
+      let tempContent = processedContent;
+      const listRegex = /<li class="min-list-item">(.+?)<\/li>/g;
+      let match;
+      
+      // Sammle alle Listenelemente
+      while ((match = listRegex.exec(tempContent)) !== null) {
+        listItems.push(match[1]);
+      }
+      
+      // Bestimme, ob horizontale Darstellung basierend auf Länge und Anzahl der Elemente
+      const isShortList = listItems.length <= 5 && listItems.every(item => item.length < 25);
+      
+      if (isShortList) {
+        // Ersetze alle Listenelemente mit einer horizontalen Layout-Variante
+        const horizontalItems = listItems.map(item => 
+          `<span class="min-list-item-horizontal">${item}</span>`
+        ).join('');
+        
+        processedContent = processedContent.replace(
+          /<li class="min-list-item">(.+?)<\/li>/g, 
+          ''
+        );
+        
+        processedContent = processedContent + 
+          `<div class="min-list-horizontal">${horizontalItems}</div>`;
+      } else {
+        // Standard vertikale Liste mit kompakteren Abständen
+        processedContent = processedContent.replace(
+          /(<li class="min-list-item">(.+?)<\/li>)+/g, 
+          match => `<ul class="min-list">${match}</ul>`
+        );
+      }
     }
     
     // Überschriften
@@ -293,6 +335,36 @@ export function Message({
         }
         .link-tel:hover, .link-email:hover, .link-url:hover {
           background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.85);
+        }
+        
+        /* Minimale Listendarstellung */
+        .min-list {
+          margin: 0.25rem 0 0.25rem 0 !important;
+          padding: 0 0 0 1rem !important;
+          list-style-type: none !important;
+        }
+        .min-list-item {
+          margin: 0 !important;
+          padding: 0 !important;
+          line-height: 1.2 !important;
+          font-size: 0.95em !important;
+        }
+        
+        /* Horizontales Layout für kurze Listen */
+        .min-list-horizontal {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 0.5rem !important;
+          margin: 0.25rem 0 !important;
+          padding: 0 !important;
+        }
+        .min-list-item-horizontal {
+          display: inline-block !important;
+          background-color: rgba(var(--background-end-rgb, 240, 245, 255), 0.2) !important;
+          padding: 0.15rem 0.5rem !important;
+          border-radius: 0.25rem !important;
+          white-space: nowrap !important;
+          font-size: 0.95em !important;
         }
       </style>
     `;
