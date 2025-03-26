@@ -63,7 +63,24 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
   return (
     <form
       onSubmit={handleSubmit}
-      className="relative flex w-full items-center p-4 md:px-6 md:py-6"
+      className="relative flex w-full items-center p-4 md:px-5 md:py-4"
+      style={{ 
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '90px',
+        maxHeight: '90px',
+        background: 'white',
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderTop: '1px solid rgba(0,0,0,0.05)',
+        borderRadius: '0 0 12px 12px',
+        boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+        overflow: 'hidden'
+      }}
     >
       <div className="relative flex w-full items-center">
         <textarea
@@ -73,7 +90,7 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
           onKeyDown={handleKeyDown}
           placeholder="Schreiben Sie eine Nachricht..."
           className="flex h-12 w-full resize-none rounded-full border border-input/30 bg-white/70 backdrop-blur-md px-5 py-3 pr-24 text-sm ring-offset-background placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-primary/40 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm transition-all flex items-center justify-center chat-input-field"
-          style={{ paddingTop: "14px", lineHeight: "normal" }}
+          style={{ paddingTop: "16px", lineHeight: "normal" }}
           aria-label="Chat Nachricht eingeben"
           aria-multiline="true"
           aria-required="true"
@@ -91,7 +108,7 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
                 e.preventDefault()
                 onCancel()
               }}
-              className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+              className="mr-1 flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
               aria-label="Nachricht abbrechen"
               title="Nachricht abbrechen"
             >
@@ -100,7 +117,7 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
           )}
           <button
             type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-muted-foreground hover:bg-gray-100 disabled:hover:bg-white/80 disabled:hover:text-muted-foreground shadow-sm"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-muted-foreground hover:bg-gray-100 disabled:hover:bg-white/80 disabled:hover:text-muted-foreground shadow-sm"
             disabled
             aria-label="Sprachnachricht aufnehmen (nicht verfügbar)"
             title="Sprachnachricht aufnehmen (nicht verfügbar)"
@@ -109,7 +126,7 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
           </button>
           <motion.button
             type="submit"
-            className={`flex h-9 w-9 items-center justify-center rounded-full text-white hover:opacity-90 shadow-md ${
+            className={`flex h-10 w-10 items-center justify-center rounded-full text-white hover:opacity-90 shadow-md ${
               (!input.trim() || isLoading) ? "opacity-50 cursor-not-allowed" : ""
             }`}
             style={{ 

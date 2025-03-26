@@ -1,13 +1,14 @@
 'use client'
 
 import { Chat } from '@/components/chat'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 export default function EmbeddedChat() {
   const [mode, setMode] = useState<'bubble' | 'inline' | 'fullscreen'>('inline')
   const [primaryColor, setPrimaryColor] = useState('#e63946')
   const [botId, setBotId] = useState<string | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
+  const containerRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
     // Setze Hintergrund transparent
@@ -25,6 +26,14 @@ export default function EmbeddedChat() {
     const modeParam = searchParams.get('mode')
     if (modeParam === 'bubble' || modeParam === 'inline' || modeParam === 'fullscreen') {
       setMode(modeParam)
+      
+      // Bei Bubble-Modus speziellen Stylings für den Body
+      if (modeParam === 'bubble') {
+        document.body.style.overflow = 'visible';
+        document.body.style.height = 'auto';
+        document.documentElement.style.overflow = 'visible';
+        document.documentElement.style.height = 'auto';
+      }
     }
     
     const colorParam = searchParams.get('color')
@@ -56,6 +65,28 @@ export default function EmbeddedChat() {
       setBotId(botIdParam)
     }
     
+    // Größenmessungs-Funktion zum Senden der Container-Höhe an die übergeordnete Seite
+    const reportSize = () => {
+      if (containerRef.current) {
+        const height = containerRef.current.scrollHeight;
+        // Sende Nachricht an übergeordnetes Fenster mit der aktuellen Höhe
+        window.parent.postMessage({ 
+          type: 'dialog-resize', 
+          height: height,
+          mode: mode
+        }, '*');
+      }
+    };
+    
+    // Regelmäßig die Größe überprüfen und bei Änderungen melden
+    const sizeObserver = new ResizeObserver(() => {
+      reportSize();
+    });
+    
+    if (containerRef.current) {
+      sizeObserver.observe(containerRef.current);
+    }
+    
     // Kommunikation mit der Eltern-Seite
     function handleMessage(event: MessageEvent) {
       // Sicherstellen, dass die Nachricht von einer vertrauenswürdigen Quelle kommt
@@ -64,16 +95,24 @@ export default function EmbeddedChat() {
         if (event.data.action === 'close') {
           // Chat schließen - für die Bubble-Implementierung
           window.parent.postMessage({ type: 'smg-dialog', action: 'chat-closed' }, '*')
+        } else if (event.data.action === 'request-size') {
+          // Bei Anfrage die aktuelle Größe melden
+          reportSize();
         }
       }
     }
     
     window.addEventListener('message', handleMessage)
+    
+    // Initial die Größe melden, nachdem der Inhalt geladen wurde
+    setTimeout(reportSize, 500);
+    
     return () => {
       window.removeEventListener('message', handleMessage)
       clearTimeout(timer)
+      sizeObserver.disconnect();
     }
-  }, [])
+  }, [mode])
 
   // Lade-Zustand während der Client-Hydration
   if (isLoading) {
@@ -86,7 +125,18 @@ export default function EmbeddedChat() {
   }
 
   return (
-    <div className="min-h-screen embedded-chat">
+    <div 
+      ref={containerRef} 
+      className={`embedded-chat ${mode}`}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden'
+      }}
+    >
       <Chat initialMode={mode} embedded={true} botId={botId} />
     </div>
   )

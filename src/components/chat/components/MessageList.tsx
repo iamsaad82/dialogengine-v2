@@ -17,6 +17,7 @@ interface MessageListProps {
   showCopyButton?: boolean
   enableFeedback?: boolean
   botId?: string
+  botPrimaryColor?: string
 }
 
 export function MessageList({ 
@@ -26,7 +27,8 @@ export function MessageList({
   botName = 'SMG Dialog Engine',
   showCopyButton = true,
   enableFeedback = false,
-  botId
+  botId,
+  botPrimaryColor
 }: MessageListProps) {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -95,12 +97,21 @@ export function MessageList({
 
   return (
     <div 
-      className="flex-1 overflow-y-auto p-4 pb-4" 
+      className="p-4 pb-4" 
       aria-live="polite" 
       aria-atomic="false"
       style={{
         backgroundImage: 'radial-gradient(circle at center, rgba(var(--background-start-rgb), 0.03) 0, rgba(var(--background-end-rgb), 0.03) 100%)',
-        backgroundSize: '8px 8px'
+        backgroundSize: '8px 8px',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        paddingBottom: '24px',
+        borderRadius: '0'
       }}
     >
       {/* Nachrichtenliste mit separater Animation für jede Nachricht */}
@@ -202,10 +213,13 @@ export function MessageList({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed bottom-24 right-8 flex items-center gap-1 bg-primary text-primary-foreground rounded-full px-3 py-2 shadow-lg z-10"
+            className="fixed bottom-24 right-8 flex items-center gap-1 text-primary-foreground rounded-full px-3 py-2 shadow-lg z-10"
             onClick={scrollToBottom}
             aria-label="Zum Ende der Nachrichten scrollen"
             title="Zum Ende scrollen"
+            style={{ 
+              backgroundColor: botPrimaryColor || 'hsl(var(--primary))'
+            }}
           >
             <span className="text-xs font-medium">
               {unreadCount > 0 ? `${unreadCount} neue ${unreadCount === 1 ? 'Nachricht' : 'Nachrichten'}` : 'Nach unten'}
@@ -213,7 +227,10 @@ export function MessageList({
             <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />
             {unreadCount > 0 && (
               <motion.span
-                className="absolute top-0 right-0 h-full w-full rounded-full bg-primary/20"
+                className="absolute top-0 right-0 h-full w-full rounded-full"
+                style={{ 
+                  backgroundColor: `${botPrimaryColor ? botPrimaryColor + '20' : 'hsl(var(--primary)/0.2)'}`
+                }}
                 initial={{ scale: 0.8, opacity: 0.5 }}
                 animate={{ scale: 1.2, opacity: 0 }}
                 transition={{ duration: 1, repeat: Infinity }}

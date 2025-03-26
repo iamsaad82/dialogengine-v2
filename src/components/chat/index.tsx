@@ -15,10 +15,11 @@ interface ChatProps {
   initialMode?: ChatMode;
   embedded?: boolean;
   botId?: string; // Neue Eigenschaft für die Bot-ID
+  className?: string; // Neue Eigenschaft für CSS-Klassen
 }
 
-export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatProps) {
-  const [botName, setBotName] = useState<string>('SMG Dialog Engine')
+export function Chat({ initialMode = 'bubble', embedded = false, botId, className }: ChatProps) {
+  const [botName, setBotName] = useState<string>('Dialog Engine')
   const [botPrimaryColor, setBotPrimaryColor] = useState<string | undefined>(undefined)
   const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
   const [enableFeedback, setEnableFeedback] = useState<boolean>(false)
@@ -43,6 +44,13 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
     initialOpen: embedded, // Wenn eingebettet, dann direkt öffnen
     botId // Bot-ID an useChat übergeben
   })
+
+  // Wenn der Modus von außen geändert wird, aktualisiere den internen Modus
+  useEffect(() => {
+    if (setMode) {
+      setMode(initialMode);
+    }
+  }, [initialMode, setMode]);
 
   // Funktion zum Umschalten des Dialog-Modus
   const toggleDialogMode = () => {
@@ -143,8 +151,9 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
           aria-labelledby="chat-dialog-title"
           className={`
             z-50 flex flex-col overflow-hidden shadow-lg bg-background
-            ${mode === 'bubble' ? 'fixed bottom-5 right-5 w-96 h-[600px] rounded-xl border' : ''}
+            ${mode === 'bubble' ? 'fixed bottom-5 right-5 w-[480px] h-[850px] rounded-xl border' : ''}
             ${mode === 'inline' ? 'w-full h-[500px] rounded-xl border' : ''}
+            ${className || ''}
           `}
         >
           <ChatHeader 
@@ -175,14 +184,24 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
               showCopyButton={showCopyButton}
               enableFeedback={enableFeedback}
               botId={botId}
-            />
-            
-            <ChatInput 
-              isLoading={isLoading} 
-              onSend={sendMessage} 
-              onCancel={cancelMessage} 
               botPrimaryColor={botPrimaryColor}
             />
+            
+            <div style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: '90px',
+              zIndex: 20
+            }}>
+              <ChatInput 
+                isLoading={isLoading} 
+                onSend={sendMessage} 
+                onCancel={cancelMessage} 
+                botPrimaryColor={botPrimaryColor}
+              />
+            </div>
           </div>
         </div>
       </>
@@ -197,10 +216,20 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
         aria-modal="true"
         aria-labelledby="chat-dialog-title"
         className={`
-          z-50 flex flex-col overflow-hidden shadow-lg bg-background
-          ${mode === 'bubble' ? 'fixed bottom-5 right-5 w-96 h-[600px] rounded-xl border' : ''}
-          ${mode === 'inline' ? 'w-full h-[500px] rounded-xl border' : ''}
+          z-50 absolute inset-0 w-full h-full
+          ${mode === 'bubble' ? 'bubble-mode' : ''}
+          ${mode === 'inline' ? 'inline-mode' : ''}
+          ${className || ''}
         `}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          width: '100%',
+          height: '100%',
+          overflow: 'hidden'
+        }}
       >
         <ChatHeader 
           mode={mode} 
@@ -211,7 +240,20 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
           botPrimaryColor={botPrimaryColor}
         />
         
-        <div className="flex flex-col flex-1 overflow-hidden">
+        <div 
+          style={{
+            position: 'absolute',
+            top: '48px', 
+            left: 0, 
+            right: 0, 
+            bottom: '90px',
+            background: 'white',
+            borderRadius: mode === 'bubble' ? '0' : undefined,
+            boxShadow: mode === 'bubble' ? '0 6px 30px rgba(0, 0, 0, 0.2)' : 'none',
+            overflow: 'hidden',
+            zIndex: 10
+          }}
+        >
           {error && (
             <div 
               className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md" 
@@ -230,8 +272,18 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
             showCopyButton={showCopyButton}
             enableFeedback={enableFeedback}
             botId={botId}
+            botPrimaryColor={botPrimaryColor}
           />
-          
+        </div>
+        
+        <div style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '90px',
+          zIndex: 20
+        }}>
           <ChatInput 
             isLoading={isLoading} 
             onSend={sendMessage} 
@@ -351,6 +403,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
               showCopyButton={showCopyButton}
               enableFeedback={enableFeedback}
               botId={botId}
+              botPrimaryColor={botPrimaryColor}
             />
             
             <ChatInput 

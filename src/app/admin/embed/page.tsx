@@ -27,8 +27,8 @@ export default function EmbedGenerator() {
   const [bubbleSize, setBubbleSize] = useState('60')
   const [offsetX, setOffsetX] = useState('20')
   const [offsetY, setOffsetY] = useState('20')
-  const [chatWidth, setChatWidth] = useState('350')
-  const [chatHeight, setChatHeight] = useState('500')
+  const [chatWidth, setChatWidth] = useState('480')
+  const [chatHeight, setChatHeight] = useState('700')
   const [embedCode, setEmbedCode] = useState('')
   const [bots, setBots] = useState<Bot[]>([])
   const [loading, setLoading] = useState(true)
@@ -95,12 +95,18 @@ export default function EmbedGenerator() {
       if (bubbleSize !== '60') scriptUrl.searchParams.append('bubbleSize', bubbleSize);
       if (offsetX !== '20') scriptUrl.searchParams.append('offsetX', offsetX);
       if (offsetY !== '20') scriptUrl.searchParams.append('offsetY', offsetY);
-      if (chatWidth !== '350') scriptUrl.searchParams.append('chatWidth', chatWidth);
-      if (chatHeight !== '500') scriptUrl.searchParams.append('chatHeight', chatHeight);
+      if (chatWidth !== '480') scriptUrl.searchParams.append('chatWidth', chatWidth);
+      if (chatHeight !== '700') scriptUrl.searchParams.append('chatHeight', chatHeight);
     }
     
-    return `<!-- SMG Dialog Engine Chat Widget -->
-<div id="smg-dialog-container" style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : 'auto'};"></div>
+    return `<!-- Dialog Engine Chat Widget -->
+<div id="dialog-container" 
+  data-mode="${initialMode}" 
+  data-color="${primaryColor}" 
+  data-position="${position}"
+  data-bot-id="${selectedBotId}"
+  ${initialMode === 'bubble' ? '' : `style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : '100%'}; position: relative; border-radius: 12px; overflow: hidden;"`}
+></div>
 <script src="${scriptUrl.toString()}" defer></script>
 `
   }
@@ -255,6 +261,22 @@ export default function EmbedGenerator() {
                   </p>
                 </div>
                 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Container-Breite</label>
+                    <input 
+                      type="text" 
+                      value={width}
+                      onChange={(e) => setWidth(e.target.value)}
+                      className="w-full p-2 border rounded-md"
+                      placeholder="100% oder px-Wert"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Z.B. "30%", "350px", "50vw"
+                    </p>
+                  </div>
+                </div>
+                
                 <div>
                   <button
                     type="button"
@@ -322,7 +344,7 @@ export default function EmbedGenerator() {
                           className="w-full p-2 border rounded-md"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                          Breite des Chat-Fensters (Standard: 350px)
+                          Breite des Chat-Fensters (Standard: 480px)
                         </p>
                       </div>
                       <div>
@@ -335,7 +357,7 @@ export default function EmbedGenerator() {
                           className="w-full p-2 border rounded-md"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                          Höhe des Chat-Fensters (Standard: 500px)
+                          Höhe des Chat-Fensters (Standard: 700px)
                         </p>
                       </div>
                     </div>
@@ -364,17 +386,49 @@ export default function EmbedGenerator() {
               {embedCode}
             </pre>
           </div>
+          
+          <div className="mt-4">
+            <h4 className="text-sm font-medium mb-2">Beispiele für verschiedene Größen:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="mb-1">30% Breite, 700px Höhe:</p>
+                <pre className="bg-muted p-2 rounded-md text-xs overflow-x-auto">
+                  {`<div id="dialog-container" 
+  data-mode="bubble" 
+  data-color="${primaryColor}" 
+  data-bot-id="${selectedBotId}"
+  style="width: 30%; height: 700px; position: relative;">
+</div>`}
+                </pre>
+              </div>
+              <div>
+                <p className="mb-1">550px Breite, 80% Höhe:</p>
+                <pre className="bg-muted p-2 rounded-md text-xs overflow-x-auto">
+                  {`<div id="dialog-container" 
+  data-mode="bubble" 
+  data-color="${primaryColor}" 
+  data-bot-id="${selectedBotId}"
+  style="width: 550px; height: 80%; position: relative;">
+</div>`}
+                </pre>
+              </div>
+            </div>
+          </div>
         </div>
         
         <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
           <h3 className="text-lg font-medium text-yellow-800 mb-2">Hinweis zur Installation</h3>
           <p className="text-yellow-700 mb-2">
-            Der Embed-Code sollte in den HTML-Body einer Website eingefügt werden.
-            Stellen Sie sicher, dass die Website über HTTPS zugänglich ist, damit alle Funktionen korrekt funktionieren.
+            <strong>Einfache Einbettung:</strong> Kopieren Sie einfach den generierten Code in Ihre Website, und der Bot wird mit den Standardgrößen funktionieren.
+          </p>
+          <p className="text-yellow-700 mb-2">
+            <strong>Bubble-Modus:</strong> Der Bot erscheint standardmäßig als Bubble unten rechts und öffnet sich bei Klick mit 480px×700px.
+          </p>
+          <p className="text-yellow-700 mb-2">
+            <strong>Inline-Modus:</strong> Legen Sie die Größe entweder im container-div oder über die erweiterten Optionen fest.
           </p>
           <p className="text-yellow-700">
-            Die Chat-Komponente passt sich automatisch an das Design Ihrer Website an. 
-            In den Bot-Einstellungen können Sie weitere Anpassungen vornehmen.
+            <strong>Anpassung:</strong> Im container-div können Sie über <code>style="width: 500px; height: 700px;"</code> die Größe des Bots anpassen.
           </p>
         </div>
       </div>

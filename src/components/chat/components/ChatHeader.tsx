@@ -20,18 +20,22 @@ export function ChatHeader({
   botName = 'SMG Dialog Engine', 
   botPrimaryColor 
 }: ChatHeaderProps) {
-  // Dynamische Styling basierend auf der Bot-Primärfarbe
-  const headerStyle = botPrimaryColor 
-    ? {
-        backgroundColor: botPrimaryColor,
-        color: 'white', // Weißer Text auf der Primärfarbe für guten Kontrast
-        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-      }
-    : {
-        backgroundColor: 'hsl(var(--primary))',
-        color: 'hsl(var(--primary-foreground))',
-        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-      };
+  // Bestimme Stil basierend auf Modus
+  const headerStyle = {
+    backgroundColor: botPrimaryColor || 'hsl(var(--primary))',
+    color: 'white',
+    borderRadius: mode === 'bubble' ? '12px 12px 0 0' : undefined,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '48px',
+    zIndex: 10,
+    display: 'flex' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const
+  };
 
   return (
     <motion.header
