@@ -189,8 +189,8 @@ export function Message({
     // Einzelne Sternchen (Kursivdruck)
     processedContent = processedContent.replace(/\*([^*]+)\*/g, '<em>$1</em>');
     
-    // Telefonnummern erkennen und formatieren - präzisere Regex-Muster
-    const phoneRegex = /(\+\d{1,4}[\s-]?)?\(?(?:\d{2,6})\)?[\s-]?\d{3,}[\s-]?\d{1,}/g;
+    // Telefonnummern erkennen und formatieren - optimierte Regex für verschiedene Formate
+    const phoneRegex = /(\(?\d{3,6}\)?[-\s]?(?:\d{1,4}[-\s]?){1,5})/g;
     let phoneMatches = processedContent.match(phoneRegex);
     if (phoneMatches) {
       for (const phoneMatch of phoneMatches) {
@@ -199,12 +199,13 @@ export function Message({
         if (digitCount < 5 || digitCount > 15) continue;
         
         // Telefonnummer als klickbaren Link formatieren
+        // Entferne alles außer Ziffern und + für den href-Wert
         const cleanPhone = phoneMatch.replace(/[^\d+]/g, '');
         const phoneLink = `<a href="tel:${cleanPhone}" class="phone-number">${phoneMatch}</a>`;
         
         // Ersetze die Telefonnummer durch den Link mit exaktem String-Matching
         const escapedPhoneMatch = phoneMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regexPhone = new RegExp(`\\b${escapedPhoneMatch}\\b`, 'g');
+        const regexPhone = new RegExp(`${escapedPhoneMatch}`, 'g');
         processedContent = processedContent.replace(regexPhone, phoneLink);
       }
     }
