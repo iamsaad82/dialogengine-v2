@@ -198,45 +198,46 @@ export function Message({
         const digitCount = phoneMatch.replace(/[^\d]/g, '').length;
         if (digitCount < 5 || digitCount > 15) continue;
         
-        // Telefonnummer als einfachen Text formatieren - NICHT als Link
-        const phoneText = `<span class="phone-number">${phoneMatch}</span>`;
+        // Telefonnummer als klickbaren Link formatieren
+        const cleanPhone = phoneMatch.replace(/[^\d+]/g, '');
+        const phoneLink = `<a href="tel:${cleanPhone}" class="phone-number">${phoneMatch}</a>`;
         
-        // Ersetze die Telefonnummer durch formatierten Text mit exaktem String-Matching
+        // Ersetze die Telefonnummer durch den Link mit exaktem String-Matching
         const escapedPhoneMatch = phoneMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regexPhone = new RegExp(`\\b${escapedPhoneMatch}\\b`, 'g');
-        processedContent = processedContent.replace(regexPhone, phoneText);
+        processedContent = processedContent.replace(regexPhone, phoneLink);
       }
     }
     
-    // E-Mail-Adressen erkennen und als Text formatieren (nicht als Link)
+    // E-Mail-Adressen erkennen und als klickbaren Link formatieren
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
     const emailMatches = [...processedContent.matchAll(emailRegex)];
 
     for (const match of emailMatches) {
       const emailMatch = match[0];
-      // Formatieren als einfachen Text - NICHT als Link
-      const emailText = `<span class="email-address">${emailMatch}</span>`;
+      // Formatieren als klickbaren Link
+      const emailLink = `<a href="mailto:${emailMatch}" class="email-address">${emailMatch}</a>`;
       
-      // Ersetze die E-Mail durch formatierten Text mit exaktem String-Matching
+      // Ersetze die E-Mail durch den Link mit exaktem String-Matching
       const escapedEmailMatch = emailMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regexEmail = new RegExp(`\\b${escapedEmailMatch}\\b`, 'g');
-      processedContent = processedContent.replace(regexEmail, emailText);
+      processedContent = processedContent.replace(regexEmail, emailLink);
     }
     
-    // URLs erkennen und Styling anwenden
-    // URLs mit http, https, ftp und www erkennen, aber Emojis ausschließen
+    // URLs erkennen und als klickbaren Link formatieren
     const urlRegex = /\b(https?:\/\/|www\.)[^\s<\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}]+(?=\s|$|\)|\]|\}|"|'|<|$|\p{Emoji})/gu;
     const urlMatches = [...processedContent.matchAll(urlRegex)];
 
     for (const match of urlMatches) {
       const urlMatch = match[0];
-      // URL als einfachen Text formatieren - NICHT als Link (wie bei Telefon/Email)
-      const urlText = `<span class="url-address">${urlMatch}</span>`;
+      // URL als klickbaren Link formatieren
+      const href = urlMatch.startsWith('www.') ? `https://${urlMatch}` : urlMatch;
+      const urlLink = `<a href="${href}" target="_blank" rel="noopener noreferrer" class="url-address">${urlMatch}</a>`;
       
-      // Ersetze die URL durch formatierten Text mit exaktem String-Matching
+      // Ersetze die URL durch den Link mit exaktem String-Matching
       const escapedUrlMatch = urlMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regexUrl = new RegExp(`${escapedUrlMatch}`, 'g');
-      processedContent = processedContent.replace(regexUrl, urlText);
+      processedContent = processedContent.replace(regexUrl, urlLink);
     }
     
     // Konvertiere Listenelemente, bevor Zeilenumbrüche in <br> umgewandelt werden
@@ -339,8 +340,8 @@ export function Message({
     processedContent = processedLines.join('\n');
     
     // Überschriften
-    processedContent = processedContent.replace(/^#\s+(.+)$/gm, '<h3 class="text-lg font-bold mt-2 mb-1">$1</h3>');
-    processedContent = processedContent.replace(/^##\s+(.+)$/gm, '<h4 class="text-md font-semibold mt-2 mb-1">$1</h4>');
+    processedContent = processedContent.replace(/^#\s+(.+)$/gm, '<h3 class="text-lg font-bold mt-2 mb-0.5">$1</h3>');
+    processedContent = processedContent.replace(/^##\s+(.+)$/gm, '<h4 class="text-md font-semibold mt-1.5 mb-0.5">$1</h4>');
     
     // Zeilenumbrüche durch <br> ersetzen
     processedContent = processedContent.replace(/\n/g, '<br>');
@@ -348,40 +349,48 @@ export function Message({
     // Füge CSS hinzu, um sicherzustellen, dass die Listen korrekt angezeigt werden
     const inlineCSS = `
       <style>
-        .phone-number, .email-address, .url-address {
-          display: inline;
+        .phone-number {
+          display: inline-flex;
+          align-items: center;
           background-color: #f0f4f8;
           color: #2d3748;
-          padding: 2px 5px;
+          padding: 2px 6px;
           border-radius: 4px;
           font-weight: 500;
           white-space: nowrap;
           margin: 0 1px;
           border: 1px solid #e2e8f0;
+          cursor: pointer;
+          text-decoration: none;
         }
         
-        .link-url {
-          display: inline;
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 1);
-          color: white !important;
-          padding: 3px 8px;
+        .phone-number:hover {
+          background-color: #e6eef7;
+        }
+        
+        .email-address, .url-address {
+          display: inline-flex;
+          align-items: center;
+          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+          color: rgba(var(--primary-rgb, 59, 130, 246), 1);
+          padding: 2px 6px;
           border-radius: 4px;
-          text-decoration: none;
           font-weight: 500;
-          transition: background-color 0.15s ease;
-          position: relative;
           white-space: nowrap;
           margin: 0 1px;
+          border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+          cursor: pointer;
+          text-decoration: none;
         }
         
-        .link-url:hover {
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.85);
+        .email-address:hover, .url-address:hover {
+          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.15);
         }
         
         /* Vertikale Listen */
         .list-vertical {
           padding-left: 1.5rem;
-          margin: 0.75rem 0;
+          margin: 0.5rem 0;
           list-style-type: none;
         }
         
@@ -395,7 +404,7 @@ export function Message({
           display: flex;
           flex-wrap: wrap;
           gap: 0.5rem;
-          margin: 0.75rem 0;
+          margin: 0.5rem 0;
         }
         
         .list-item-horizontal {
@@ -409,12 +418,12 @@ export function Message({
         /* Überschriften mit konsistenten Abständen */
         h3.text-lg {
           margin-top: 1rem;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.25rem;
         }
         
         h4.text-md {
           margin-top: 0.75rem;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.25rem;
         }
       </style>
     `;
