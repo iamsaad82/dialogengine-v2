@@ -60,6 +60,16 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/admin/embed/page.js"
+    ],
+    "/embed/chat/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/embed/chat/page.js"
+    ],
+    "/embed/chat/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/embed/chat/layout.js"
     ]
   }
 }

@@ -59,11 +59,11 @@ export default function EmbeddedChat() {
     // Kommunikation mit der Eltern-Seite
     function handleMessage(event: MessageEvent) {
       // Sicherstellen, dass die Nachricht von einer vertrauenswürdigen Quelle kommt
-      if (event.data && event.data.type === 'stadtassistent-dialog') {
+      if (event.data && event.data.type === 'smg-dialog') {
         // Hier könnten später weitere Befehle verarbeitet werden
         if (event.data.action === 'close') {
           // Chat schließen - für die Bubble-Implementierung
-          window.parent.postMessage({ type: 'stadtassistent-dialog', action: 'chat-closed' }, '*')
+          window.parent.postMessage({ type: 'smg-dialog', action: 'chat-closed' }, '*')
         }
       }
     }

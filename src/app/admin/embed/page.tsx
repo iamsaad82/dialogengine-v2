@@ -24,11 +24,17 @@ export default function EmbedGenerator() {
   const [height, setHeight] = useState('500')
   const [width, setWidth] = useState('100%')
   const [position, setPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'>('bottom-right')
+  const [bubbleSize, setBubbleSize] = useState('60')
+  const [offsetX, setOffsetX] = useState('20')
+  const [offsetY, setOffsetY] = useState('20')
+  const [chatWidth, setChatWidth] = useState('350')
+  const [chatHeight, setChatHeight] = useState('500')
   const [embedCode, setEmbedCode] = useState('')
   const [bots, setBots] = useState<Bot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedBotId, setSelectedBotId] = useState<string>('')
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false)
 
   // Lade verfügbare Bots
   useEffect(() => {
@@ -81,12 +87,20 @@ export default function EmbedGenerator() {
     }
     scriptUrl.searchParams.append('mode', initialMode);
     scriptUrl.searchParams.append('color', encodeURIComponent(primaryColor));
+    
     if (initialMode === 'bubble') {
       scriptUrl.searchParams.append('position', position);
+      
+      // Erweiterte Optionen nur hinzufügen, wenn sie verändert wurden
+      if (bubbleSize !== '60') scriptUrl.searchParams.append('bubbleSize', bubbleSize);
+      if (offsetX !== '20') scriptUrl.searchParams.append('offsetX', offsetX);
+      if (offsetY !== '20') scriptUrl.searchParams.append('offsetY', offsetY);
+      if (chatWidth !== '350') scriptUrl.searchParams.append('chatWidth', chatWidth);
+      if (chatHeight !== '500') scriptUrl.searchParams.append('chatHeight', chatHeight);
     }
     
-    return `<!-- Stadtassistent Chat Widget -->
-<div id="stadtassistent-dialog-container" style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : 'auto'};"></div>
+    return `<!-- SMG Dialog Engine Chat Widget -->
+<div id="smg-dialog-container" style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : 'auto'};"></div>
 <script src="${scriptUrl.toString()}" defer></script>
 `
   }
@@ -94,19 +108,20 @@ export default function EmbedGenerator() {
   // Aktualisiere den Embed-Code, wenn sich die Einstellungen ändern
   useEffect(() => {
     setEmbedCode(generateEmbedCode())
-  }, [initialMode, primaryColor, position, height, width, selectedBotId])
+  }, [initialMode, primaryColor, position, height, width, selectedBotId, 
+      bubbleSize, offsetX, offsetY, chatWidth, chatHeight])
 
   return (
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Embed-Code Generator</h1>
-        <p className="text-muted-foreground">Generieren Sie einen Embed-Code für den Stadtassistent Chat-Widget</p>
+        <p className="text-muted-foreground">Generieren Sie einen Embed-Code für die SMG Dialog Engine</p>
       </div>
       
       <div className="max-w-3xl">
         <div className="bg-card rounded-lg shadow p-6 mb-8">
           <p className="text-muted-foreground mb-6">
-            Hier können Sie einen Embed-Code für den Stadtassistent Chat-Widget generieren.
+            Hier können Sie einen Embed-Code für die SMG Dialog Engine generieren.
             Dieser Code kann auf jeder Website eingefügt werden, um den Chat einzubinden.
           </p>
           
@@ -152,7 +167,7 @@ export default function EmbedGenerator() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Anfangsmodus</label>
+              <label className="block text-sm font-medium mb-2">Darstellungsmodus</label>
               <select 
                 value={initialMode}
                 onChange={(e) => setInitialMode(e.target.value as any)}
@@ -160,8 +175,13 @@ export default function EmbedGenerator() {
               >
                 <option value="bubble">Bubble (Chat-Icon in der Ecke)</option>
                 <option value="inline">Inline (Eingebettet in die Seite)</option>
-                <option value="fullscreen">Vollbild</option>
+                <option value="fullscreen">Vollbild (Mit Dialog/Web-Switcher)</option>
               </select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Der Bubble-Modus zeigt ein Chat-Icon, das beim Klick den Chat öffnet. 
+                Inline bettet den Chat direkt in die Seite ein.
+                Vollbild nutzt die gesamte Bildschirmfläche und bietet einen Dialog/Web-Switcher.
+              </p>
             </div>
             
             <div>
@@ -180,6 +200,9 @@ export default function EmbedGenerator() {
                   className="w-full p-2 border rounded-md"
                 />
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Diese Farbe wird für das Chat-Icon, Schaltflächen und Akzente im Chat verwendet.
+              </p>
             </div>
             
             {initialMode === 'inline' && (
@@ -191,7 +214,11 @@ export default function EmbedGenerator() {
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
                     className="w-full p-2 border rounded-md"
+                    min="300"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Empfohlene Mindesthöhe: 500px
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Breite</label>
@@ -202,23 +229,118 @@ export default function EmbedGenerator() {
                     className="w-full p-2 border rounded-md"
                     placeholder="100% oder px-Wert"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Z.B. "100%", "350px", "50vw"
+                  </p>
                 </div>
               </div>
             )}
             
             {initialMode === 'bubble' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Position</label>
-                <select 
-                  value={position}
-                  onChange={(e) => setPosition(e.target.value as any)}
-                  className="w-full p-2 border rounded-md"
-                >
-                  <option value="bottom-right">Unten rechts</option>
-                  <option value="bottom-left">Unten links</option>
-                  <option value="top-right">Oben rechts</option>
-                  <option value="top-left">Oben links</option>
-                </select>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Position</label>
+                  <select 
+                    value={position}
+                    onChange={(e) => setPosition(e.target.value as any)}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="bottom-right">Unten rechts</option>
+                    <option value="bottom-left">Unten links</option>
+                    <option value="top-right">Oben rechts</option>
+                    <option value="top-left">Oben links</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Position des Chat-Icons auf der Webseite
+                  </p>
+                </div>
+                
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                    className="text-sm font-medium text-primary flex items-center"
+                  >
+                    {showAdvancedOptions ? '- Erweiterte Optionen ausblenden' : '+ Erweiterte Optionen anzeigen'}
+                  </button>
+                </div>
+                
+                {showAdvancedOptions && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Bubble-Größe (px)</label>
+                      <input
+                        type="number"
+                        value={bubbleSize}
+                        onChange={(e) => setBubbleSize(e.target.value)}
+                        min="40"
+                        max="100"
+                        className="w-full p-2 border rounded-md"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Größe des Chat-Icons (Standard: 60px)
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Horizontaler Abstand (px)</label>
+                        <input
+                          type="number"
+                          value={offsetX}
+                          onChange={(e) => setOffsetX(e.target.value)}
+                          min="0"
+                          className="w-full p-2 border rounded-md"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Abstand vom Rand (Standard: 20px)
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Vertikaler Abstand (px)</label>
+                        <input
+                          type="number"
+                          value={offsetY}
+                          onChange={(e) => setOffsetY(e.target.value)}
+                          min="0"
+                          className="w-full p-2 border rounded-md"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Abstand vom Rand (Standard: 20px)
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Chat-Breite (px)</label>
+                        <input
+                          type="number"
+                          value={chatWidth}
+                          onChange={(e) => setChatWidth(e.target.value)}
+                          min="300"
+                          className="w-full p-2 border rounded-md"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Breite des Chat-Fensters (Standard: 350px)
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Chat-Höhe (px)</label>
+                        <input
+                          type="number"
+                          value={chatHeight}
+                          onChange={(e) => setChatHeight(e.target.value)}
+                          min="400"
+                          className="w-full p-2 border rounded-md"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Höhe des Chat-Fensters (Standard: 500px)
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -245,10 +367,14 @@ export default function EmbedGenerator() {
         </div>
         
         <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h3 className="text-lg font-medium text-yellow-800 mb-2">Hinweis</h3>
-          <p className="text-yellow-700">
+          <h3 className="text-lg font-medium text-yellow-800 mb-2">Hinweis zur Installation</h3>
+          <p className="text-yellow-700 mb-2">
             Der Embed-Code sollte in den HTML-Body einer Website eingefügt werden.
             Stellen Sie sicher, dass die Website über HTTPS zugänglich ist, damit alle Funktionen korrekt funktionieren.
+          </p>
+          <p className="text-yellow-700">
+            Die Chat-Komponente passt sich automatisch an das Design Ihrer Website an. 
+            In den Bot-Einstellungen können Sie weitere Anpassungen vornehmen.
           </p>
         </div>
       </div>
