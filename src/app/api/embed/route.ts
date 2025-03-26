@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   const js = `(function() {
     // Container erstellen
     const container = document.createElement('div');
-    container.id = 'brandenburg-dialog-container';
+    container.id = 'stadtassistent-dialog-container';
     document.body.appendChild(container);
 
     // Variablen für die Widget-Konfiguration
@@ -37,16 +37,16 @@ export async function GET(request: Request) {
     // Styles hinzufügen
     const style = document.createElement('style');
     style.textContent = \`
-      #brandenburg-dialog-container {
+      #stadtassistent-dialog-container {
         position: fixed;
         z-index: 9999;
       }
-      #brandenburg-dialog-iframe {
+      #stadtassistent-dialog-iframe {
         border: none;
         border-radius: 8px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
-      #brandenburg-dialog-bubble {
+      #stadtassistent-dialog-bubble {
         cursor: pointer;
         width: 60px;
         height: 60px;
@@ -57,27 +57,27 @@ export async function GET(request: Request) {
         justify-content: center;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
-      #brandenburg-dialog-bubble:hover {
+      #stadtassistent-dialog-bubble:hover {
         transform: scale(1.05);
         transition: transform 0.2s;
       }
-      .brandenburg-dialog-bottom-right {
+      .stadtassistent-dialog-bottom-right {
         bottom: 20px;
         right: 20px;
       }
-      .brandenburg-dialog-bottom-left {
+      .stadtassistent-dialog-bottom-left {
         bottom: 20px;
         left: 20px;
       }
-      .brandenburg-dialog-top-right {
+      .stadtassistent-dialog-top-right {
         top: 20px;
         right: 20px;
       }
-      .brandenburg-dialog-top-left {
+      .stadtassistent-dialog-top-left {
         top: 20px;
         left: 20px;
       }
-      #brandenburg-dialog-chat {
+      #stadtassistent-dialog-chat {
         position: fixed;
         bottom: 90px;
         right: 20px;
@@ -112,8 +112,8 @@ export async function GET(request: Request) {
       
       if (mode === 'bubble') {
         const bubble = document.createElement('div');
-        bubble.id = 'brandenburg-dialog-bubble';
-        bubble.className = 'brandenburg-dialog-' + position;
+        bubble.id = 'stadtassistent-dialog-bubble';
+        bubble.className = 'stadtassistent-dialog-' + position;
         bubble.innerHTML = \`
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -122,13 +122,13 @@ export async function GET(request: Request) {
         document.body.appendChild(bubble);
         
         const chat = document.createElement('div');
-        chat.id = 'brandenburg-dialog-chat';
+        chat.id = 'stadtassistent-dialog-chat';
         chat.style.display = 'none'; // Initial verstecken
-        chat.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 100%;"></iframe>\`;
+        chat.innerHTML = \`<iframe id="stadtassistent-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 100%;"></iframe>\`;
         document.body.appendChild(chat);
         
         bubble.addEventListener('click', function() {
-          const chatEl = document.getElementById('brandenburg-dialog-chat');
+          const chatEl = document.getElementById('stadtassistent-dialog-chat');
           if (chatEl.style.display === 'none' || chatEl.style.display === '') {
             chatEl.style.display = 'block';
           } else {
@@ -136,7 +136,7 @@ export async function GET(request: Request) {
           }
         });
       } else if (mode === 'inline') {
-        container.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 500px;"></iframe>\`;
+        container.innerHTML = \`<iframe id="stadtassistent-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 500px;"></iframe>\`;
       } else if (mode === 'fullscreen') {
         const fullscreenChat = document.createElement('div');
         fullscreenChat.style.position = 'fixed';
@@ -145,7 +145,7 @@ export async function GET(request: Request) {
         fullscreenChat.style.width = '100%';
         fullscreenChat.style.height = '100%';
         fullscreenChat.style.zIndex = '9999';
-        fullscreenChat.innerHTML = \`<iframe id="brandenburg-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 100%; border: none;"></iframe>\`;
+        fullscreenChat.innerHTML = \`<iframe id="stadtassistent-dialog-iframe" src="\${widgetUrl.toString()}" title="${bot.name} Chat" style="width: 100%; height: 100%; border: none;"></iframe>\`;
         container.appendChild(fullscreenChat);
       }
     } catch (error) {

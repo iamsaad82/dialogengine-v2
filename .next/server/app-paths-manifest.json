@@ -1,1 +1,11 @@
-{}
+{
+  "/bot-test/[id]/page": "app/bot-test/[id]/page.js",
+  "/not-found": "app/not-found.js",
+  "/api/bots/route": "app/api/bots/route.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/api/settings/route": "app/api/settings/route.js",
+  "/admin/page": "app/admin/page.js",
+  "/admin/bots/page": "app/admin/bots/page.js",
+  "/admin/bots/[id]/page": "app/admin/bots/[id]/page.js",
+  "/admin/embed/page": "app/admin/embed/page.js"
+}

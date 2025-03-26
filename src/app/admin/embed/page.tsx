@@ -69,19 +69,25 @@ export default function EmbedGenerator() {
 
   // Generiert den Embed-Code basierend auf den Einstellungen
   const generateEmbedCode = () => {
-    // Verwende einen relativen Pfad
-    const scriptSrc = '/api/embed'
+    // Base URL für das Skript
+    const baseUrl = window.location.origin;
     
-    // Basierend darauf, ob ein Bot ausgewählt wurde, füge botId hinzu oder nicht
-    const botIdAttribute = selectedBotId ? `data-bot-id="${selectedBotId}" ` : '';
+    // URL mit Parametern statt data-Attributen
+    const scriptUrl = new URL(`${baseUrl}/api/embed`);
     
-    return `<!-- Brandenburg Dialog Chat Widget -->
-<div id="brandenburg-dialog-container" 
-  ${botIdAttribute}data-mode="${initialMode}" 
-  data-color="${primaryColor}" 
-  data-position="${position}" 
-  style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : 'auto'};"></div>
-<script src="${scriptSrc}" defer></script>
+    // Parameter direkt in die URL einfügen
+    if (selectedBotId) {
+      scriptUrl.searchParams.append('botId', selectedBotId);
+    }
+    scriptUrl.searchParams.append('mode', initialMode);
+    scriptUrl.searchParams.append('color', encodeURIComponent(primaryColor));
+    if (initialMode === 'bubble') {
+      scriptUrl.searchParams.append('position', position);
+    }
+    
+    return `<!-- Stadtassistent Chat Widget -->
+<div id="stadtassistent-dialog-container" style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : 'auto'};"></div>
+<script src="${scriptUrl.toString()}" defer></script>
 `
   }
 
@@ -94,13 +100,13 @@ export default function EmbedGenerator() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Embed-Code Generator</h1>
-        <p className="text-muted-foreground">Generieren Sie einen Embed-Code für den Brandenburg Dialog Chat-Widget</p>
+        <p className="text-muted-foreground">Generieren Sie einen Embed-Code für den Stadtassistent Chat-Widget</p>
       </div>
       
       <div className="max-w-3xl">
         <div className="bg-card rounded-lg shadow p-6 mb-8">
           <p className="text-muted-foreground mb-6">
-            Hier können Sie einen Embed-Code für den Brandenburg Dialog Chat-Widget generieren.
+            Hier können Sie einen Embed-Code für den Stadtassistent Chat-Widget generieren.
             Dieser Code kann auf jeder Website eingefügt werden, um den Chat einzubinden.
           </p>
           
