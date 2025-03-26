@@ -26,7 +26,7 @@ interface MessageProps {
 export function Message({ 
   message, 
   isLastMessage = false,
-  botName = 'Stadtassistent',
+  botName = 'SMG Dialog Engine',
   showCopyButton = true,
   enableFeedback = false,
   botId = 'default'

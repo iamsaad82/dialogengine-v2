@@ -17,7 +17,7 @@ export function ChatHeader({
   onClose, 
   onModeChange, 
   setMode, 
-  botName = 'Stadtassistent Brandenburg', 
+  botName = 'SMG Dialog Engine', 
   botPrimaryColor 
 }: ChatHeaderProps) {
   // Dynamische Styling basierend auf der Bot-Primärfarbe

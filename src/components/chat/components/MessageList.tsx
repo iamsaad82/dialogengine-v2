@@ -23,7 +23,7 @@ export function MessageList({
   messages, 
   isLoading = false, 
   messagesEndRef,
-  botName = 'Stadtassistent',
+  botName = 'SMG Dialog Engine',
   showCopyButton = true,
   enableFeedback = false,
   botId

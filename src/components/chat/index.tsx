@@ -18,7 +18,7 @@ interface ChatProps {
 }
 
 export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatProps) {
-  const [botName, setBotName] = useState<string>('Stadtassistent')
+  const [botName, setBotName] = useState<string>('SMG Dialog Engine')
   const [botPrimaryColor, setBotPrimaryColor] = useState<string | undefined>(undefined)
   const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
   const [enableFeedback, setEnableFeedback] = useState<boolean>(false)
@@ -77,7 +77,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId }: ChatPr
             
             if (botData) {
               // Bot-Name setzen
-              setBotName(botData.name || 'Stadtassistent')
+              setBotName(botData.name || 'SMG Dialog Engine')
               
               // Bot-Einstellungen setzen, wenn vorhanden
               if (botData.settings) {
