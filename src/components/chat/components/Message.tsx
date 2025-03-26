@@ -198,42 +198,29 @@ export function Message({
         const digitCount = phoneMatch.replace(/[^\d]/g, '').length;
         if (digitCount < 5 || digitCount > 15) continue;
         
-        // Telefonnummer-Format erstellen
-        let href = `tel:${phoneMatch.replace(/[^\d+]/g, '')}`;
+        // Telefonnummer als einfachen Text formatieren - NICHT als Link
+        const phoneText = `<span class="phone-number">${phoneMatch}</span>`;
         
-        // Behandlung von Durchwahlen
-        if (phoneMatch.includes('-')) {
-          const parts = phoneMatch.split('-');
-          if (parts.length === 2) {
-            href = `tel:${parts[0].trim().replace(/[^\d+]/g, '')};${parts[1].trim().replace(/[^\d]/g, '')}`;
-          }
-        }
-        
-        const phoneLink = `<a href="${href}" class="link-tel">
-          ${phoneMatch}
-        </a>`;
-        
-        // Ersetze die Telefonnummer durch den Link mit exaktem String-Matching
+        // Ersetze die Telefonnummer durch formatierten Text mit exaktem String-Matching
         const escapedPhoneMatch = phoneMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regexPhone = new RegExp(`\\b${escapedPhoneMatch}\\b`, 'g');
-        processedContent = processedContent.replace(regexPhone, phoneLink);
+        processedContent = processedContent.replace(regexPhone, phoneText);
       }
     }
     
-    // E-Mail-Adressen erkennen und Styling anwenden
+    // E-Mail-Adressen erkennen und als Text formatieren (nicht als Link)
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
     const emailMatches = [...processedContent.matchAll(emailRegex)];
 
     for (const match of emailMatches) {
       const emailMatch = match[0];
-      const emailLink = `<a href="mailto:${emailMatch}" class="link-email">
-        ${emailMatch}
-      </a>`;
+      // Formatieren als einfachen Text - NICHT als Link
+      const emailText = `<span class="email-address">${emailMatch}</span>`;
       
-      // Ersetze die E-Mail durch den Link mit exaktem String-Matching
+      // Ersetze die E-Mail durch formatierten Text mit exaktem String-Matching
       const escapedEmailMatch = emailMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regexEmail = new RegExp(`\\b${escapedEmailMatch}\\b`, 'g');
-      processedContent = processedContent.replace(regexEmail, emailLink);
+      processedContent = processedContent.replace(regexEmail, emailText);
     }
     
     // URLs erkennen und Styling anwenden
@@ -243,72 +230,113 @@ export function Message({
 
     for (const match of urlMatches) {
       const urlMatch = match[0];
-      // URL korrekt formatieren - füge http hinzu, wenn es fehlt
-      const href = urlMatch.startsWith('www.') ? `https://${urlMatch}` : urlMatch;
-      const displayUrl = urlMatch.length > 30 ? `${urlMatch.substring(0, 27)}...` : urlMatch;
+      // URL als einfachen Text formatieren - NICHT als Link (wie bei Telefon/Email)
+      const urlText = `<span class="url-address">${urlMatch}</span>`;
       
-      const urlLink = `<a href="${href}" target="_blank" rel="noopener noreferrer" class="link-url">
-        ${displayUrl}
-      </a>`;
-      
-      // Ersetze die URL durch den Link mit exaktem String-Matching
+      // Ersetze die URL durch formatierten Text mit exaktem String-Matching
       const escapedUrlMatch = urlMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regexUrl = new RegExp(`${escapedUrlMatch}`, 'g');
-      processedContent = processedContent.replace(regexUrl, urlLink);
+      processedContent = processedContent.replace(regexUrl, urlText);
     }
     
-    // Listen-Elemente mit besserer Formatierung - neue Implementation
-    // Einfache Listen mit "-" am Anfang
-    processedContent = processedContent.replace(/^-\s+(.+)$/gm, match => {
-      const text = match.replace(/^-\s+/, '').trim();
-      return `<li class="min-list-item">• ${text}</li>`;
-    });
-    
-    // Nummerierte Listen
-    processedContent = processedContent.replace(/^\d+\.\s+(.+)$/gm, (match, p1) => {
-      const numberMatch = match.match(/^\d+/);
-      const number = numberMatch ? numberMatch[0] : '•';
-      const text = p1.trim();
-      return `<li class="min-list-item">${number}. ${text}</li>`;
-    });
-    
-    // Wandle Listen-Elemente in <ul>-Listen um - mit Erkennung für kurze Listeneinträge
-    if (processedContent.includes('<li class="min-list-item">')) {
-      // Analysiere Listenelemente, um zu entscheiden, ob horizontale Darstellung möglich ist
-      const listItems = [];
-      let tempContent = processedContent;
-      const listRegex = /<li class="min-list-item">(.+?)<\/li>/g;
-      let match;
+    // Konvertiere Listenelemente, bevor Zeilenumbrüche in <br> umgewandelt werden
+    const listLines = processedContent.split('\n');
+    const processedLines: string[] = [];
+    let inList = false;
+    let listType: 'bullet' | 'numbered' | null = null;
+    let listItems: (string | { number: string; text: string })[] = [];
+
+    for (let i = 0; i < listLines.length; i++) {
+      const line = listLines[i];
+      const bulletMatch = line.match(/^-\s+(.+)$/);
+      const numberedMatch = line.match(/^\d+\.\s+(.+)$/);
       
-      // Sammle alle Listenelemente
-      while ((match = listRegex.exec(tempContent)) !== null) {
-        listItems.push(match[1]);
+      if (bulletMatch) {
+        if (!inList || listType !== 'bullet') {
+          if (inList) {
+            // Beende vorherige Liste
+            processedLines.push(renderListItems(listItems, listType));
+            listItems = [];
+          }
+          inList = true;
+          listType = 'bullet';
+        }
+        listItems.push(bulletMatch[1].trim());
+      } else if (numberedMatch) {
+        if (!inList || listType !== 'numbered') {
+          if (inList) {
+            // Beende vorherige Liste
+            processedLines.push(renderListItems(listItems, listType));
+            listItems = [];
+          }
+          inList = true;
+          listType = 'numbered';
+        }
+        const numberMatch = line.match(/^\d+/);
+        if (numberMatch) {
+          listItems.push({
+            number: numberMatch[0],
+            text: numberedMatch[1].trim()
+          });
+        }
+      } else {
+        if (inList) {
+          // Beende Liste
+          processedLines.push(renderListItems(listItems, listType));
+          listItems = [];
+          inList = false;
+          listType = null;
+        }
+        processedLines.push(line);
       }
+    }
+    
+    // Falls die letzte Zeile zu einer Liste gehört
+    if (inList) {
+      processedLines.push(renderListItems(listItems, listType));
+    }
+    
+    function renderListItems(
+      items: (string | { number: string; text: string })[], 
+      type: 'bullet' | 'numbered' | null
+    ): string {
+      if (items.length === 0) return '';
       
       // Bestimme, ob horizontale Darstellung basierend auf Länge und Anzahl der Elemente
-      const isShortList = listItems.length <= 5 && listItems.every(item => item.length < 25);
+      const isShortList = items.length <= 3 && items.every(item => 
+        (typeof item === 'string' && item.length < 25) || 
+        (typeof item === 'object' && item.text.length < 25)
+      );
       
       if (isShortList) {
-        // Ersetze alle Listenelemente mit einer horizontalen Layout-Variante
-        const horizontalItems = listItems.map(item => 
-          `<span class="min-list-item-horizontal">${item}</span>`
-        ).join('');
+        // Horizontale Darstellung für kurze Listen
+        const htmlItems = items.map(item => {
+          if (type === 'bullet') {
+            return `<span class="list-item-horizontal">• ${item as string}</span>`;
+          } else {
+            const numberedItem = item as { number: string; text: string };
+            return `<span class="list-item-horizontal">${numberedItem.number}. ${numberedItem.text}</span>`;
+          }
+        }).join('');
         
-        processedContent = processedContent.replace(
-          /<li class="min-list-item">(.+?)<\/li>/g, 
-          ''
-        );
-        
-        processedContent = processedContent + 
-          `<div class="min-list-horizontal">${horizontalItems}</div>`;
+        return `<div class="list-horizontal">${htmlItems}</div>`;
       } else {
-        // Standard vertikale Liste mit kompakteren Abständen
-        processedContent = processedContent.replace(
-          /(<li class="min-list-item">(.+?)<\/li>)+/g, 
-          match => `<ul class="min-list">${match}</ul>`
-        );
+        // Vertikale Liste für längere Einträge
+        const htmlItems = items.map(item => {
+          if (type === 'bullet') {
+            return `<li class="list-item">• ${item as string}</li>`;
+          } else {
+            const numberedItem = item as { number: string; text: string };
+            return `<li class="list-item">${numberedItem.number}. ${numberedItem.text}</li>`;
+          }
+        }).join('');
+        
+        return `<ul class="list-vertical">${htmlItems}</ul>`;
       }
     }
+    
+    // Kombiniere die verarbeiteten Zeilen
+    processedContent = processedLines.join('\n');
     
     // Überschriften
     processedContent = processedContent.replace(/^#\s+(.+)$/gm, '<h3 class="text-lg font-bold mt-2 mb-1">$1</h3>');
@@ -317,10 +345,22 @@ export function Message({
     // Zeilenumbrüche durch <br> ersetzen
     processedContent = processedContent.replace(/\n/g, '<br>');
     
-    // Füge CSS hinzu, um sicherzustellen, dass die Links korrekt angezeigt werden
+    // Füge CSS hinzu, um sicherzustellen, dass die Listen korrekt angezeigt werden
     const inlineCSS = `
       <style>
-        .link-tel, .link-email, .link-url {
+        .phone-number, .email-address, .url-address {
+          display: inline;
+          background-color: #f0f4f8;
+          color: #2d3748;
+          padding: 2px 5px;
+          border-radius: 4px;
+          font-weight: 500;
+          white-space: nowrap;
+          margin: 0 1px;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .link-url {
           display: inline;
           background-color: rgba(var(--primary-rgb, 59, 130, 246), 1);
           color: white !important;
@@ -333,38 +373,48 @@ export function Message({
           white-space: nowrap;
           margin: 0 1px;
         }
-        .link-tel:hover, .link-email:hover, .link-url:hover {
+        
+        .link-url:hover {
           background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.85);
         }
         
-        /* Minimale Listendarstellung */
-        .min-list {
-          margin: 0.25rem 0 0.25rem 0 !important;
-          padding: 0 0 0 1rem !important;
-          list-style-type: none !important;
-        }
-        .min-list-item {
-          margin: 0 !important;
-          padding: 0 !important;
-          line-height: 1.2 !important;
-          font-size: 0.95em !important;
+        /* Vertikale Listen */
+        .list-vertical {
+          padding-left: 1.5rem;
+          margin: 0.75rem 0;
+          list-style-type: none;
         }
         
-        /* Horizontales Layout für kurze Listen */
-        .min-list-horizontal {
-          display: flex !important;
-          flex-wrap: wrap !important;
-          gap: 0.5rem !important;
-          margin: 0.25rem 0 !important;
-          padding: 0 !important;
+        .list-item {
+          margin-bottom: 0.4rem;
+          line-height: 1.4;
         }
-        .min-list-item-horizontal {
-          display: inline-block !important;
-          background-color: rgba(var(--background-end-rgb, 240, 245, 255), 0.2) !important;
-          padding: 0.15rem 0.5rem !important;
-          border-radius: 0.25rem !important;
-          white-space: nowrap !important;
-          font-size: 0.95em !important;
+        
+        /* Horizontale Listen */
+        .list-horizontal {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin: 0.75rem 0;
+        }
+        
+        .list-item-horizontal {
+          display: inline-block;
+          background-color: rgba(var(--background-end-rgb, 240, 245, 255), 0.2);
+          padding: 0.25rem 0.75rem;
+          border-radius: 0.25rem;
+          font-size: 0.95em;
+        }
+
+        /* Überschriften mit konsistenten Abständen */
+        h3.text-lg {
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+        }
+        
+        h4.text-md {
+          margin-top: 0.75rem;
+          margin-bottom: 0.5rem;
         }
       </style>
     `;

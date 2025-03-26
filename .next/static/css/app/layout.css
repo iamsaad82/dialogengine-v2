@@ -1315,9 +1315,6 @@ video {
 .ml-3 {
   margin-left: 0.75rem;
 }
-.ml-5 {
-  margin-left: 1.25rem;
-}
 .ml-auto {
   margin-left: auto;
 }
@@ -1348,6 +1345,9 @@ video {
 .mt-8 {
   margin-top: 2rem;
 }
+.mt-auto {
+  margin-top: auto;
+}
 .line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
@@ -1374,6 +1374,9 @@ video {
 }
 .grid {
   display: grid;
+}
+.list-item {
+  display: list-item;
 }
 .hidden {
   display: none;
@@ -1432,17 +1435,20 @@ video {
 .h-\[600px\] {
   height: 600px;
 }
+.h-\[850px\] {
+  height: 850px;
+}
 .h-full {
   height: 100%;
+}
+.h-screen {
+  height: 100vh;
 }
 .max-h-\[90vh\] {
   max-height: 90vh;
 }
 .min-h-\[200px\] {
   min-height: 200px;
-}
-.min-h-\[50vh\] {
-  min-height: 50vh;
 }
 .min-h-\[60vh\] {
   min-height: 60vh;
@@ -1489,11 +1495,17 @@ video {
 .w-8 {
   width: 2rem;
 }
+.w-80 {
+  width: 20rem;
+}
 .w-9 {
   width: 2.25rem;
 }
-.w-96 {
-  width: 24rem;
+.w-\[390px\] {
+  width: 390px;
+}
+.w-\[480px\] {
+  width: 480px;
 }
 .w-full {
   width: 100%;
@@ -1557,8 +1569,8 @@ video {
 .resize-none {
   resize: none;
 }
-.list-disc {
-  list-style-type: disc;
+.resize {
+  resize: both;
 }
 .grid-cols-1 {
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -1708,6 +1720,14 @@ video {
 .rounded-xl {
   border-radius: 0.75rem;
 }
+.rounded-l-md {
+  border-top-left-radius: calc(var(--radius) - 2px);
+  border-bottom-left-radius: calc(var(--radius) - 2px);
+}
+.rounded-r-md {
+  border-top-right-radius: calc(var(--radius) - 2px);
+  border-bottom-right-radius: calc(var(--radius) - 2px);
+}
 .border {
   border-width: 1px;
 }
@@ -1717,11 +1737,18 @@ video {
 .border-4 {
   border-width: 4px;
 }
+.border-x {
+  border-left-width: 1px;
+  border-right-width: 1px;
+}
 .border-b {
   border-bottom-width: 1px;
 }
 .border-b-2 {
   border-bottom-width: 2px;
+}
+.border-l {
+  border-left-width: 1px;
 }
 .border-r {
   border-right-width: 1px;
@@ -2011,6 +2038,9 @@ video {
   font-size: 2.25rem;
   line-height: 2.5rem;
 }
+.text-\[10px\] {
+  font-size: 10px;
+}
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
@@ -2203,6 +2233,11 @@ video {
 }
 .transition-colors {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.transition-opacity {
+  transition-property: opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -2524,6 +2559,46 @@ body.dialog-mode .mode-toggle-button {
 .rich-content a:not(.media-container a):hover {
   text-decoration-line: underline;
 }
+/* Optimierte Listen-Darstellung für den Bot-Chat */
+/* Alte Stile entfernen/überschreiben */
+.rich-content ul {
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+.rich-content ul li {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+}
+/* Neue minimale Listendarstellung */
+.rich-content .min-list {
+  margin: 0.25rem 0 0.25rem 0 !important;
+  padding: 0 0 0 1rem !important;
+  list-style-type: none !important;
+}
+.rich-content .min-list-item {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+  font-size: 0.95em !important;
+}
+/* Horizontales Layout für kurze Listen */
+.rich-content .min-list-horizontal {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  margin: 0.25rem 0 !important;
+  padding: 0 !important;
+}
+.rich-content .min-list-item-horizontal {
+  display: inline-block !important;
+  background-color: rgba(var(--background-end-rgb, 240, 245, 255), 0.2) !important;
+  padding: 0.15rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+  white-space: nowrap !important;
+  font-size: 0.95em !important;
+}
 /* Animationen für Medieninhalte */
 @keyframes mediaAppear {
   from {
@@ -2723,6 +2798,57 @@ body.dialog-mode .chat-input-field {
 .embedded-body:after {
   background: transparent !important;
 }
+/* Verbesserte Einstellungen für embedded-chat */
+.embedded-chat {
+  min-height: 100%;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+/* Bubble-Modus-spezifische Einstellungen */
+.bubble-mode {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  overflow: hidden !important;
+  min-height: 750px !important;
+}
+/* Sorgt für genügend Platz im Bubble-Modus */
+@media (min-height: 800px) {
+  .bubble-mode {
+    min-height: 850px !important;
+  }
+}
+/* Z-50 Container im Bubble-Modus */
+.bubble-mode .z-50 {
+  border: none !important;
+  background: white !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2) !important;
+}
+/* Inline-Modus-spezifische Einstellungen */
+.inline-mode {
+  background: transparent !important;
+  overflow: hidden !important;
+  border-radius: 12px !important;
+}
+/* Fullscreen-Modus-spezifische Einstellungen */
+.fullscreen-mode {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+}
 html,
 body {
   background: transparent !important;
@@ -2811,6 +2937,9 @@ body.fullscreen-mode {
 }
 .hover\:bg-muted\/50:hover {
   background-color: hsl(var(--muted) / 0.5);
+}
+.hover\:bg-muted\/80:hover {
+  background-color: hsl(var(--muted) / 0.8);
 }
 .hover\:bg-primary-foreground\/20:hover {
   background-color: hsl(var(--primary-foreground) / 0.2);
@@ -2990,28 +3119,20 @@ body.fullscreen-mode {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .md\:px-6 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+  .md\:px-5 {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
   }
 
-  .md\:py-6 {
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
+  .md\:py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 }
 @media (min-width: 1024px) {
 
-  .lg\:col-span-2 {
-    grid-column: span 2 / span 2;
-  }
-
   .lg\:w-1\/2 {
     width: 50%;
-  }
-
-  .lg\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .lg\:flex-row {
