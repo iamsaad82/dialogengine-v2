@@ -250,20 +250,26 @@ export function useChat({
                       // Der eigentliche Text ist in jsonData.data
                       const tokenText = jsonData.data;
                       
-                      // EXTREME Debug-Ausgabe für jedes Token
-                      console.warn("TOKEN-DEBUG:", {
-                        raw: tokenText.substring(0, 50),
-                        charCodes: Array.from(tokenText.substring(0, 10)).map((c: string) => c.charCodeAt(0))
-                      });
-                      
-                      // Sammle Tokens und verarbeite sie, unabhängig von HTML-Tags
-                      if (tokenText && tokenText.trim()) {
+                      // Neue Fallback-Logik für leere Nachrichten
+                      if (!streamingContent && tokenText.startsWith("<p>")) {
+                        console.log("useChat-DEBUG: Erste HTML-Nachricht erhalten", tokenText);
+                        // Setze einen Fallback-Inhalt, falls der Paragraph leer sein sollte
+                        streamingContent = tokenText;
+                        if (tokenText === "<p></p>" || tokenText === "<p> </p>") {
+                          // Expliziten Inhalt für leere Paragraphen setzen
+                          streamingContent = "<p>Ich verarbeite Ihre Anfrage...</p>";
+                        }
+                      } else {
+                        // Tokens aneinanderfügen für weitere Nachrichten
                         streamingContent += tokenText;
-                        
-                        // UI aktualisieren
-                        setStreamingBuffer(streamingContent);
-                        updateLastMessage(streamingContent);
                       }
+                      
+                      console.log("useChat-DEBUG: Aktualisiere Nachrichteninhalt:", 
+                        streamingContent.substring(0, 50) + (streamingContent.length > 50 ? "..." : ""));
+                        
+                      // UI immer aktualisieren, auch wenn Token leer sind
+                      setStreamingBuffer(streamingContent);
+                      updateLastMessage(streamingContent);
                     } 
                     else if (jsonData.event === "error") {
                       console.error("useChat-DEBUG: Fehler-Event von Flowise:", jsonData.data);
@@ -629,20 +635,26 @@ export function useChat({
                       // Der eigentliche Text ist in jsonData.data
                       const tokenText = jsonData.data;
                       
-                      // EXTREME Debug-Ausgabe für jedes Token
-                      console.warn("TOKEN-DEBUG:", {
-                        raw: tokenText.substring(0, 50),
-                        charCodes: Array.from(tokenText.substring(0, 10)).map((c: string) => c.charCodeAt(0))
-                      });
-                      
-                      // Sammle Tokens und verarbeite sie, unabhängig von HTML-Tags
-                      if (tokenText && tokenText.trim()) {
+                      // Neue Fallback-Logik für leere Nachrichten
+                      if (!streamingContent && tokenText.startsWith("<p>")) {
+                        console.log("useChat-DEBUG: Erste HTML-Nachricht erhalten", tokenText);
+                        // Setze einen Fallback-Inhalt, falls der Paragraph leer sein sollte
+                        streamingContent = tokenText;
+                        if (tokenText === "<p></p>" || tokenText === "<p> </p>") {
+                          // Expliziten Inhalt für leere Paragraphen setzen
+                          streamingContent = "<p>Ich verarbeite Ihre Anfrage...</p>";
+                        }
+                      } else {
+                        // Tokens aneinanderfügen für weitere Nachrichten
                         streamingContent += tokenText;
-                        
-                        // UI aktualisieren
-                        setStreamingBuffer(streamingContent);
-                        updateLastMessage(streamingContent);
                       }
+                      
+                      console.log("useChat-DEBUG: Aktualisiere Nachrichteninhalt:", 
+                        streamingContent.substring(0, 50) + (streamingContent.length > 50 ? "..." : ""));
+                        
+                      // UI immer aktualisieren, auch wenn Token leer sind
+                      setStreamingBuffer(streamingContent);
+                      updateLastMessage(streamingContent);
                     } 
                     else if (jsonData.event === "error") {
                       console.error("useChat-DEBUG: Fehler-Event von Flowise:", jsonData.data);

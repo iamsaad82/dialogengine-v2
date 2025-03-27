@@ -345,6 +345,7 @@ export async function POST(request: NextRequest) {
           console.log("CHAT-STREAM-API: Stream-Lesevorgang gestartet");
           let messageCount = 0;
           
+          // Direkte Weiterleitung ohne Zwischenverarbeitung
           while (true) {
             const { done, value } = await reader.read();
             
@@ -355,29 +356,21 @@ export async function POST(request: NextRequest) {
               break;
             }
             
-            // Decodiere den Chunk und leite ihn direkt weiter
-            const chunk = decoder.decode(value, { stream: true });
-            console.log("CHAT-STREAM-API: Chunk empfangen (Länge):", chunk.length);
-            
-            if (messageCount === 0) {
-              // Protokolliere den ersten Chunk für Debugging-Zwecke
-              console.log("CHAT-STREAM-API: Erster Chunk (erste 200 Zeichen):", 
-                chunk.substring(0, 200) + (chunk.length > 200 ? "..." : ""));
-            }
-            
+            // Chunks zählen für Debug
             messageCount++;
             
-            // Alle 10 Chunks ein Log ausgeben
+            // Decodiere nur für Debug-Zwecke
+            const chunk = decoder.decode(value.slice(), { stream: true });
+            
+            if (messageCount === 1) {
+              console.log("CHAT-STREAM-API: ERSTEN CHUNK ERHALTEN:", chunk);
+            }
+            
             if (messageCount % 10 === 0) {
               console.log(`CHAT-STREAM-API: ${messageCount} Nachrichtenteile empfangen`);
             }
             
-            // Prüfe, ob "message:" im Chunk ist
-            if (chunk.includes('message:')) {
-              console.log("CHAT-STREAM-API: 'message:'-Format erkannt");
-            }
-            
-            // Direkte Weiterleitung des Chunks ohne Verarbeitung
+            // Direkte Weiterleitung des rohen Chunks ohne Änderungen
             controller.enqueue(value);
           }
         } catch (error) {
