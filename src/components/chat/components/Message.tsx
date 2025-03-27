@@ -5,8 +5,8 @@ import { Message as MessageType } from '../types'
 import classNames from 'classnames'
 import { LunaryClient } from '@/lib/lunary-client'
 
-// VERSION-MARKER: Message-Debug-Code - Version 017
-console.log("Message.tsx geladen - Debug-Version 017 (JSON-Filterung)");
+// VERSION-MARKER: Message-Debug-Code - Version 018
+console.log("Message.tsx geladen - Debug-Version 018 (Duplikat-Wörter + [DONE]-Fix)");
 
 export interface MessageProps {
   message: MessageType
@@ -89,8 +89,7 @@ export function Message({
     // Ausgabe des Inhalts für Debugging-Zwecke (begrenzt auf 100 Zeichen)
     console.warn(
       "MESSAGE-RENDER-DEBUG: Verarbeite Inhalt:", 
-      content.length > 100 ? content.substring(0, 100) + "..." : content,
-      "HTML-Tags:", content.includes("<")
+      content.length > 100 ? content.substring(0, 100) + "..." : content
     );
     
     // Erkenne und filtere JSON-Objekte heraus
@@ -107,6 +106,19 @@ export function Message({
         formattedContent = content.substring(0, jsonStartIndex);
         console.warn("MESSAGE-RENDER-DEBUG: Nachricht auf Text vor JSON gekürzt:", formattedContent);
       }
+    }
+    
+    // Entferne [DONE] am Ende
+    if (formattedContent.includes("[DONE]")) {
+      formattedContent = formattedContent.replace("[DONE]", "");
+      console.warn("MESSAGE-RENDER-DEBUG: [DONE] aus der Nachricht entfernt");
+    }
+    
+    // Prüfe auf doppelte Wörter am Anfang (wie "Klar, Klar ich...")
+    const words = formattedContent.trim().split(' ');
+    if (words.length >= 2 && words[0] === words[1]) {
+      console.warn("MESSAGE-RENDER-DEBUG: Doppeltes Wort am Anfang gefunden:", words[0]);
+      formattedContent = formattedContent.replace(words[0] + ' ', '');
     }
     
     return formattedContent;
@@ -155,15 +167,12 @@ export function Message({
             }}
           />
         ) : isStreaming ? (
-          <div className="text-gray-500 italic">
-            <div className="flex items-center">
-              <span>Ich bereite eine Antwort vor</span>
-              <span className="ml-1 flex space-x-1">
-                <span className="animate-bounce delay-0">.</span>
-                <span className="animate-bounce delay-150">.</span>
-                <span className="animate-bounce delay-300">.</span>
-              </span>
-            </div>
+          <div className="text-gray-500 italic flex items-center justify-center">
+            <span className="flex space-x-1">
+              <span className="animate-bounce delay-0 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+              <span className="animate-bounce delay-150 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+              <span className="animate-bounce delay-300 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+            </span>
           </div>
         ) : (
           <div className="text-gray-500 italic">

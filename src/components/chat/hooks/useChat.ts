@@ -230,8 +230,10 @@ export function useChat({
                     const jsonData = JSON.parse(rawData);
                     console.log("useChat-DEBUG: Gültiges JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
                     
-                    // Ignoriere sourceDocuments und metadata Events
-                    if (jsonData.event === "sourceDocuments" || jsonData.event === "metadata") {
+                    // Ignoriere sourceDocuments, metadata und end Events
+                    if (jsonData.event === "sourceDocuments" || 
+                        jsonData.event === "metadata" || 
+                        jsonData.event === "end") {
                       console.log("useChat-DEBUG: Ignoriere Event vom Typ:", jsonData.event);
                       // Diese Events nicht zum Stream-Content hinzufügen
                       continue;
@@ -628,8 +630,10 @@ export function useChat({
                     const jsonData = JSON.parse(rawData);
                     console.log("useChat-DEBUG: Gültiges JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
                     
-                    // Ignoriere sourceDocuments und metadata Events
-                    if (jsonData.event === "sourceDocuments" || jsonData.event === "metadata") {
+                    // Ignoriere sourceDocuments, metadata und end Events
+                    if (jsonData.event === "sourceDocuments" || 
+                        jsonData.event === "metadata" || 
+                        jsonData.event === "end") {
                       console.log("useChat-DEBUG: Ignoriere Event vom Typ:", jsonData.event);
                       // Diese Events nicht zum Stream-Content hinzufügen
                       continue;
