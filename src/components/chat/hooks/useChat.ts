@@ -262,10 +262,19 @@ export function useChat({
                   
                   // Füge nur Text hinzu, wenn es kein leeres Objekt ist
                   if (eventData !== "{}" && eventData.trim() !== "") {
-                    // Text zum Buffer hinzufügen
-                    streamingContent += eventData;
-                    setStreamingBuffer(streamingContent);
-                    updateLastMessage(streamingContent);
+                    // Prüfe, ob es sich um ein "message:"-Format handelt
+                    if (eventData.startsWith("message:")) {
+                      // Extrahiere den Text nach "message:"
+                      eventData = eventData.substring("message:".length).trim();
+                      console.log("useChat-DEBUG: 'message:'-Format erkannt, extrahierter Text:", eventData);
+                    }
+                    
+                    // Text zum Buffer hinzufügen nur wenn nach der Extraktion noch Text vorhanden ist
+                    if (eventData.trim() !== "") {
+                      streamingContent += eventData;
+                      setStreamingBuffer(streamingContent);
+                      updateLastMessage(streamingContent);
+                    }
                   }
                 }
               } catch (e) {
@@ -624,10 +633,19 @@ export function useChat({
                   
                   // Füge nur Text hinzu, wenn es kein leeres Objekt ist
                   if (eventData !== "{}" && eventData.trim() !== "") {
-                    // Text zum Buffer hinzufügen
-                    streamingContent += eventData;
-                    setStreamingBuffer(streamingContent);
-                    updateLastMessage(streamingContent);
+                    // Prüfe, ob es sich um ein "message:"-Format handelt
+                    if (eventData.startsWith("message:")) {
+                      // Extrahiere den Text nach "message:"
+                      eventData = eventData.substring("message:".length).trim();
+                      console.log("useChat-DEBUG: 'message:'-Format erkannt, extrahierter Text:", eventData);
+                    }
+                    
+                    // Text zum Buffer hinzufügen nur wenn nach der Extraktion noch Text vorhanden ist
+                    if (eventData.trim() !== "") {
+                      streamingContent += eventData;
+                      setStreamingBuffer(streamingContent);
+                      updateLastMessage(streamingContent);
+                    }
                   }
                 }
               } catch (e) {

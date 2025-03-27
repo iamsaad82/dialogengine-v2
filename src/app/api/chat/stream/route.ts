@@ -374,8 +374,35 @@ export async function POST(request: NextRequest) {
                 const eventData = dataMatch[1].trim();
                 console.log("CHAT-STREAM-API: Extrahierte Daten:", eventData.substring(0, 50) + (eventData.length > 50 ? "..." : ""));
                 
-                // Format: "data: Text\n\n" - wichtig für SSE
-                controller.enqueue(encoder.encode(`data: ${eventData}\n\n`));
+                // Versuche die Daten als JSON zu parsen
+                try {
+                  const jsonData = JSON.parse(eventData);
+                  // Wenn es sich um JSON-Daten handelt, extrahiere den tatsächlichen Inhalt
+                  if (jsonData && typeof jsonData === 'object') {
+                    let processedData = eventData;
+                    
+                    // Bekannte Flowise-Formate verarbeiten
+                    if (jsonData.message) {
+                      processedData = jsonData.message;
+                      console.log("CHAT-STREAM-API: JSON 'message' Feld gefunden:", processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                    } else if (jsonData.text) {
+                      processedData = jsonData.text;
+                      console.log("CHAT-STREAM-API: JSON 'text' Feld gefunden:", processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                    } else if (jsonData.content) {
+                      processedData = jsonData.content;
+                      console.log("CHAT-STREAM-API: JSON 'content' Feld gefunden:", processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                    }
+                    
+                    // Sende den formatierten Inhalt zurück
+                    controller.enqueue(encoder.encode(`data: ${processedData}\n\n`));
+                  } else {
+                    // Einfacher String oder unbekanntes Format
+                    controller.enqueue(encoder.encode(`data: ${eventData}\n\n`));
+                  }
+                } catch (jsonError) {
+                  // Kein valides JSON, sende die Rohdaten
+                  controller.enqueue(encoder.encode(`data: ${eventData}\n\n`));
+                }
               } else {
                 // Wenn kein Data-Match gefunden wurde, senden wir den Chunk direkt
                 controller.enqueue(value);
