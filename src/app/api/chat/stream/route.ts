@@ -255,27 +255,49 @@ export async function POST(request: NextRequest) {
     console.log("CHAT-STREAM-API: Flowise API Anfrage:", apiUrl);
     console.log("CHAT-STREAM-API: Request Body:", JSON.stringify(requestBody));
     
-    // Setze Fetch-Optionen mit Streaming
+    // Verbessere die Fetch-Optionen
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': FLOWISE_API_KEY ? `Bearer ${FLOWISE_API_KEY}` : ''
+      'Authorization': FLOWISE_API_KEY ? `Bearer ${FLOWISE_API_KEY}` : '',
+      'Accept': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Requested-With': 'XMLHttpRequest'
     };
     
-    // Fetch mit Streaming
+    // Fetch mit Streaming und verbessertem Error-Handling
+    console.log("CHAT-STREAM-API: Sende Anfrage an Flowise API...");
     const flowiseResponse = await fetch(apiUrl, {
       method: 'POST',
       headers,
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
+      cache: 'no-store',
+      keepalive: true
     });
     
+    console.log("CHAT-STREAM-API: Flowise API Antwort erhalten, Status:", flowiseResponse.status);
+    
+    // Überprüfe den Status und protokolliere Headers
+    console.log("CHAT-STREAM-API: Response Headers:", 
+      [...flowiseResponse.headers.entries()].map(entry => `${entry[0]}: ${entry[1]}`).join(", ")
+    );
+    
     if (!flowiseResponse.ok) {
-      console.error("CHAT-STREAM-API: Fehler von Flowise API:", flowiseResponse.status);
+      // Versuche, den Fehlertext zu lesen
+      let errorText = "Kein Fehlertext verfügbar";
+      try {
+        errorText = await flowiseResponse.text();
+      } catch (e) {
+        console.error("CHAT-STREAM-API: Fehler beim Lesen des Fehlertexts:", e);
+      }
+      
+      console.error(`CHAT-STREAM-API: Fehler von Flowise API: ${flowiseResponse.status} - ${errorText}`);
       
       // Sende Fehlerereignis
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         start(controller) {
-          controller.enqueue(encoder.encode(`event: error\ndata: API-Fehler: ${flowiseResponse.status}\n\n`));
+          controller.enqueue(encoder.encode(`event: error\ndata: API-Fehler ${flowiseResponse.status}: ${errorText}\n\n`));
           controller.close();
         }
       });
@@ -298,33 +320,50 @@ export async function POST(request: NextRequest) {
     const transformStream = new ReadableStream({
       async start(controller) {
         if (!reader) {
-          controller.error(new Error('Kein Leser verfügbar'));
+          console.error("CHAT-STREAM-API: Kein Stream-Reader verfügbar");
+          controller.enqueue(encoder.encode("event: error\ndata: Kein Stream-Reader verfügbar\n\n"));
+          controller.close();
           return;
         }
         
         try {
+          console.log("CHAT-STREAM-API: Stream-Lesevorgang gestartet");
+          let messageBuffer = '';
+          let messageCount = 0;
+          
           while (true) {
             const { done, value } = await reader.read();
             
             if (done) {
+              console.log(`CHAT-STREAM-API: Stream beendet, insgesamt ${messageCount} Nachrichtenteile empfangen`);
               // Stream ist zu Ende, sende end-Event
               controller.enqueue(encoder.encode("event: end\ndata: {}\n\n"));
               controller.close();
               break;
             }
             
-            // Decodiere den Stream und verarbeite die SSE-Events
+            // Decodiere den Stream und protokolliere den Chunk
             const chunk = decoder.decode(value, { stream: true });
-            // Server-sent events haben das Format `event: eventName\ndata: eventData\n\n`
+            messageBuffer += chunk;
+            messageCount++;
+            
+            if (messageCount % 10 === 0) {
+              console.log(`CHAT-STREAM-API: ${messageCount} Nachrichtenteile empfangen`);
+            }
+            
+            // Sende den Chunk an den Client
             controller.enqueue(value);
           }
         } catch (error) {
           console.error("CHAT-STREAM-API: Fehler beim Lesen des Streams:", error);
-          controller.error(error);
+          // Sende einen Fehler an den Client
+          controller.enqueue(encoder.encode(`event: error\ndata: Fehler beim Lesen des Streams: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\n`));
+          controller.close();
         }
       },
       
       cancel() {
+        console.log("CHAT-STREAM-API: Stream-Lesevorgang abgebrochen");
         reader?.cancel();
       }
     });

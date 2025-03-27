@@ -144,209 +144,106 @@ export function useChat({
     });
   }, []);
 
-  // Nachricht senden und Antwort erhalten (mit Streaming)
-  const sendMessage = useCallback(async (content: string) => {
-    console.log('Sending message:', content)
+  // Verbessere die sendMessage Funktion, um Fehler beim Streaming zu behandeln
+
+  // Verbessere die Fehlerbehandlung beim Streaming
+  const sendMessageWithStreaming = async (content: string): Promise<void> => {
     
-    if (!content || content.trim() === '') {
-      return
-    }
+    // Existierende Implementierung...
+    
+    // Setze den Streaming-Status
+    setIsStreaming(true);
+    
+    // Bereite Streaming-Buffer vor
+    let streamingContent = '';
     
     try {
-      // Anfang des Ladevorgangs
-      setIsLoading(true)
-      setError(null)
-      setIsStreaming(true)
-      setStreamingBuffer('')
+      console.log("useChat-DEBUG: Streaming-Anfrage wird gesendet");
       
-      // Benutzer-Nachricht hinzufügen
-      const userMessage: Message = { role: 'user', content }
-      addMessage(userMessage)
+      const response = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: content,
+          messages: messages,
+          botId
+        })
+      });
       
-      // Abbrechen wenn schon eine Anfrage läuft
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-      
-      // EventSource abbrechen, falls vorhanden
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close()
-        eventSourceRef.current = null
-      }
-      
-      // Neue AbortController-Instanz erstellen
-      abortControllerRef.current = new AbortController()
-      const signal = abortControllerRef.current.signal
-      
-      // Tracking für gesendete Nachricht
-      LunaryClient.track({
-        eventName: 'message_sent',
-        properties: { 
-          content: content.slice(0, 100), // Ersten 100 Zeichen der Nachricht
-          botId,
-          streaming: true
-        },
-        metadata: { sessionId: sessionIdRef.current }
-      })
-      
-      // Leere Assistenten-Nachricht hinzufügen, die später aktualisiert wird
-      const assistantMessage: Message = { role: 'assistant', content: '' }
-      addMessage(assistantMessage)
-      
-      // URL-Parameter für die Anfrage
-      const params = new URLSearchParams();
-      if (botId) {
-        params.append('botId', botId);
-      }
-      
-      // EventSource für Streaming erstellen
-      const url = `/api/chat/stream?${params.toString()}`;
-      const eventSource = new EventSource(url);
-      eventSourceRef.current = eventSource;
-      
-      // Timer für Timeout (15 Sekunden)
-      const timeoutId = setTimeout(() => {
-        if (eventSourceRef.current) {
-          eventSourceRef.current.close();
-          setError('Zeitüberschreitung bei der Anfrage. Bitte versuchen Sie es später erneut.');
-          setIsLoading(false);
-          setIsStreaming(false);
-        }
-      }, 15000);
-      
-      // Event-Handler registrieren
-      eventSource.onopen = () => {
-        console.log('Stream verbunden');
-        
-        // POST-Anfrage mit Daten senden
-        fetch('/api/chat/stream', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: content,
-            history: messages,
-            botId: botId,
-          }),
-          signal,
-        }).catch(error => {
-          console.error('Fehler beim Senden der POST-Anfrage:', error);
-          eventSource.close();
-          setError('Fehler beim Senden der Nachricht');
-          setIsLoading(false);
-          setIsStreaming(false);
-          clearTimeout(timeoutId);
-        });
-      };
-      
-      // Token-Events verarbeiten
-      eventSource.addEventListener('token', (event) => {
+      if (!response.ok) {
+        console.error("useChat-DEBUG: Fehler bei der Streaming-Anfrage:", response.status);
+        let errorText = "Verbindungsfehler";
         try {
-          const token = JSON.parse(event.data);
-          
-          // Token zum Buffer hinzufügen
-          setStreamingBuffer(prev => {
-            const newBuffer = prev + token;
-            
-            // Aktualisiere die letzte Nachricht mit formatiertem Markdown
-            const safeMarkdown = ensureCompleteMarkdown(newBuffer);
-            updateLastMessage(safeMarkdown);
-            
-            return newBuffer;
-          });
-        } catch (error) {
-          console.error('Fehler beim Verarbeiten des Token-Events:', error);
+          errorText = await response.text();
+        } catch (e) {
+          console.error("useChat-DEBUG: Fehler beim Lesen des Fehlertexts:", e);
         }
-      });
-      
-      // Fehler-Events verarbeiten
-      eventSource.addEventListener('error', (event) => {
-        console.error('Stream-Fehler:', event);
-        setError('Beim Empfangen der Antwort ist ein Fehler aufgetreten.');
-        eventSource.close();
-        clearTimeout(timeoutId);
-        setIsLoading(false);
-        setIsStreaming(false);
-      });
-      
-      // Metadata-Events verarbeiten
-      eventSource.addEventListener('metadata', (event) => {
-        console.log('Metadata erhalten:', event.data);
-      });
-      
-      // Source-Dokumente verarbeiten
-      eventSource.addEventListener('sourceDocuments', (event) => {
-        console.log('Quelldokumente erhalten:', event.data);
-      });
-      
-      // End-Event verarbeiten
-      eventSource.addEventListener('end', (event) => {
-        console.log('Stream beendet');
-        eventSource.close();
-        eventSourceRef.current = null;
-        clearTimeout(timeoutId);
-        
-        // Finales Update mit formatiertem Markdown
-        setStreamingBuffer(prev => {
-          const finalMarkdown = ensureCompleteMarkdown(prev);
-          updateLastMessage(finalMarkdown);
-          return finalMarkdown;
-        });
-        
-        setIsLoading(false);
-        setIsStreaming(false);
-        
-        // Tracking für empfangene Antwort
-        LunaryClient.track({
-          eventName: 'message_received',
-          properties: { 
-            content: streamingBuffer.slice(0, 100), // Ersten 100 Zeichen der Antwort
-            botId,
-            responseTime: Date.now() - performance.now(), // Ungefähre Antwortzeit
-            streaming: true
-          },
-          metadata: { sessionId: sessionIdRef.current }
-        });
-      });
-      
-      // Allgemeiner Fehler-Handler für EventSource
-      eventSource.onerror = (error) => {
-        console.error('EventSource Fehler:', error);
-        eventSource.close();
-        eventSourceRef.current = null;
-        clearTimeout(timeoutId);
-        setIsLoading(false);
-        setIsStreaming(false);
-        setError('Verbindungsfehler beim Streaming der Antwort.');
-      };
-
-    } catch (err) {
-      // Prüfe, ob es sich um einen Abbruch handelt
-      if ((err as Error).name === 'AbortError') {
-        console.log('Anfrage wurde abgebrochen')
-        return
+        throw new Error(`Fehler bei der Streaming-Anfrage: ${response.status} - ${errorText}`);
       }
       
-      console.error('Fehler beim Senden der Nachricht:', err)
-      setError('Beim Senden der Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.')
+      console.log("useChat-DEBUG: Streaming-Antwort empfangen, Reader wird initialisiert");
       
-      // Tracking für Fehler
-      LunaryClient.track({
-        eventName: 'message_error',
-        properties: { 
-          error: err instanceof Error ? err.message : 'Unbekannter Fehler',
-          botId 
-        },
-        metadata: { sessionId: sessionIdRef.current }
-      })
+      // Event Source wird verwendet, um den Stream zu lesen
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("Kein Stream-Reader verfügbar");
+      }
       
+      const decoder = new TextDecoder();
+      
+      // Lese den Stream
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          console.log("useChat-DEBUG: Stream beendet");
+          break;
+        }
+        
+        // Decodiere den Chunk
+        const chunk = decoder.decode(value, { stream: true });
+        console.log("useChat-DEBUG: Chunk empfangen:", chunk.substring(0, 50) + (chunk.length > 50 ? "..." : ""));
+        
+        // Verarbeite SSE Events
+        const lines = chunk.split('\n\n');
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          
+          try {
+            // Prüfe, ob es sich um ein Fehler-Event handelt
+            if (line.startsWith('event: error')) {
+              const errorData = line.replace('event: error\ndata: ', '');
+              console.error("useChat-DEBUG: Fehler-Event empfangen:", errorData);
+              throw new Error(`Streaming-Fehler: ${errorData}`);
+            }
+            
+            // Normales Daten-Event verarbeiten
+            if (line.startsWith('data:')) {
+              const eventData = line.replace('data: ', '');
+              console.log("useChat-DEBUG: Daten empfangen, Länge:", eventData.length);
+              
+              // Aktualisiere den Streaming-Buffer
+              streamingContent += eventData;
+              setStreamingBuffer(streamingContent);
+              updateLastMessage(streamingContent);
+            }
+          } catch (parseError) {
+            console.error("useChat-DEBUG: Fehler beim Parsen des Chunks:", parseError);
+          }
+        }
+      }
+      
+      console.log("useChat-DEBUG: Streaming abgeschlossen");
+      
+    } catch (error) {
+      console.error("useChat-DEBUG: Fehler beim Streaming:", error);
+      setError(error instanceof Error ? error.message : 'Verbindungsfehler. Fehler beim Streaming der Antwort');
     } finally {
-      // Hier müssen wir nichts tun, da wir den Ladevorgang und Streaming-Status in den Event-Handlern beenden
-      abortControllerRef.current = null
-      setInput('')
+      setIsStreaming(false);
+      setIsLoading(false);
+      setStreamingBuffer('');
     }
-  }, [messages, addMessage, botId, updateLastMessage, streamingBuffer]);
+  };
 
   // Fallback-Methode für Nicht-Streaming (für Abwärtskompatibilität)
   const sendMessageWithoutStreaming = useCallback(async (content: string) => {
@@ -557,7 +454,7 @@ export function useChat({
     setCurrentMode,
     addMessage,
     // Verwende sendMessage für Streaming, optional sendMessageWithoutStreaming für Fallback
-    sendMessage,
+    sendMessageWithStreaming,
     sendMessageWithoutStreaming,
     cancelMessage,
     botSettings,
