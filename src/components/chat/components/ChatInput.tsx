@@ -16,6 +16,7 @@ export interface ChatInputProps {
   botId?: string
   placeholder?: string
   className?: string
+  botPrimaryColor?: string
 }
 
 // Einfache SVG Icons für die Komponente
@@ -47,7 +48,8 @@ export function ChatInput({
   onCancel,
   botId = 'default',
   placeholder = 'Schreibe deine Nachricht...',
-  className = ''
+  className = '',
+  botPrimaryColor
 }: ChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [ctrlEnterUsed, setCtrlEnterUsed] = useState(false)

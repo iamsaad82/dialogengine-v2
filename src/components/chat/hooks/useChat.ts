@@ -560,6 +560,7 @@ export function useChat({
     sendMessage,
     sendMessageWithoutStreaming,
     cancelMessage,
-    botSettings
+    botSettings,
+    setMode
   }
 } 

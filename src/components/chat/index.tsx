@@ -197,7 +197,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
             }}>
               <ChatInput 
                 isLoading={isLoading} 
-                onSend={sendMessage} 
+                onSubmit={sendMessage} 
                 onCancel={cancelMessage} 
                 botPrimaryColor={botPrimaryColor}
               />
@@ -286,7 +286,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
         }}>
           <ChatInput 
             isLoading={isLoading} 
-            onSend={sendMessage} 
+            onSubmit={sendMessage} 
             onCancel={cancelMessage} 
             botPrimaryColor={botPrimaryColor}
           />
@@ -408,7 +408,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
             
             <ChatInput 
               isLoading={isLoading} 
-              onSend={sendMessage} 
+              onSubmit={sendMessage} 
               onCancel={cancelMessage} 
               botPrimaryColor={botPrimaryColor}
             />
