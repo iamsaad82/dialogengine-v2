@@ -36,6 +36,9 @@ console.log("Message.tsx geladen - Debug-Version 025 (Tabellarische Darstellung 
 // VERSION-MARKER: Message-Debug-Code - Version 026
 console.log("Message.tsx geladen - Debug-Version 026 (Verbesserte Darstellung für alle strukturierten Daten)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 027
+console.log("Message.tsx geladen - Debug-Version 027 (Verbesserte E-Mail und Telefonnummer Erkennung)");
+
 // Entferne Abhängigkeit von externen Icons durch einfache SVG-Implementierungen
 const IconUser = (props: any) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -161,6 +164,39 @@ export function Message({
     // Entferne [DONE] am Ende
     cleanedContent = cleanedContent.replace(/\[DONE\]$/g, '');
 
+    // Verbesserte Erkennung und Formatierung von E-Mail-Adressen
+    // Regex für E-Mail-Adressen
+    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    
+    // Ersetze E-Mail-Adressen mit Markdown-Links
+    cleanedContent = cleanedContent.replace(emailRegex, (match) => {
+      console.log("MESSAGE-RENDER-DEBUG: E-Mail erkannt:", match);
+      return `[${match}](mailto:${match})`;
+    });
+    
+    // Verbesserte Erkennung und Formatierung von Telefonnummern
+    // Verschiedene deutsche Telefonnummernformate
+    const phoneRegexes = [
+      // Format: (03381) 12 34 56
+      /\(\d{3,6}\)\s*\d{2,3}(\s*\d{2,3})*/g,
+      // Format: 03381-12345
+      /\d{3,6}-\d{3,6}(-\d{1,6})*/g,
+      // Format: 03381/12345
+      /\d{3,6}\/\d{3,6}(\/\d{1,6})*/g,
+      // Format: 03381 12345
+      /(?<!\d)0\d{3,5}\s\d{3,9}/g
+    ];
+    
+    // Wende alle Telefonnummer-Regex-Muster an
+    phoneRegexes.forEach(regex => {
+      cleanedContent = cleanedContent.replace(regex, (match) => {
+        console.log("MESSAGE-RENDER-DEBUG: Telefonnummer erkannt:", match);
+        // Entferne Leerzeichen und andere nicht-numerische Zeichen für den Link
+        const cleanPhone = match.replace(/[^\d+]/g, '');
+        return `[${match}](tel:${cleanPhone})`;
+      });
+    });
+
     // Prüfen, ob der Inhalt HTML enthält
     const containsHtml = /<\/?[a-z][\s\S]*>/i.test(cleanedContent);
     
@@ -229,7 +265,7 @@ export function Message({
       console.log("MESSAGE-RENDER-DEBUG: Markdown-Inhalt erkannt");
       
       // Erkennen von strukturierten Daten (Schulen, Kitas, etc.)
-      const containsStructuredData = /Name:|Adresse:|Kontakt:|Telefon:|E-Mail:|Website:|Schulform:|Angebote:|Öffnungszeiten:/i.test(cleanedContent);
+      const containsStructuredData = /Name:|Adresse:|Kontakt:|Telefon:|E-Mail:|Website:|Schulform:|Angebote:|Öffnungszeiten:|Bürgeramt|Standesamt|Bürgerbüro/i.test(cleanedContent);
       
       if (containsStructuredData) {
         console.log("MESSAGE-RENDER-DEBUG: Strukturierte Daten erkannt");
@@ -239,6 +275,7 @@ export function Message({
           .replace(/(\n|^)Name:(\s*)/g, '$1**Name:**$2')
           .replace(/(\n|^)Schulform:(\s*)/g, '$1**Schulform:**$2')
           .replace(/(\n|^)Schulleitung:(\s*)/g, '$1**Schulleitung:**$2')
+          .replace(/(\n|^)Standort:(\s*)/g, '$1**Standort:**$2')
           .replace(/(\n|^)Adresse:(\s*)/g, '$1**Adresse:**$2')
           .replace(/(\n|^)Kontakt:(\s*)/g, '$1**Kontakt:**$2')
           .replace(/(\n|^)Telefon:(\s*)/g, '$1**Telefon:**$2')
@@ -249,7 +286,9 @@ export function Message({
           .replace(/(\n|^)Von:(\s*)/g, '$1**Von:**$2')
           .replace(/(\n|^)Bis:(\s*)/g, '$1**Bis:**$2')
           .replace(/(\n|^)Link:(\s*)/g, '$1**Link:**$2')
-          .replace(/(\n|^)Ganztagsschule:(\s*)/g, '$1**Ganztagsschule:**$2');
+          .replace(/(\n|^)Ganztagsschule:(\s*)/g, '$1**Ganztagsschule:**$2')
+          .replace(/(\n|^)Bürgeramt(\s+)Standort:(\s*)/g, '$1**Bürgeramt Standort:**$3')
+          .replace(/(\n|^)Das Bürgeramt(\s+)ist(\s+)für(\s+)folgende(\s+)Themen(\s+)zuständig:/g, '$1**Das Bürgeramt ist für folgende Themen zuständig:**');
         
         // Konvertiere Listen in MD-Format für bessere Darstellung
         // Erkenne Listen-Muster wie "- Item" oder "* Item"
