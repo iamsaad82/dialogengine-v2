@@ -153,6 +153,8 @@ export function useChat({
     
     // Setze den Streaming-Status
     setIsStreaming(true);
+    setIsLoading(true);
+    setError(null);
     
     // Bereite Streaming-Buffer vor
     let streamingContent = '';
@@ -269,7 +271,10 @@ export function useChat({
                     }
                     
                     // Wenn Inhalt gefunden wurde, füge ihn zur Nachricht hinzu
-                    if (actualContent !== null) {
+                    if (actualContent !== null && actualContent.trim() !== "") {
+                      // Erste echte Nachricht erhalten, im Streaming-Modus bleiben aber isLoading deaktivieren
+                      setIsLoading(false);
+                      
                       streamingContent += actualContent;
                       console.log("useChat-DEBUG: Aktualisierter streamingContent:", streamingContent.slice(0, 50));
                       setStreamingBuffer(streamingContent);
@@ -524,6 +529,7 @@ export function useChat({
     
     try {
       // Anfang des Ladevorgangs
+      setIsStreaming(true);
       setIsLoading(true);
       setError(null);
       
@@ -590,7 +596,6 @@ export function useChat({
       
       const decoder = new TextDecoder();
       let streamingContent = '';
-      setIsStreaming(true);
       
       while (true) {
         const { done, value } = await reader.read();
@@ -669,7 +674,10 @@ export function useChat({
                     }
                     
                     // Wenn Inhalt gefunden wurde, füge ihn zur Nachricht hinzu
-                    if (actualContent !== null) {
+                    if (actualContent !== null && actualContent.trim() !== "") {
+                      // Erste echte Nachricht erhalten, im Streaming-Modus bleiben aber isLoading deaktivieren
+                      setIsLoading(false);
+                      
                       streamingContent += actualContent;
                       console.log("useChat-DEBUG: Aktualisierter streamingContent:", streamingContent.slice(0, 50));
                       setStreamingBuffer(streamingContent);

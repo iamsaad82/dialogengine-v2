@@ -8,6 +8,9 @@ import { LunaryClient } from '@/lib/lunary-client'
 // VERSION-MARKER: Message-Debug-Code - Version 018
 console.log("Message.tsx geladen - Debug-Version 018 (Duplikat-Wörter + [DONE]-Fix)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 019
+console.log("Message.tsx geladen - Debug-Version 019 (Ladeanimation-Fix)");
+
 export interface MessageProps {
   message: MessageType
   isLastMessage?: boolean
@@ -167,15 +170,15 @@ export function Message({
             }}
           />
         ) : isStreaming ? (
-          <div className="text-gray-500 italic flex items-center justify-center">
-            <span className="flex space-x-1">
-              <span className="animate-bounce delay-0 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-              <span className="animate-bounce delay-150 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-              <span className="animate-bounce delay-300 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-            </span>
+          <div className="text-gray-400 flex items-center justify-center p-2">
+            <div className="flex space-x-1">
+              <div className="animate-bounce delay-0 h-2 w-2 rounded-full bg-gray-400"></div>
+              <div className="animate-bounce delay-150 h-2 w-2 rounded-full bg-gray-400"></div>
+              <div className="animate-bounce delay-300 h-2 w-2 rounded-full bg-gray-400"></div>
+            </div>
           </div>
         ) : (
-          <div className="text-gray-500 italic">
+          <div className="text-gray-400 italic">
             Einen Moment bitte...
           </div>
         )}
