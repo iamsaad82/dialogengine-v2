@@ -5,8 +5,8 @@ import { Message as MessageType } from '../types'
 import classNames from 'classnames'
 import { LunaryClient } from '@/lib/lunary-client'
 
-// VERSION-MARKER: Message-Debug-Code - Version 016
-console.log("Message.tsx geladen - Debug-Version 016 (leere Nachricht-Fix)");
+// VERSION-MARKER: Message-Debug-Code - Version 017
+console.log("Message.tsx geladen - Debug-Version 017 (JSON-Filterung)");
 
 export interface MessageProps {
   message: MessageType
@@ -78,6 +78,40 @@ export function Message({
     }
   }
 
+  // Verbessere die processMessageContent-Funktion, um JSON-Daten zu filtern
+  const processMessageContent = (content: string | null | undefined): string => {
+    // Prüfe auf null/undefined/leere Strings
+    if (!content || content.trim() === '') {
+      console.warn("MESSAGE-RENDER-DEBUG: Leerer Inhalt erkannt!");
+      return "..."; // Sichtbarer Platzhalter für leere Nachrichten
+    }
+    
+    // Ausgabe des Inhalts für Debugging-Zwecke (begrenzt auf 100 Zeichen)
+    console.warn(
+      "MESSAGE-RENDER-DEBUG: Verarbeite Inhalt:", 
+      content.length > 100 ? content.substring(0, 100) + "..." : content,
+      "HTML-Tags:", content.includes("<")
+    );
+    
+    // Erkenne und filtere JSON-Objekte heraus
+    let formattedContent = content;
+    
+    // Suche nach {"event": Mustern, die auf JSON-Daten hindeuten
+    const jsonRegex = /\{"event":\s*"[^"]*",\s*"data":/g;
+    if (jsonRegex.test(content)) {
+      console.warn("MESSAGE-RENDER-DEBUG: JSON-Daten in der Nachricht gefunden!");
+      
+      // Extrahiere den Abschnitt vor dem JSON
+      const jsonStartIndex = content.indexOf('{"event":');
+      if (jsonStartIndex > 0) {
+        formattedContent = content.substring(0, jsonStartIndex);
+        console.warn("MESSAGE-RENDER-DEBUG: Nachricht auf Text vor JSON gekürzt:", formattedContent);
+      }
+    }
+    
+    return formattedContent;
+  }
+
   // Debug-Ausgabe bei leerem Inhalt
   if (!message.content) {
     console.warn("MESSAGE-RENDER-DEBUG: Leere Nachricht!", { isStreaming });
@@ -117,7 +151,7 @@ export function Message({
           <div 
             className="message-content prose dark:prose-invert"
             dangerouslySetInnerHTML={{ 
-              __html: message.content 
+              __html: processMessageContent(message.content) 
             }}
           />
         ) : isStreaming ? (
@@ -132,13 +166,8 @@ export function Message({
             </div>
           </div>
         ) : (
-          <div className="text-gray-500 italic flex items-center">
-            <span className="ml-1 flex space-x-1">
-              <span className="animate-bounce delay-0">.</span>
-              <span className="animate-bounce delay-150">.</span>
-              <span className="animate-bounce delay-300">.</span>
-            </span>
-            <span className="ml-2">Antwort wird erstellt...</span>
+          <div className="text-gray-500 italic">
+            Einen Moment bitte...
           </div>
         )}
       </div>

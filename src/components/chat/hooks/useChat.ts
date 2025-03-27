@@ -230,6 +230,13 @@ export function useChat({
                     const jsonData = JSON.parse(rawData);
                     console.log("useChat-DEBUG: Gültiges JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
                     
+                    // Ignoriere sourceDocuments und metadata Events
+                    if (jsonData.event === "sourceDocuments" || jsonData.event === "metadata") {
+                      console.log("useChat-DEBUG: Ignoriere Event vom Typ:", jsonData.event);
+                      // Diese Events nicht zum Stream-Content hinzufügen
+                      continue;
+                    }
+                    
                     // Extrahiere jeglichen Inhalt, der gefunden werden kann
                     let actualContent = null;
                     
@@ -620,6 +627,13 @@ export function useChat({
                   try {
                     const jsonData = JSON.parse(rawData);
                     console.log("useChat-DEBUG: Gültiges JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
+                    
+                    // Ignoriere sourceDocuments und metadata Events
+                    if (jsonData.event === "sourceDocuments" || jsonData.event === "metadata") {
+                      console.log("useChat-DEBUG: Ignoriere Event vom Typ:", jsonData.event);
+                      // Diese Events nicht zum Stream-Content hinzufügen
+                      continue;
+                    }
                     
                     // Extrahiere jeglichen Inhalt, der gefunden werden kann
                     let actualContent = null;
