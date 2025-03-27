@@ -228,19 +228,48 @@ export function useChat({
             
             // Prüfe auf verschiedene Event-Typen
             if (event.includes('data:')) {
-              const dataMatch = event.match(/data: (.*)/);
-              if (dataMatch && dataMatch[1]) {
-                try {
-                  eventData = dataMatch[1];
-                  console.log("useChat-DEBUG: Token empfangen, Länge:", eventData.length);
+              try {
+                const dataMatch = event.match(/data: (.*)/);
+                if (dataMatch && dataMatch[1]) {
+                  let eventData = dataMatch[1].trim();
+                  console.log("useChat-DEBUG: Token empfangen:", eventData);
                   
-                  // Text zum Buffer hinzufügen
-                  streamingContent += eventData;
-                  setStreamingBuffer(streamingContent);
-                  updateLastMessage(streamingContent);
-                } catch (e) {
-                  console.error("useChat-DEBUG: Fehler beim Parsen des Event-Daten:", e);
+                  // Versuche JSON zu parsen, falls es sich um ein JSON-Objekt handelt
+                  try {
+                    const jsonData = JSON.parse(eventData);
+                    // Falls es ein JSON-Objekt mit einem 'text' oder 'message' Feld ist
+                    if (jsonData.text) {
+                      eventData = jsonData.text;
+                      console.log("useChat-DEBUG: JSON mit 'text' Feld empfangen:", eventData);
+                    } else if (jsonData.message) {
+                      eventData = jsonData.message;
+                      console.log("useChat-DEBUG: JSON mit 'message' Feld empfangen:", eventData);
+                    } else if (jsonData.content) {
+                      eventData = jsonData.content;
+                      console.log("useChat-DEBUG: JSON mit 'content' Feld empfangen:", eventData);
+                    } else if (typeof jsonData === 'string') {
+                      eventData = jsonData;
+                      console.log("useChat-DEBUG: JSON als String empfangen:", eventData);
+                    } else {
+                      // Wenn keine bekannten Felder, aber ein JSON Objekt, konvertiere zu String
+                      eventData = JSON.stringify(jsonData);
+                      console.log("useChat-DEBUG: Unbekanntes JSON-Format empfangen, konvertiert zu:", eventData);
+                    }
+                  } catch (jsonError) {
+                    // Kein JSON, verwende den Rohtext
+                    console.log("useChat-DEBUG: Normalen Text empfangen (kein JSON)");
+                  }
+                  
+                  // Füge nur Text hinzu, wenn es kein leeres Objekt ist
+                  if (eventData !== "{}" && eventData.trim() !== "") {
+                    // Text zum Buffer hinzufügen
+                    streamingContent += eventData;
+                    setStreamingBuffer(streamingContent);
+                    updateLastMessage(streamingContent);
+                  }
                 }
+              } catch (e) {
+                console.error("useChat-DEBUG: Fehler beim Parsen der Event-Daten:", e);
               }
             }
           } catch (parseError) {
@@ -561,19 +590,48 @@ export function useChat({
             
             // Prüfe auf verschiedene Event-Typen
             if (event.includes('data:')) {
-              const dataMatch = event.match(/data: (.*)/);
-              if (dataMatch && dataMatch[1]) {
-                try {
-                  const eventData = dataMatch[1];
-                  console.log("useChat-DEBUG: Token empfangen, Länge:", eventData.length);
+              try {
+                const dataMatch = event.match(/data: (.*)/);
+                if (dataMatch && dataMatch[1]) {
+                  let eventData = dataMatch[1].trim();
+                  console.log("useChat-DEBUG: Token empfangen:", eventData);
                   
-                  // Text zum Buffer hinzufügen
-                  streamingContent += eventData;
-                  setStreamingBuffer(streamingContent);
-                  updateLastMessage(streamingContent);
-                } catch (e) {
-                  console.error("useChat-DEBUG: Fehler beim Parsen des Event-Daten:", e);
+                  // Versuche JSON zu parsen, falls es sich um ein JSON-Objekt handelt
+                  try {
+                    const jsonData = JSON.parse(eventData);
+                    // Falls es ein JSON-Objekt mit einem 'text' oder 'message' Feld ist
+                    if (jsonData.text) {
+                      eventData = jsonData.text;
+                      console.log("useChat-DEBUG: JSON mit 'text' Feld empfangen:", eventData);
+                    } else if (jsonData.message) {
+                      eventData = jsonData.message;
+                      console.log("useChat-DEBUG: JSON mit 'message' Feld empfangen:", eventData);
+                    } else if (jsonData.content) {
+                      eventData = jsonData.content;
+                      console.log("useChat-DEBUG: JSON mit 'content' Feld empfangen:", eventData);
+                    } else if (typeof jsonData === 'string') {
+                      eventData = jsonData;
+                      console.log("useChat-DEBUG: JSON als String empfangen:", eventData);
+                    } else {
+                      // Wenn keine bekannten Felder, aber ein JSON Objekt, konvertiere zu String
+                      eventData = JSON.stringify(jsonData);
+                      console.log("useChat-DEBUG: Unbekanntes JSON-Format empfangen, konvertiert zu:", eventData);
+                    }
+                  } catch (jsonError) {
+                    // Kein JSON, verwende den Rohtext
+                    console.log("useChat-DEBUG: Normalen Text empfangen (kein JSON)");
+                  }
+                  
+                  // Füge nur Text hinzu, wenn es kein leeres Objekt ist
+                  if (eventData !== "{}" && eventData.trim() !== "") {
+                    // Text zum Buffer hinzufügen
+                    streamingContent += eventData;
+                    setStreamingBuffer(streamingContent);
+                    updateLastMessage(streamingContent);
+                  }
                 }
+              } catch (e) {
+                console.error("useChat-DEBUG: Fehler beim Parsen der Event-Daten:", e);
               }
             }
           } catch (parseError) {

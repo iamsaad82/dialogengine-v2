@@ -327,7 +327,7 @@ export async function POST(request: NextRequest) {
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
     
-    // Stream-Transformation, um sicherzustellen, dass die Ereignisse korrekt formatiert sind
+    // Verbessere die Stream-Transformation, um sicherzustellen, dass die Token korrekt weitergegeben werden
     const transformStream = new ReadableStream({
       async start(controller) {
         if (!reader) {
@@ -347,6 +347,10 @@ export async function POST(request: NextRequest) {
             
             if (done) {
               console.log(`CHAT-STREAM-API: Stream beendet, insgesamt ${messageCount} Nachrichtenteile empfangen`);
+              // Sende den letzten Buffer, falls noch etwas darin ist
+              if (messageBuffer.trim()) {
+                controller.enqueue(encoder.encode(`data: ${messageBuffer}\n\n`));
+              }
               // Stream ist zu Ende, sende end-Event
               controller.enqueue(encoder.encode("event: end\ndata: {}\n\n"));
               controller.close();
@@ -361,9 +365,25 @@ export async function POST(request: NextRequest) {
             if (messageCount % 10 === 0) {
               console.log(`CHAT-STREAM-API: ${messageCount} Nachrichtenteile empfangen`);
             }
-            
-            // Sende den Chunk an den Client
-            controller.enqueue(value);
+
+            // Prüfe, ob der Chunk ein vollständiges SSE-Event enthält
+            if (chunk.includes('data:')) {
+              // Extrahiere die Daten und sende sie formatiert weiter
+              const dataMatch = chunk.match(/data: (.*)/);
+              if (dataMatch && dataMatch[1]) {
+                const eventData = dataMatch[1].trim();
+                console.log("CHAT-STREAM-API: Extrahierte Daten:", eventData.substring(0, 50) + (eventData.length > 50 ? "..." : ""));
+                
+                // Format: "data: Text\n\n" - wichtig für SSE
+                controller.enqueue(encoder.encode(`data: ${eventData}\n\n`));
+              } else {
+                // Wenn kein Data-Match gefunden wurde, senden wir den Chunk direkt
+                controller.enqueue(value);
+              }
+            } else {
+              // Sende den Chunk direkt weiter, wenn kein Data-Marker gefunden wurde
+              controller.enqueue(value);
+            }
           }
         } catch (error) {
           console.error("CHAT-STREAM-API: Fehler beim Lesen des Streams:", error);
