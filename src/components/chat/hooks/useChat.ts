@@ -269,6 +269,16 @@ export function useChat({
                       console.log("useChat-DEBUG: 'message:'-Format erkannt, extrahierter Text:", eventData);
                     }
                     
+                    // Wenn message: kein Inhalt hatte, nichts anzeigen
+                    if (eventData === "message:" || eventData === "") {
+                      console.log("useChat-DEBUG: Leere Nachricht erkannt, wird übersprungen");
+                      continue;
+                    }
+                    
+                    // Zusätzliches Debug-Logging für den genauen Inhalt
+                    console.log("useChat-DEBUG: Formatierter Text der hinzugefügt wird:", 
+                      eventData.length > 50 ? `${eventData.substring(0, 50)}...` : eventData);
+                    
                     // Text zum Buffer hinzufügen nur wenn nach der Extraktion noch Text vorhanden ist
                     if (eventData.trim() !== "") {
                       streamingContent += eventData;
@@ -639,6 +649,16 @@ export function useChat({
                       eventData = eventData.substring("message:".length).trim();
                       console.log("useChat-DEBUG: 'message:'-Format erkannt, extrahierter Text:", eventData);
                     }
+                    
+                    // Wenn message: kein Inhalt hatte, nichts anzeigen
+                    if (eventData === "message:" || eventData === "") {
+                      console.log("useChat-DEBUG: Leere Nachricht erkannt, wird übersprungen");
+                      continue;
+                    }
+                    
+                    // Zusätzliches Debug-Logging für den genauen Inhalt
+                    console.log("useChat-DEBUG: Formatierter Text der hinzugefügt wird:", 
+                      eventData.length > 50 ? `${eventData.substring(0, 50)}...` : eventData);
                     
                     // Text zum Buffer hinzufügen nur wenn nach der Extraktion noch Text vorhanden ist
                     if (eventData.trim() !== "") {

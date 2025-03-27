@@ -359,6 +359,8 @@ export async function POST(request: NextRequest) {
             
             // Decodiere den Stream und protokolliere den Chunk
             const chunk = decoder.decode(value, { stream: true });
+            console.log("CHAT-STREAM-API: Neuer Chunk (erste 100 Zeichen):", 
+              chunk.substring(0, 100) + (chunk.length > 100 ? "..." : ""));
             messageBuffer += chunk;
             messageCount++;
             
@@ -383,24 +385,47 @@ export async function POST(request: NextRequest) {
                     
                     // Bekannte Flowise-Formate verarbeiten
                     if (jsonData.message) {
-                      processedData = jsonData.message;
-                      console.log("CHAT-STREAM-API: JSON 'message' Feld gefunden:", processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                      if (typeof jsonData.message === 'string') {
+                        processedData = jsonData.message;
+                        console.log("CHAT-STREAM-API: JSON 'message' Feld gefunden (String):", 
+                          processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                      } else if (jsonData.message && typeof jsonData.message === 'object') {
+                        processedData = JSON.stringify(jsonData.message);
+                        console.log("CHAT-STREAM-API: JSON 'message' Feld gefunden (Objekt):", 
+                          processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                      }
                     } else if (jsonData.text) {
                       processedData = jsonData.text;
-                      console.log("CHAT-STREAM-API: JSON 'text' Feld gefunden:", processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                      console.log("CHAT-STREAM-API: JSON 'text' Feld gefunden:", 
+                        processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
                     } else if (jsonData.content) {
                       processedData = jsonData.content;
-                      console.log("CHAT-STREAM-API: JSON 'content' Feld gefunden:", processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                      console.log("CHAT-STREAM-API: JSON 'content' Feld gefunden:", 
+                        processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
+                    } else {
+                      // Wenn keine bekannten Felder, aber ein JSON-Objekt, sende die rohen Daten
+                      console.log("CHAT-STREAM-API: Unbekanntes JSON-Format (Objekt-Struktur):", 
+                        Object.keys(jsonData).join(", "));
+                    }
+                    
+                    // Überprüfe, ob processedData leer ist oder nur "message:" enthält
+                    if (processedData.trim() === "message:" || processedData.trim() === "") {
+                      console.log("CHAT-STREAM-API: Leere Nachricht erkannt, wird nicht gesendet");
+                      continue; // Diesen Chunk überspringen
                     }
                     
                     // Sende den formatierten Inhalt zurück
                     controller.enqueue(encoder.encode(`data: ${processedData}\n\n`));
                   } else {
                     // Einfacher String oder unbekanntes Format
+                    console.log("CHAT-STREAM-API: JSON als einfachen String erkannt:", 
+                      eventData.substring(0, 50) + (eventData.length > 50 ? "..." : ""));
                     controller.enqueue(encoder.encode(`data: ${eventData}\n\n`));
                   }
                 } catch (jsonError) {
                   // Kein valides JSON, sende die Rohdaten
+                  console.log("CHAT-STREAM-API: Kein JSON-Format erkannt (Rohtext):", 
+                    eventData.substring(0, 50) + (eventData.length > 50 ? "..." : ""));
                   controller.enqueue(encoder.encode(`data: ${eventData}\n\n`));
                 }
               } else {
