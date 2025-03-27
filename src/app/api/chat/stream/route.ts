@@ -327,10 +327,8 @@ export async function POST(request: NextRequest) {
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
     
-    // Verbessere die Stream-Transformation, um die Flowise-Events direkt weiterzuleiten
-    // Diese Änderung ist wichtig, da Flowise ein spezielles Format verwendet:
-    // message:
-    // data:{"event":"token","data":"text"}
+    // Verbessere die Stream-Weiterleitung, um kritischere Fehler zu vermeiden
+    // Suche nach dem Code, der den Stream verarbeitet
 
     const transformStream = new ReadableStream({
       async start(controller) {
@@ -345,7 +343,7 @@ export async function POST(request: NextRequest) {
           console.log("CHAT-STREAM-API: Stream-Lesevorgang gestartet");
           let messageCount = 0;
           
-          // Direkte Weiterleitung ohne Zwischenverarbeitung
+          // Direkte Weiterleitung ohne jede Verarbeitung
           while (true) {
             const { done, value } = await reader.read();
             
@@ -356,21 +354,14 @@ export async function POST(request: NextRequest) {
               break;
             }
             
-            // Chunks zählen für Debug
+            // Chunks nur für das Debugging decodieren
+            const chunk = decoder.decode(value.slice(), { stream: true });
             messageCount++;
             
-            // Decodiere nur für Debug-Zwecke
-            const chunk = decoder.decode(value.slice(), { stream: true });
+            // UMFASSENDES LOGGING - jeden Chunk vollständig anzeigen
+            console.log(`CHAT-STREAM-API: Chunk #${messageCount} RAW:`, chunk);
             
-            if (messageCount === 1) {
-              console.log("CHAT-STREAM-API: ERSTEN CHUNK ERHALTEN:", chunk);
-            }
-            
-            if (messageCount % 10 === 0) {
-              console.log(`CHAT-STREAM-API: ${messageCount} Nachrichtenteile empfangen`);
-            }
-            
-            // Direkte Weiterleitung des rohen Chunks ohne Änderungen
+            // Für diesen kritischen Teil: ABSOLUT KEINE Verarbeitung des Chunks
             controller.enqueue(value);
           }
         } catch (error) {

@@ -202,8 +202,13 @@ export function useChat({
         
         // Decodiere den Chunk
         const chunk = decoder.decode(value, { stream: true });
-        console.log("useChat-DEBUG: Chunk empfangen (gekürzt):", chunk.substring(0, 50) + (chunk.length > 50 ? "..." : ""));
-        
+        console.log("useChat-DEBUG: Chunk empfangen (Länge):", chunk.length);
+
+        // KRITISCHE DEBUG-AUSGABE
+        if (chunk.length > 0) {
+          console.log("useChat-CRITICAL: Chunk-Inhalt:", chunk);
+        }
+
         // Teile den Text in einzelne Server-Sent Events
         const events = chunk.split('\n\n');
         
@@ -211,103 +216,83 @@ export function useChat({
           if (!event.trim()) continue;
           
           try {
-            // Detaillierte Logging
-            console.log("useChat-DEBUG: Event verarbeiten:", event.substring(0, 50) + (event.length > 50 ? "..." : ""));
+            console.log("useChat-DEBUG: Event verarbeiten:", event);
             
-            if (event.includes('event: error')) {
-              // Fehler-Event verarbeiten
-              const errorMatch = event.match(/data: (.*)/);
-              if (errorMatch && errorMatch[1]) {
-                const errorMessage = errorMatch[1];
-                console.error("useChat-DEBUG: Fehler vom Server:", errorMessage);
-                throw new Error(`Streaming-Fehler: ${errorMessage}`);
-              }
-            }
-            
-            // Prüfe auf verschiedene Event-Typen
+            // Extrahiere ALLES nach "data:" als gültigen Inhalt
             if (event.includes('data:')) {
               try {
-                // Ignoriere "message:" am Anfang des Events - dies ist ein Flowise-spezifisches Präfix
-                let eventText = event;
-                if (event.trim().startsWith('message:')) {
-                  eventText = event.substring(event.indexOf('data:'));
-                }
-
-                const dataMatch = eventText.match(/data: (.*)/);
+                const dataMatch = event.match(/data:(.*)/m);
                 if (dataMatch && dataMatch[1]) {
                   const rawData = dataMatch[1].trim();
-                  console.log("useChat-DEBUG: Rohe Daten empfangen:", rawData.substring(0, 50) + (rawData.length > 50 ? "..." : ""));
                   
-                  // Verbesserte Verarbeitung für HTML-Tokens
-                  console.log("useChat-EXTREME-DEBUG: Token-Rohdaten:", rawData);
-
+                  // VEREINFACHTE VERARBEITUNG: Versuche JSON zu parsen
                   try {
-                    // Parse das JSON
                     const jsonData = JSON.parse(rawData);
+                    console.log("useChat-DEBUG: Gültiges JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
                     
-                    // Flowise sendet Events im Format {event: "token", data: "text"}
+                    // Extrahiere jeglichen Inhalt, der gefunden werden kann
+                    let actualContent = null;
+                    
+                    // Prüfe in dieser Reihenfolge auf mögliche Inhalte
                     if (jsonData.event === "token" && jsonData.data) {
-                      // Der eigentliche Text ist in jsonData.data
-                      const tokenText = jsonData.data;
-                      
-                      // Neue Fallback-Logik für leere Nachrichten
-                      if (!streamingContent && tokenText.startsWith("<p>")) {
-                        console.log("useChat-DEBUG: Erste HTML-Nachricht erhalten", tokenText);
-                        // Setze einen Fallback-Inhalt, falls der Paragraph leer sein sollte
-                        streamingContent = tokenText;
-                        if (tokenText === "<p></p>" || tokenText === "<p> </p>") {
-                          // Expliziten Inhalt für leere Paragraphen setzen
-                          streamingContent = "<p>Ich verarbeite Ihre Anfrage...</p>";
-                        }
-                      } else {
-                        // Tokens aneinanderfügen für weitere Nachrichten
-                        streamingContent += tokenText;
-                      }
-                      
-                      console.log("useChat-DEBUG: Aktualisiere Nachrichteninhalt:", 
-                        streamingContent.substring(0, 50) + (streamingContent.length > 50 ? "..." : ""));
-                        
-                      // UI immer aktualisieren, auch wenn Token leer sind
+                      actualContent = jsonData.data;
+                      console.log("useChat-DEBUG: Token-Event-Daten gefunden:", actualContent.slice(0, 30));
+                    } 
+                    else if (jsonData.data && typeof jsonData.data === 'string') {
+                      actualContent = jsonData.data;
+                      console.log("useChat-DEBUG: Allgemeine Daten gefunden:", actualContent.slice(0, 30));
+                    }
+                    else if (jsonData.message && typeof jsonData.message === 'string') {
+                      actualContent = jsonData.message;
+                      console.log("useChat-DEBUG: Message-Feld gefunden:", actualContent.slice(0, 30));
+                    }
+                    else if (jsonData.content && typeof jsonData.content === 'string') {
+                      actualContent = jsonData.content;
+                      console.log("useChat-DEBUG: Content-Feld gefunden:", actualContent.slice(0, 30));
+                    }
+                    else if (jsonData.text && typeof jsonData.text === 'string') {
+                      actualContent = jsonData.text;
+                      console.log("useChat-DEBUG: Text-Feld gefunden:", actualContent.slice(0, 30));
+                    }
+                    else if (typeof jsonData === 'string') {
+                      actualContent = jsonData;
+                      console.log("useChat-DEBUG: String-JSON gefunden:", actualContent.slice(0, 30));
+                    }
+                    
+                    // Wenn Inhalt gefunden wurde, füge ihn zur Nachricht hinzu
+                    if (actualContent !== null) {
+                      streamingContent += actualContent;
+                      console.log("useChat-DEBUG: Aktualisierter streamingContent:", streamingContent.slice(0, 50));
                       setStreamingBuffer(streamingContent);
                       updateLastMessage(streamingContent);
-                    } 
-                    else if (jsonData.event === "error") {
-                      console.error("useChat-DEBUG: Fehler-Event von Flowise:", jsonData.data);
-                      throw new Error(`Streaming-Fehler: ${jsonData.data}`);
+                    } else {
+                      console.log("useChat-DEBUG: Kein verwertbarer Inhalt in JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
                     }
-                    else if (jsonData.event === "start") {
-                      console.log("useChat-DEBUG: Start-Event von Flowise:", jsonData.data);
-                      // Start-Event enthält oft den Anfang der Antwort, der als ersten Text angezeigt werden sollte
-                      if (jsonData.data && typeof jsonData.data === 'string') {
-                        console.log("useChat-DEBUG: Start-Event enthält Text:", jsonData.data);
-                        
-                        // Starte mit dem Start-Event-Text als Basis
-                        // Auch leeren Text verarbeiten, um die Nachricht zu initialisieren
-                        streamingContent = jsonData.data;
-                        
-                        // Fallback setzen, wenn der Inhalt leer oder nur ein leerer Paragraph ist
-                        if (jsonData.data.trim() === "" || 
-                            jsonData.data === "<p></p>" || 
-                            jsonData.data === "<p> </p>") {
-                          // Setze einen temporären Text, der anzeigt, dass Verarbeitung stattfindet
-                          streamingContent = "<p>Verarbeite Ihre Anfrage...</p>";
-                        }
-                        
-                        console.log("useChat-DEBUG: Setze Streaming-Content auf:", streamingContent);
-                        
-                        // UI aktualisieren mit dem Anfangstext
-                        setStreamingBuffer(streamingContent);
-                        updateLastMessage(streamingContent);
-                      }
-                    }
-                    // Andere Event-Typen wie "end", "metadata", "sourceDocuments" ignorieren wir für die Textanzeige
                   } catch (jsonError) {
-                    console.error("useChat-DEBUG: Fehler beim Parsen des JSON:", jsonError, "Roher Text:", rawData);
+                    // Kein JSON, verwende den Rohtext
+                    console.log("useChat-DEBUG: Kein JSON, verwende Rohtext:", rawData.slice(0, 50));
+                    
+                    // Wenn es mit "<p>" beginnt, ist es wahrscheinlich HTML-Inhalt
+                    if (rawData.startsWith("<p>") || rawData.includes("<p>")) {
+                      streamingContent += rawData;
+                      setStreamingBuffer(streamingContent);
+                      updateLastMessage(streamingContent);
+                    }
+                    // Ansonsten, wenn es nicht leer ist, als Text hinzufügen
+                    else if (rawData.trim() !== "") {
+                      streamingContent += rawData;
+                      setStreamingBuffer(streamingContent);
+                      updateLastMessage(streamingContent);
+                    }
                   }
+                } else {
+                  console.log("useChat-DEBUG: Kein Data-Match gefunden in:", event);
                 }
               } catch (e) {
-                console.error("useChat-DEBUG: Allgemeiner Fehler bei der Event-Verarbeitung:", e);
+                console.error("useChat-DEBUG: Fehler bei Event-Verarbeitung:", e);
               }
+            } else {
+              console.log("useChat-DEBUG: Kein data: gefunden in:", event);
             }
           } catch (parseError) {
             console.error("useChat-DEBUG: Fehler beim Parsen des Events:", parseError);
@@ -608,6 +593,13 @@ export function useChat({
         
         // Decodiere den Chunk
         const chunk = decoder.decode(value, { stream: true });
+        console.log("useChat-DEBUG: Chunk empfangen (Länge):", chunk.length);
+
+        // KRITISCHE DEBUG-AUSGABE
+        if (chunk.length > 0) {
+          console.log("useChat-CRITICAL: Chunk-Inhalt:", chunk);
+        }
+
         // Teile den Text in einzelne Server-Sent Events
         const events = chunk.split('\n\n');
         
@@ -615,100 +607,83 @@ export function useChat({
           if (!event.trim()) continue;
           
           try {
-            if (event.includes('event: error')) {
-              // Fehler-Event verarbeiten
-              const errorMatch = event.match(/data: (.*)/);
-              if (errorMatch && errorMatch[1]) {
-                const errorMessage = errorMatch[1];
-                console.error("useChat-DEBUG: Fehler vom Server:", errorMessage);
-                throw new Error(`Streaming-Fehler: ${errorMessage}`);
-              }
-            }
+            console.log("useChat-DEBUG: Event verarbeiten:", event);
             
-            // Prüfe auf verschiedene Event-Typen
+            // Extrahiere ALLES nach "data:" als gültigen Inhalt
             if (event.includes('data:')) {
               try {
-                // Ignoriere "message:" am Anfang des Events - dies ist ein Flowise-spezifisches Präfix
-                let eventText = event;
-                if (event.trim().startsWith('message:')) {
-                  eventText = event.substring(event.indexOf('data:'));
-                }
-
-                const dataMatch = eventText.match(/data: (.*)/);
+                const dataMatch = event.match(/data:(.*)/m);
                 if (dataMatch && dataMatch[1]) {
                   const rawData = dataMatch[1].trim();
-                  console.log("useChat-DEBUG: Rohe Daten empfangen:", rawData.substring(0, 50) + (rawData.length > 50 ? "..." : ""));
                   
-                  // Verbesserte Verarbeitung für HTML-Tokens
-                  console.log("useChat-EXTREME-DEBUG: Token-Rohdaten:", rawData);
-
+                  // VEREINFACHTE VERARBEITUNG: Versuche JSON zu parsen
                   try {
-                    // Parse das JSON
                     const jsonData = JSON.parse(rawData);
+                    console.log("useChat-DEBUG: Gültiges JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
                     
-                    // Flowise sendet Events im Format {event: "token", data: "text"}
+                    // Extrahiere jeglichen Inhalt, der gefunden werden kann
+                    let actualContent = null;
+                    
+                    // Prüfe in dieser Reihenfolge auf mögliche Inhalte
                     if (jsonData.event === "token" && jsonData.data) {
-                      // Der eigentliche Text ist in jsonData.data
-                      const tokenText = jsonData.data;
-                      
-                      // Neue Fallback-Logik für leere Nachrichten
-                      if (!streamingContent && tokenText.startsWith("<p>")) {
-                        console.log("useChat-DEBUG: Erste HTML-Nachricht erhalten", tokenText);
-                        // Setze einen Fallback-Inhalt, falls der Paragraph leer sein sollte
-                        streamingContent = tokenText;
-                        if (tokenText === "<p></p>" || tokenText === "<p> </p>") {
-                          // Expliziten Inhalt für leere Paragraphen setzen
-                          streamingContent = "<p>Ich verarbeite Ihre Anfrage...</p>";
-                        }
-                      } else {
-                        // Tokens aneinanderfügen für weitere Nachrichten
-                        streamingContent += tokenText;
-                      }
-                      
-                      console.log("useChat-DEBUG: Aktualisiere Nachrichteninhalt:", 
-                        streamingContent.substring(0, 50) + (streamingContent.length > 50 ? "..." : ""));
-                        
-                      // UI immer aktualisieren, auch wenn Token leer sind
+                      actualContent = jsonData.data;
+                      console.log("useChat-DEBUG: Token-Event-Daten gefunden:", actualContent.slice(0, 30));
+                    } 
+                    else if (jsonData.data && typeof jsonData.data === 'string') {
+                      actualContent = jsonData.data;
+                      console.log("useChat-DEBUG: Allgemeine Daten gefunden:", actualContent.slice(0, 30));
+                    }
+                    else if (jsonData.message && typeof jsonData.message === 'string') {
+                      actualContent = jsonData.message;
+                      console.log("useChat-DEBUG: Message-Feld gefunden:", actualContent.slice(0, 30));
+                    }
+                    else if (jsonData.content && typeof jsonData.content === 'string') {
+                      actualContent = jsonData.content;
+                      console.log("useChat-DEBUG: Content-Feld gefunden:", actualContent.slice(0, 30));
+                    }
+                    else if (jsonData.text && typeof jsonData.text === 'string') {
+                      actualContent = jsonData.text;
+                      console.log("useChat-DEBUG: Text-Feld gefunden:", actualContent.slice(0, 30));
+                    }
+                    else if (typeof jsonData === 'string') {
+                      actualContent = jsonData;
+                      console.log("useChat-DEBUG: String-JSON gefunden:", actualContent.slice(0, 30));
+                    }
+                    
+                    // Wenn Inhalt gefunden wurde, füge ihn zur Nachricht hinzu
+                    if (actualContent !== null) {
+                      streamingContent += actualContent;
+                      console.log("useChat-DEBUG: Aktualisierter streamingContent:", streamingContent.slice(0, 50));
                       setStreamingBuffer(streamingContent);
                       updateLastMessage(streamingContent);
-                    } 
-                    else if (jsonData.event === "error") {
-                      console.error("useChat-DEBUG: Fehler-Event von Flowise:", jsonData.data);
-                      throw new Error(`Streaming-Fehler: ${jsonData.data}`);
+                    } else {
+                      console.log("useChat-DEBUG: Kein verwertbarer Inhalt in JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
                     }
-                    else if (jsonData.event === "start") {
-                      console.log("useChat-DEBUG: Start-Event von Flowise:", jsonData.data);
-                      // Start-Event enthält oft den Anfang der Antwort, der als ersten Text angezeigt werden sollte
-                      if (jsonData.data && typeof jsonData.data === 'string') {
-                        console.log("useChat-DEBUG: Start-Event enthält Text:", jsonData.data);
-                        
-                        // Starte mit dem Start-Event-Text als Basis
-                        // Auch leeren Text verarbeiten, um die Nachricht zu initialisieren
-                        streamingContent = jsonData.data;
-                        
-                        // Fallback setzen, wenn der Inhalt leer oder nur ein leerer Paragraph ist
-                        if (jsonData.data.trim() === "" || 
-                            jsonData.data === "<p></p>" || 
-                            jsonData.data === "<p> </p>") {
-                          // Setze einen temporären Text, der anzeigt, dass Verarbeitung stattfindet
-                          streamingContent = "<p>Verarbeite Ihre Anfrage...</p>";
-                        }
-                        
-                        console.log("useChat-DEBUG: Setze Streaming-Content auf:", streamingContent);
-                        
-                        // UI aktualisieren mit dem Anfangstext
-                        setStreamingBuffer(streamingContent);
-                        updateLastMessage(streamingContent);
-                      }
-                    }
-                    // Andere Event-Typen wie "end", "metadata", "sourceDocuments" ignorieren wir für die Textanzeige
                   } catch (jsonError) {
-                    console.error("useChat-DEBUG: Fehler beim Parsen des JSON:", jsonError, "Roher Text:", rawData);
+                    // Kein JSON, verwende den Rohtext
+                    console.log("useChat-DEBUG: Kein JSON, verwende Rohtext:", rawData.slice(0, 50));
+                    
+                    // Wenn es mit "<p>" beginnt, ist es wahrscheinlich HTML-Inhalt
+                    if (rawData.startsWith("<p>") || rawData.includes("<p>")) {
+                      streamingContent += rawData;
+                      setStreamingBuffer(streamingContent);
+                      updateLastMessage(streamingContent);
+                    }
+                    // Ansonsten, wenn es nicht leer ist, als Text hinzufügen
+                    else if (rawData.trim() !== "") {
+                      streamingContent += rawData;
+                      setStreamingBuffer(streamingContent);
+                      updateLastMessage(streamingContent);
+                    }
                   }
+                } else {
+                  console.log("useChat-DEBUG: Kein Data-Match gefunden in:", event);
                 }
               } catch (e) {
-                console.error("useChat-DEBUG: Allgemeiner Fehler bei der Event-Verarbeitung:", e);
+                console.error("useChat-DEBUG: Fehler bei Event-Verarbeitung:", e);
               }
+            } else {
+              console.log("useChat-DEBUG: Kein data: gefunden in:", event);
             }
           } catch (parseError) {
             console.error("useChat-DEBUG: Fehler beim Parsen des Events:", parseError);
