@@ -5,6 +5,9 @@ import { Message as MessageType } from '../types'
 import classNames from 'classnames'
 import { LunaryClient } from '@/lib/lunary-client'
 import { BotIcon } from './ui/icons'
+import ReactMarkdown from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
+import React from 'react'
 
 // VERSION-MARKER: Message-Debug-Code - Version 018
 console.log("Message.tsx geladen - Debug-Version 018 (Duplikat-Wörter + [DONE]-Fix)");
@@ -20,6 +23,15 @@ console.log("Message.tsx geladen - Debug-Version 021 (HTML-Duplikat-Erkennung-Fi
 
 // VERSION-MARKER: Message-Debug-Code - Version 022
 console.log("Message.tsx geladen - Debug-Version 022 (Nur Ladeanimation, Text entfernt)");
+
+// VERSION-MARKER: Message-Debug-Code - Version 023
+console.log("Message.tsx geladen - Debug-Version 023 (react-markdown Integration)");
+
+// VERSION-MARKER: Message-Debug-Code - Version 024
+console.log("Message.tsx geladen - Debug-Version 024 (verbesserte Markdown-Darstellung)");
+
+// VERSION-MARKER: Message-Debug-Code - Version 025
+console.log("Message.tsx geladen - Debug-Version 025 (Tabellarische Darstellung für Schulen)");
 
 // Entferne Abhängigkeit von externen Icons durch einfache SVG-Implementierungen
 const IconUser = (props: any) => (
@@ -126,79 +138,93 @@ export function Message({
     }
   }
 
-  // Verbessere die processMessageContent-Funktion, um JSON-Daten zu filtern
-  const processMessageContent = (content: string | null | undefined): string => {
-    // Prüfe auf null/undefined/leere Strings
+  // Bereinige den Nachrichteninhalt vor dem Rendern
+  const cleanMessageContent = (content: string | null | undefined): string => {
     if (!content || content.trim() === '') {
-      console.warn("MESSAGE-RENDER-DEBUG: Leerer Inhalt erkannt!");
-      return "..."; // Sichtbarer Platzhalter für leere Nachrichten
+      console.log("MESSAGE-RENDER-DEBUG: Leerer Inhalt erkannt");
+      return "";
     }
+
+    let cleanedContent = content;
     
-    // Ausgabe des Inhalts für Debugging-Zwecke (begrenzt auf 100 Zeichen)
-    console.warn(
-      "MESSAGE-RENDER-DEBUG: Verarbeite Inhalt:", 
-      content.length > 100 ? content.substring(0, 100) + "..." : content
-    );
-    
-    // Erkenne und filtere JSON-Objekte heraus
-    let formattedContent = content;
-    
-    // Suche nach {"event": Mustern, die auf JSON-Daten hindeuten
-    const jsonRegex = /\{"event":\s*"[^"]*",\s*"data":/g;
-    if (jsonRegex.test(content)) {
-      console.warn("MESSAGE-RENDER-DEBUG: JSON-Daten in der Nachricht gefunden!");
-      
-      // Extrahiere den Abschnitt vor dem JSON
-      const jsonStartIndex = content.indexOf('{"event":');
+    // Entferne JSON-Artefakte
+    if (cleanedContent.includes('{"event":')) {
+      const jsonStartIndex = cleanedContent.indexOf('{"event":');
       if (jsonStartIndex > 0) {
-        formattedContent = content.substring(0, jsonStartIndex);
-        console.warn("MESSAGE-RENDER-DEBUG: Nachricht auf Text vor JSON gekürzt:", formattedContent);
+        cleanedContent = cleanedContent.substring(0, jsonStartIndex);
       }
     }
     
     // Entferne [DONE] am Ende
-    if (formattedContent.includes("[DONE]")) {
-      formattedContent = formattedContent.replace("[DONE]", "");
-      console.warn("MESSAGE-RENDER-DEBUG: [DONE] aus der Nachricht entfernt");
+    cleanedContent = cleanedContent.replace(/\[DONE\]$/g, '');
+
+    // Erkennung von Schuldaten für bessere Formatierung
+    const containsSchoolInfo = /Schulform:|Adresse:|Kontakt:|Telefon:|E-Mail:|Website:/i.test(cleanedContent);
+    
+    if (containsSchoolInfo) {
+      console.log("MESSAGE-RENDER-DEBUG: Schulinformationen erkannt, formatiere speziell");
+      
+      // Standardisiere Überschriften und Schlüsselwörter
+      cleanedContent = cleanedContent
+        .replace(/(\n|^)Name:(\s*)/g, '$1**Name:**$2')
+        .replace(/(\n|^)Schulform:(\s*)/g, '$1**Schulform:**$2')
+        .replace(/(\n|^)Schulleitung:(\s*)/g, '$1**Schulleitung:**$2')
+        .replace(/(\n|^)Adresse:(\s*)/g, '$1**Adresse:**$2')
+        .replace(/(\n|^)Kontakt:(\s*)/g, '$1**Kontakt:**$2')
+        .replace(/(\n|^)Telefon:(\s*)/g, '$1**Telefon:**$2')
+        .replace(/(\n|^)E-Mail:(\s*)/g, '$1**E-Mail:**$2')
+        .replace(/(\n|^)Website:(\s*)/g, '$1**Website:**$2')
+        .replace(/(\n|^)Angebote:(\s*)/g, '$1**Angebote:**$2')
+        .replace(/(\n|^)Öffnungszeiten:(\s*)/g, '$1**Öffnungszeiten:**$2')
+        .replace(/(\n|^)Von:(\s*)/g, '$1**Von:**$2')
+        .replace(/(\n|^)Bis:(\s*)/g, '$1**Bis:**$2')
+        .replace(/(\n|^)Ganztagsschule:(\s*)/g, '$1**Ganztagsschule:**$2')
+        .replace(/(\n|^)Link:(\s*)/g, '$1**Link:**$2');
+        
+      // Formatiere URL-Links korrekt
+      cleanedContent = cleanedContent.replace(
+        /(https?:\/\/[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+(\.[a-z]{2,})([\/\w\.-]*)*\/?)/gi, 
+        '[$1]($1)'
+      );
+      
+      // Stelle sicher, dass Listeneinträge korrekt formatiert sind
+      cleanedContent = cleanedContent.replace(/(\n|^)- /g, '\n- ');
+      
+      // Füge Abstand zwischen Schulen ein, wenn mehrere Schulen aufgelistet sind
+      cleanedContent = cleanedContent.replace(/(\n\n)([A-Z][a-zäöüÄÖÜß]+ [A-Z][a-zäöüÄÖÜß]+)/g, '$1\n## $2');
+      
+      console.log("MESSAGE-RENDER-DEBUG: Formatierte Schulinfos:", 
+        cleanedContent.length > 100 ? cleanedContent.substring(0, 100) + "..." : cleanedContent);
     }
     
-    // Verbesserte Erkennung von doppelten Anfängen in HTML-Inhalten
+    // Versuche doppelte Anfänge zu identifizieren und zu entfernen
     try {
-      // Extrahiere den Textinhalt ohne HTML-Tags für die Duplikat-Erkennung
+      // Erstelle ein temporäres Element für Text-Extraktion
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = formattedContent;
+      tempDiv.innerHTML = cleanedContent;
       const textContent = tempDiv.textContent || tempDiv.innerText || '';
       
-      console.warn("MESSAGE-RENDER-DEBUG: Extrahierter Text für Duplikat-Prüfung:", 
-        textContent.length > 50 ? textContent.substring(0, 50) + "..." : textContent);
-      
-      // Prüfe auf doppelte Wörter am Anfang (für 1-3 Wörter)
+      // Teile in Wörter und prüfe auf Duplikate am Anfang
       const words = textContent.trim().split(/\s+/);
       
-      // Wenn wir genügend Wörter haben
-      if (words.length >= 4) { // Mindestens 4 Wörter benötigt für Duplikat-Erkennung
-        for (let wordCount = 1; wordCount <= Math.min(3, Math.floor(words.length/2)); wordCount++) {
-          const firstPart = words.slice(0, wordCount).join(' ').toLowerCase();
-          const secondPart = words.slice(wordCount, wordCount*2).join(' ').toLowerCase();
+      if (words.length >= 4) {
+        for (let count = 1; count <= Math.min(3, Math.floor(words.length/2)); count++) {
+          const firstPart = words.slice(0, count).join(' ').toLowerCase();
+          const secondPart = words.slice(count, count*2).join(' ').toLowerCase();
           
           if (firstPart === secondPart) {
-            console.warn(`MESSAGE-RENDER-DEBUG: Doppelter Anfang gefunden: "${firstPart}"`);
-            
-            // Entferne die ersten n Wörter aus dem HTML-Inhalt
-            // Wir suchen nach dem ersten Vorkommen des duplizierten Texts
+            // Muster für die ersten Wörter mit möglichen HTML-Tags
             const pattern = new RegExp(`(<[^>]*>\\s*)?${escapeRegExp(firstPart)}\\s*`, 'i');
-            formattedContent = formattedContent.replace(pattern, '');
-            console.warn("MESSAGE-RENDER-DEBUG: Nachricht nach Duplikat-Entfernung:", 
-              formattedContent.length > 100 ? formattedContent.substring(0, 100) + "..." : formattedContent);
+            cleanedContent = cleanedContent.replace(pattern, '');
             break;
           }
         }
       }
     } catch (error) {
-      console.error("MESSAGE-RENDER-DEBUG: Fehler bei der Duplikat-Erkennung:", error);
+      console.error("MESSAGE-RENDER-DEBUG: Fehler bei Duplikat-Prüfung:", error);
     }
     
-    return formattedContent;
+    return cleanedContent;
   }
 
   // Hilfsfunktion zum Escapen von Zeichen für RegExp
@@ -206,14 +232,8 @@ export function Message({
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
-  // Debug-Ausgabe bei leerem Inhalt
-  if (!message.content) {
-    console.warn("MESSAGE-RENDER-DEBUG: Leere Nachricht!", { isStreaming });
-  } else {
-    // Log eine Vorschau des Inhalts
-    console.warn("MESSAGE-RENDER-DEBUG: Nachrichteninhalt:",
-      message.content.substring(0, 100) + (message.content.length > 100 ? "..." : ""));
-  }
+  // Verarbeite den Nachrichteninhalt für die Anzeige
+  const processedContent = message.content ? cleanMessageContent(message.content) : '';
 
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
@@ -240,14 +260,43 @@ export function Message({
             : 'var(--bot-text-color, #111827)'
         }}
       >
-        {/* Nachrichten-Inhalt direkt anzeigen */}
+        {/* Nachrichten-Inhalt mit React Markdown */}
         {message.content && message.content.trim() !== "" ? (
-          <div 
-            className="message-content prose dark:prose-invert"
-            dangerouslySetInnerHTML={{ 
-              __html: processMessageContent(message.content) 
-            }}
-          />
+          <div className="message-content prose dark:prose-invert max-w-full">
+            {/* ReactMarkdown als ESM Import verwenden mit dynamischer Typisierung */}
+            {React.createElement(ReactMarkdown as any, {
+              rehypePlugins: [rehypeRaw],
+              components: {
+                // Verbessere die Darstellung bestimmter Elemente
+                h1: ({node, ...props}: {node: any, children: React.ReactNode}) => 
+                  <h1 className="text-xl font-bold mt-4 mb-2" {...props} />,
+                h2: ({node, ...props}: {node: any, children: React.ReactNode}) => 
+                  <h2 className="text-lg font-bold mt-3 mb-2" {...props} />,
+                h3: ({node, ...props}: {node: any, children: React.ReactNode}) => 
+                  <h3 className="text-base font-bold mt-2 mb-1" {...props} />,
+                p: ({node, ...props}: {node: any, children: React.ReactNode}) => 
+                  <p className="my-1" {...props} />,
+                ul: ({node, ...props}: {node: any, children: React.ReactNode}) => 
+                  <ul className="pl-5 my-2 list-disc" {...props} />,
+                ol: ({node, ...props}: {node: any, children: React.ReactNode}) => 
+                  <ol className="pl-5 my-2 list-decimal" {...props} />,
+                li: ({node, ...props}: {node: any, children: React.ReactNode}) => 
+                  <li className="mb-1" {...props} />,
+                a: ({node, href, ...props}: {node: any, href: string, children: React.ReactNode}) => 
+                  <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" href={href} {...props} />,
+                // Spezielle Klassen für Schulinformationen
+                strong: ({node, ...props}: {node: any, children: React.ReactNode}) => {
+                  // Prüfe, ob es eine Informationskennzeichnung ist (z.B. "Name:", "Adresse:")
+                  const content = props.children?.toString() || '';
+                  if (content.endsWith(':')) {
+                    return <strong className="inline-block min-w-24 font-semibold" {...props} />;
+                  }
+                  return <strong className="font-semibold" {...props} />;
+                }
+              },
+              className: "break-words"
+            }, processedContent)}
+          </div>
         ) : isStreaming ? (
           <div className="flex items-center justify-start p-2">
             <div className="flex space-x-2">
