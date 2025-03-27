@@ -48,6 +48,9 @@ console.log("Message.tsx geladen - Debug-Version 029 (Verbesserte Telefonnummern
 // VERSION-MARKER: Message-Debug-Code - Version 030
 console.log("Message.tsx geladen - Debug-Version 030 (Fix für ungültigen 'strong<' Tag)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 031
+console.log("Message.tsx geladen - Debug-Version 031 (Fix für ungültigen 'li<' und alle ungültigen HTML-Tags)");
+
 // Entferne Abhängigkeit von externen Icons durch einfache SVG-Implementierungen
 const IconUser = (props: any) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -165,6 +168,17 @@ export function Message({
     // Bereinige HTML-Tags, die falsch formatiert sind
     cleanedContent = cleanedContent.replace(/<([a-z][a-z0-9]*)\s*<+/gi, '<$1 '); // Ersetze aufeinanderfolgende < in Tags
     cleanedContent = cleanedContent.replace(/<([^>]*)<([^>]*)>/gi, '<$1$2>'); // Entferne < innerhalb von Tags
+    
+    // Korrigiere spezifisch bekannte fehlerhafte Tag-Formate
+    const invalidTagFormats = ['strong<', 'em<', 'b<', 'i<', 'p<', 'div<', 'span<', 'a<', 'ul<', 'ol<', 'li<', 'h1<', 'h2<', 'h3<', 'h4<', 'h5<', 'h6<', 'table<', 'tr<', 'td<', 'th<'];
+    for (const invalidTag of invalidTagFormats) {
+      const validTag = '<' + invalidTag.substring(0, invalidTag.length - 1);
+      const regex = new RegExp(invalidTag, 'g');
+      cleanedContent = cleanedContent.replace(regex, validTag);
+    }
+
+    // Allgemeine Regel: Wenn ein Wort mit < endet und danach ein Leerzeichen oder ein anderes < folgt, korrigiere das Format
+    cleanedContent = cleanedContent.replace(/([a-z0-9]+)<(\s|<)/gi, '<$1$2');
     
     // Entferne ungewollte HTML-Tags am Anfang der Nachricht
     cleanedContent = cleanedContent.replace(/^<[^>]*>(<[^>]*>)*/g, '');
