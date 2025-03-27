@@ -8,6 +8,9 @@ import { v4 as uuidv4 } from 'uuid'
 // VERSION-MARKER: Eindeutiger Debug-Code - Version 007
 console.log("useChat.ts geladen - Debug-Version 007 (Streaming)");
 
+// VERSION-MARKER: useChat-Debug-Code - Version 008
+console.log("useChat.ts geladen - Debug-Version 008 (Verbesserte Nachrichtenverarbeitung)");
+
 // Hilfsfunktionen für Markdown-Formatierung
 const ensureCompleteMarkdown = (text: string): string => {
   // Prüfe auf unvollständige Codeblöcke
@@ -148,182 +151,209 @@ export function useChat({
 
   // Verbessere die Fehlerbehandlung beim Streaming
   const sendMessageWithStreaming = async (content: string): Promise<void> => {
-    
-    // Existierende Implementierung...
-    
-    // Setze den Streaming-Status
-    setIsStreaming(true);
+    if (!content.trim()) {
+      console.warn("useChat-DEBUG: Leere Nachricht wurde nicht gesendet");
+      return;
+    }
+
+    console.log("useChat-DEBUG: Bereite Nachricht vor:", content.substring(0, 30) + (content.length > 30 ? "..." : ""));
+
+    // Zuerst zur Liste hinzufügen
+    const userMessage: Message = {
+      role: 'user',
+      content: content
+    };
+
+    // Aktualisiere den UI-Zustand mit der Nachricht vom Benutzer
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+
+    // Setze Chat-Zustand
+    setIsOpen(true);
     setIsLoading(true);
-    setError(null);
-    
-    // Bereite Streaming-Buffer vor
-    let streamingContent = '';
-    
+    setIsStreaming(true);
+    setStreamingBuffer("");
+    let error = false;
+
     try {
-      console.log("useChat-DEBUG: Streaming-Anfrage wird gesendet");
-      
+      // Bereite den API-Request-Body vor
+      const requestBody = {
+        message: content,
+        messages: updatedMessages,
+        botId: botId
+      };
+
+      // Konfiguriere die Stream-Anfrage für die API
       const response = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: content,
-          messages: messages,
-          botId
-        })
+        body: JSON.stringify(requestBody)
       });
-      
+
+      // Prüfe auf HTTP-Fehler
       if (!response.ok) {
-        console.error("useChat-DEBUG: Fehler bei der Streaming-Anfrage:", response.status);
-        let errorText = "Verbindungsfehler";
+        let errorMessage;
         try {
-          errorText = await response.text();
-        } catch (e) {
-          console.error("useChat-DEBUG: Fehler beim Lesen des Fehlertexts:", e);
+          const errorData = await response.json();
+          errorMessage = errorData.error || `HTTP-Fehler: ${response.status}`;
+        } catch (err) {
+          errorMessage = `HTTP-Fehler: ${response.status}`;
         }
-        throw new Error(`Fehler bei der Streaming-Anfrage: ${response.status} - ${errorText}`);
+        
+        throw new Error(errorMessage);
       }
-      
-      console.log("useChat-DEBUG: Streaming-Antwort empfangen, Reader wird initialisiert");
-      
-      // Event Source wird verwendet, um den Stream zu lesen
+
       const reader = response.body?.getReader();
       if (!reader) {
-        throw new Error("Kein Stream-Reader verfügbar");
+        throw new Error("Stream konnte nicht gelesen werden");
       }
-      
-      const decoder = new TextDecoder();
-      
-      // Lese den Stream
+
+      // Puffer für unvollständige Daten
+      let buffer = '';
+      let streamContent = '';
+      let isFirstChunk = true;
+
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (done) {
           console.log("useChat-DEBUG: Stream beendet");
           break;
         }
-        
-        // Decodiere den Chunk
-        const chunk = decoder.decode(value, { stream: true });
-        console.log("useChat-DEBUG: Chunk empfangen (Länge):", chunk.length);
 
-        // KRITISCHE DEBUG-AUSGABE
-        if (chunk.length > 0) {
-          console.log("useChat-CRITICAL: Chunk-Inhalt:", chunk);
-        }
+        // Decodiere den Chunk und füge ihn zum Puffer hinzu
+        const chunk = new TextDecoder().decode(value);
+        buffer += chunk;
 
-        // Teile den Text in einzelne Server-Sent Events
-        const events = chunk.split('\n\n');
+        console.log(`useChat-DEBUG: Stream-Chunk empfangen, Länge: ${chunk.length}`);
         
-        for (const event of events) {
-          if (!event.trim()) continue;
-          
-          try {
-            console.log("useChat-DEBUG: Event verarbeiten:", event);
-            
-            // Extrahiere ALLES nach "data:" als gültigen Inhalt
-            if (event.includes('data:')) {
-              try {
-                const dataMatch = event.match(/data:(.*)/m);
-                if (dataMatch && dataMatch[1]) {
-                  const rawData = dataMatch[1].trim();
-                  
-                  // VEREINFACHTE VERARBEITUNG: Versuche JSON zu parsen
-                  try {
-                    const jsonData = JSON.parse(rawData);
-                    console.log("useChat-DEBUG: Gültiges JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
-                    
-                    // Ignoriere sourceDocuments, metadata und end Events
-                    if (jsonData.event === "sourceDocuments" || 
-                        jsonData.event === "metadata" || 
-                        jsonData.event === "end") {
-                      console.log("useChat-DEBUG: Ignoriere Event vom Typ:", jsonData.event);
-                      // Diese Events nicht zum Stream-Content hinzufügen
-                      continue;
-                    }
-                    
-                    // Extrahiere jeglichen Inhalt, der gefunden werden kann
-                    let actualContent = null;
-                    
-                    // Prüfe in dieser Reihenfolge auf mögliche Inhalte
-                    if (jsonData.event === "token" && jsonData.data) {
-                      actualContent = jsonData.data;
-                      console.log("useChat-DEBUG: Token-Event-Daten gefunden:", actualContent.slice(0, 30));
-                    } 
-                    else if (jsonData.data && typeof jsonData.data === 'string') {
-                      actualContent = jsonData.data;
-                      console.log("useChat-DEBUG: Allgemeine Daten gefunden:", actualContent.slice(0, 30));
-                    }
-                    else if (jsonData.message && typeof jsonData.message === 'string') {
-                      actualContent = jsonData.message;
-                      console.log("useChat-DEBUG: Message-Feld gefunden:", actualContent.slice(0, 30));
-                    }
-                    else if (jsonData.content && typeof jsonData.content === 'string') {
-                      actualContent = jsonData.content;
-                      console.log("useChat-DEBUG: Content-Feld gefunden:", actualContent.slice(0, 30));
-                    }
-                    else if (jsonData.text && typeof jsonData.text === 'string') {
-                      actualContent = jsonData.text;
-                      console.log("useChat-DEBUG: Text-Feld gefunden:", actualContent.slice(0, 30));
-                    }
-                    else if (typeof jsonData === 'string') {
-                      actualContent = jsonData;
-                      console.log("useChat-DEBUG: String-JSON gefunden:", actualContent.slice(0, 30));
-                    }
-                    
-                    // Wenn Inhalt gefunden wurde, füge ihn zur Nachricht hinzu
-                    if (actualContent !== null && actualContent.trim() !== "") {
-                      // Erste echte Nachricht erhalten, im Streaming-Modus bleiben aber isLoading deaktivieren
-                      setIsLoading(false);
-                      
-                      streamingContent += actualContent;
-                      console.log("useChat-DEBUG: Aktualisierter streamingContent:", streamingContent.slice(0, 50));
-                      setStreamingBuffer(streamingContent);
-                      updateLastMessage(streamingContent);
-                    } else {
-                      console.log("useChat-DEBUG: Kein verwertbarer Inhalt in JSON gefunden:", JSON.stringify(jsonData).slice(0, 100));
-                    }
-                  } catch (jsonError) {
-                    // Kein JSON, verwende den Rohtext
-                    console.log("useChat-DEBUG: Kein JSON, verwende Rohtext:", rawData.slice(0, 50));
-                    
-                    // Wenn es mit "<p>" beginnt, ist es wahrscheinlich HTML-Inhalt
-                    if (rawData.startsWith("<p>") || rawData.includes("<p>")) {
-                      streamingContent += rawData;
-                      setStreamingBuffer(streamingContent);
-                      updateLastMessage(streamingContent);
-                    }
-                    // Ansonsten, wenn es nicht leer ist, als Text hinzufügen
-                    else if (rawData.trim() !== "") {
-                      streamingContent += rawData;
-                      setStreamingBuffer(streamingContent);
-                      updateLastMessage(streamingContent);
-                    }
-                  }
-                } else {
-                  console.log("useChat-DEBUG: Kein Data-Match gefunden in:", event);
-                }
-              } catch (e) {
-                console.error("useChat-DEBUG: Fehler bei Event-Verarbeitung:", e);
+        // Verarbeite alle vollständigen Zeilen im Puffer
+        let newlineIndex;
+        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+          // Extrahiere eine Zeile
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+
+          if (line.length === 0) continue;
+
+          // Verarbeite Server-Sent Events (SSE)
+          if (line.startsWith('data:')) {
+            try {
+              const data = line.slice(5).trim();
+              
+              // Ignoriere Heartbeat-Nachrichten
+              if (data === ':heartbeat') {
+                console.log("useChat-DEBUG: Heartbeat empfangen");
+                continue;
               }
-            } else {
-              console.log("useChat-DEBUG: Kein data: gefunden in:", event);
+              
+              // Versuche JSON zu parsen
+              try {
+                const jsonData = JSON.parse(data);
+                console.log("useChat-DEBUG: JSON-Daten empfangen:", jsonData.event || "unbekanntes Event");
+                
+                // Ignoriere bestimmte Metadaten-Events
+                if (jsonData.event === "sourceDocuments" || 
+                    jsonData.event === "metadata" || 
+                    jsonData.event === "end") {
+                  console.log(`useChat-DEBUG: Event "${jsonData.event}" ignoriert`);
+                  continue;
+                }
+                
+                // Extrahiere den tatsächlichen Inhalt
+                let tokenContent = null;
+                
+                if (jsonData.event === "token" && jsonData.data) {
+                  tokenContent = jsonData.data;
+                } 
+                else if (jsonData.data && typeof jsonData.data === 'string') {
+                  tokenContent = jsonData.data;
+                }
+                else if (jsonData.message && typeof jsonData.message === 'string') {
+                  tokenContent = jsonData.message;
+                }
+                else if (jsonData.content && typeof jsonData.content === 'string') {
+                  tokenContent = jsonData.content;
+                }
+                else if (jsonData.text && typeof jsonData.text === 'string') {
+                  tokenContent = jsonData.text;
+                }
+                
+                if (tokenContent) {
+                  // Entferne HTML-Tags am Anfang der Nachricht (nur beim ersten Chunk)
+                  if (isFirstChunk && tokenContent.match(/^<[^>]*>/)) {
+                    tokenContent = tokenContent.replace(/^<[^>]*>(<[^>]*>)*/g, '');
+                    console.log("useChat-DEBUG: HTML-Tags am Anfang entfernt");
+                  }
+                  
+                  isFirstChunk = false;
+                  streamContent += tokenContent;
+                  setStreamingBuffer(streamContent);
+                  
+                  // Aktualisiere die letzte Nachricht mit dem aktuellen Streaming-Inhalt
+                  updateLastMessage(streamContent);
+                  
+                  // Setze Loading nur beim ersten tatsächlichen Inhalt auf false
+                  if (isLoading && streamContent.trim().length > 0) {
+                    console.log("useChat-DEBUG: Lade-Zustand beendet, Inhalte werden gestreamt");
+                    setIsLoading(false);
+                  }
+                }
+              } catch (jsonError) {
+                // Wenn es kein JSON ist, behandle es als reinen Text
+                console.log("useChat-DEBUG: Textdaten empfangen:", 
+                  data.length > 30 ? data.substring(0, 30) + "..." : data);
+                
+                // Entferne HTML-Tags am Anfang der Nachricht (nur beim ersten Chunk)
+                let textContent = data;
+                if (isFirstChunk && textContent.match(/^<[^>]*>/)) {
+                  textContent = textContent.replace(/^<[^>]*>(<[^>]*>)*/g, '');
+                  console.log("useChat-DEBUG: HTML-Tags am Anfang von Text entfernt");
+                }
+                
+                isFirstChunk = false;
+                streamContent += textContent;
+                setStreamingBuffer(streamContent);
+                updateLastMessage(streamContent);
+                
+                // Setze Loading nur beim ersten tatsächlichen Inhalt auf false
+                if (isLoading && streamContent.trim().length > 0) {
+                  console.log("useChat-DEBUG: Lade-Zustand beendet, Inhalte werden gestreamt");
+                  setIsLoading(false);
+                }
+              }
+            } catch (err) {
+              console.error("useChat-DEBUG: Fehler bei der Verarbeitung von SSE:", err);
             }
-          } catch (parseError) {
-            console.error("useChat-DEBUG: Fehler beim Parsen des Events:", parseError);
           }
         }
       }
+
+      // Nachdem der Stream abgeschlossen ist, stelle sicher dass die Nachrichtenliste aktuell ist
+      // Dies wird bereits durch updateLastMessage erledigt, keine weitere Aktion notwendig
+    } catch (err) {
+      console.error("useChat-DEBUG: Fehler beim Streaming:", err);
+      error = true;
       
-      console.log("useChat-DEBUG: Streaming abgeschlossen");
+      // Sende einen Fehler an den onError-Handler, falls vorhanden
+      if (onError) {
+        onError(err instanceof Error ? err : new Error(String(err)));
+      }
       
-    } catch (error) {
-      console.error("useChat-DEBUG: Fehler beim Streaming:", error);
-      setError(error instanceof Error ? error.message : 'Verbindungsfehler. Fehler beim Streaming der Antwort');
+      // Füge Fehlermeldung zu den Nachrichten hinzu
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: `Es ist ein Fehler aufgetreten: ${err instanceof Error ? err.message : String(err)}`
+      };
+      
+      setMessages([...updatedMessages, errorMessage]);
     } finally {
-      setIsStreaming(false);
       setIsLoading(false);
+      setIsStreaming(false);
       setStreamingBuffer('');
     }
+    
+    return;
   };
 
   // Fallback-Methode für Nicht-Streaming (für Abwärtskompatibilität)

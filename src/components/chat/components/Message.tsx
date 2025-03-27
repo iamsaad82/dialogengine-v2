@@ -42,6 +42,9 @@ console.log("Message.tsx geladen - Debug-Version 027 (Verbesserte E-Mail und Tel
 // VERSION-MARKER: Message-Debug-Code - Version 028
 console.log("Message.tsx geladen - Debug-Version 028 (Verbesserte HTML-Tag und Telefonnummern Erkennung)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 029
+console.log("Message.tsx geladen - Debug-Version 029 (Verbesserte Telefonnummern-Erkennung ohne Split)");
+
 // Entferne Abhängigkeit von externen Icons durch einfache SVG-Implementierungen
 const IconUser = (props: any) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -182,7 +185,7 @@ export function Message({
     
     // Verbesserte Erkennung und Formatierung von Telefonnummern
     // Verbesserte Regex für deutsche Telefonnummern - zusammenhängend betrachten
-    const phoneRegex = /(\(0\d{3,5}\)\s*\d{1,10}(?:\s*\d{1,7})*|\b0\d{3,5}[-\/\s]\d{3,10}(?:[-\/\s]\d{1,7})*|\b0\d{3,5}\s\d{3,10})/g;
+    const phoneRegex = /(\(0\d{3,5}\)\s*\d{1,10}(?:\s*[-\/]?\s*\d{1,7})*|\b0\d{3,5}[-\/\s]\d{3,10}(?:[-\/\s]\d{1,7})*|\b0\d{3,5}\s\d{3,10}(?:\s*[-]?\s*\d{1,7})*)/g;
     
     // Wende verbesserte Telefonnummern-Erkennung an
     cleanedContent = cleanedContent.replace(phoneRegex, (match) => {
