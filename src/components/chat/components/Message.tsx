@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Message as MessageType } from '../types'
 import classNames from 'classnames'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { LunaryClient } from '@/lib/lunary-client'
 
 // VERSION-MARKER: Message-Debug-Code - Version 014
@@ -80,6 +78,21 @@ export function Message({
     }
   }
 
+  // Hilfsfunktion, die HTML-Tags korrekt verarbeitet
+  const processMessageContent = (content: string): string => {
+    // Log für Debugging-Zwecke
+    console.warn("MESSAGE-PROCESS-DEBUG: Verarbeite Inhalt", content.substring(0, 50));
+    
+    // Wenn der Inhalt mit <p> beginnt, direkt zurückgeben
+    if (content.startsWith('<p>')) {
+      console.warn("MESSAGE-PROCESS-DEBUG: HTML erkannt");
+      return content;
+    }
+    
+    // Wenn der Inhalt kein HTML ist, Zeilenumbrüche zu <br> konvertieren
+    return content.replace(/\n/g, '<br />');
+  }
+
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
       {/* Absender-Label */}
@@ -107,7 +120,11 @@ export function Message({
       >
         {/* Nachrichteninhalt mit Markdown */}
         <div className="prose dark:prose-invert prose-p:my-1 prose-pre:my-1 prose-ul:my-1 prose-ul:pl-4 prose-li:my-0 max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(message.content || '') }} />
+          <div 
+            dangerouslySetInnerHTML={{ 
+              __html: processMessageContent(message.content || '') 
+            }} 
+          />
         </div>
       </div>
 

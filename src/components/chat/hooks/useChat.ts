@@ -248,8 +248,17 @@ export function useChat({
                       const tokenText = jsonData.data;
                       console.log("useChat-DEBUG: Token-Text extrahiert:", tokenText.substring(0, 50) + (tokenText.length > 50 ? "..." : ""));
                       
-                      // Zum Buffer hinzufügen
-                      streamingContent += tokenText;
+                      // Prüfe auf HTML-Tags und entferne sie, wenn nötig
+                      let processedText = tokenText;
+                      const hasHtmlTags = /<[^>]*>/g.test(tokenText);
+                      
+                      // EXPLIZITES DEBUG-LOGGING
+                      console.warn("useChat-HTML-DEBUG: Text erhalten:", processedText);
+                      console.warn("useChat-HTML-DEBUG: Enthält HTML-Tags:", hasHtmlTags);
+                      console.warn("useChat-HTML-DEBUG: Bytes:", [...processedText].map(c => c.charCodeAt(0)).join(','));
+                      
+                      // Text zum Buffer hinzufügen
+                      streamingContent += processedText;
                       setStreamingBuffer(streamingContent);
                       updateLastMessage(streamingContent);
                     } 
@@ -615,8 +624,17 @@ export function useChat({
                       const tokenText = jsonData.data;
                       console.log("useChat-DEBUG: Token-Text extrahiert:", tokenText.substring(0, 50) + (tokenText.length > 50 ? "..." : ""));
                       
-                      // Zum Buffer hinzufügen
-                      streamingContent += tokenText;
+                      // Prüfe auf HTML-Tags und entferne sie, wenn nötig
+                      let processedText = tokenText;
+                      const hasHtmlTags = /<[^>]*>/g.test(tokenText);
+                      
+                      // EXPLIZITES DEBUG-LOGGING
+                      console.warn("useChat-HTML-DEBUG: Text erhalten:", processedText);
+                      console.warn("useChat-HTML-DEBUG: Enthält HTML-Tags:", hasHtmlTags);
+                      console.warn("useChat-HTML-DEBUG: Bytes:", [...processedText].map(c => c.charCodeAt(0)).join(','));
+                      
+                      // Text zum Buffer hinzufügen
+                      streamingContent += processedText;
                       setStreamingBuffer(streamingContent);
                       updateLastMessage(streamingContent);
                     } 
