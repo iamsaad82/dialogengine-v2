@@ -18,6 +18,7 @@ interface MessageListProps {
   enableFeedback?: boolean
   botId?: string
   botPrimaryColor?: string
+  isStreaming?: boolean
 }
 
 export function MessageList({ 
@@ -28,7 +29,8 @@ export function MessageList({
   showCopyButton = true,
   enableFeedback = false,
   botId,
-  botPrimaryColor
+  botPrimaryColor,
+  isStreaming = false
 }: MessageListProps) {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -120,11 +122,12 @@ export function MessageList({
           <Message 
             key={index} 
             message={message} 
-            isLastMessage={index === messages.length - 1 && message.role === 'user'} 
+            isLastMessage={index === messages.length - 1} 
             botName={botName}
             showCopyButton={showCopyButton}
             enableFeedback={enableFeedback}
             botId={botId}
+            isStreaming={isStreaming && index === messages.length - 1}
           />
         ))}
       </div>
