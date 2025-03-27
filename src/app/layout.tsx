@@ -32,7 +32,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="de">
+    <html lang="de" suppressHydrationWarning>
+      <head>
+        {/* Temporäres Skript auskommentieren */}
+        {/* <script src="/temp-styles/list-enhancer.js" defer async></script> */}
+      </head>
       <body className={inter.className}>
         {children}
         

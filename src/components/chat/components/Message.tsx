@@ -1,587 +1,616 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Message as MessageType } from '../types'
+import React from 'react'
+import { BotIcon, UserIcon, CopyIcon, CheckIcon, ThumbsUpIcon, ThumbsDownIcon } from './ui/icons'
+import { motion } from 'framer-motion'
+import ReactMarkdown from 'react-markdown'
 import classNames from 'classnames'
 import { LunaryClient } from '@/lib/lunary-client'
-import { BotIcon } from './ui/icons'
-import ReactMarkdown from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
-import React from 'react'
 
-// VERSION-MARKER: Message-Debug-Code - Version 018
-console.log("Message.tsx geladen - Debug-Version 018 (Duplikat-Wörter + [DONE]-Fix)");
+// VERSION-MARKER: Message-Debug-Code - Version 009
+console.log("Message.tsx geladen - Debug-Version 009");
 
-// VERSION-MARKER: Message-Debug-Code - Version 019
-console.log("Message.tsx geladen - Debug-Version 019 (Ladeanimation-Fix)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 020
-console.log("Message.tsx geladen - Debug-Version 020 (Verbesserte Duplikat-Erkennung)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 021
-console.log("Message.tsx geladen - Debug-Version 021 (HTML-Duplikat-Erkennung-Fix)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 022
-console.log("Message.tsx geladen - Debug-Version 022 (Nur Ladeanimation, Text entfernt)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 023
-console.log("Message.tsx geladen - Debug-Version 023 (react-markdown Integration)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 024
-console.log("Message.tsx geladen - Debug-Version 024 (verbesserte Markdown-Darstellung)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 025
-console.log("Message.tsx geladen - Debug-Version 025 (Tabellarische Darstellung für Schulen)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 026
-console.log("Message.tsx geladen - Debug-Version 026 (Verbesserte Darstellung für alle strukturierten Daten)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 027
-console.log("Message.tsx geladen - Debug-Version 027 (Verbesserte E-Mail und Telefonnummer Erkennung)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 028
-console.log("Message.tsx geladen - Debug-Version 028 (Verbesserte HTML-Tag und Telefonnummern Erkennung)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 029
-console.log("Message.tsx geladen - Debug-Version 029 (Verbesserte Telefonnummern-Erkennung ohne Split)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 030
-console.log("Message.tsx geladen - Debug-Version 030 (Fix für ungültigen 'strong<' Tag)");
-
-// VERSION-MARKER: Message-Debug-Code - Version 031
-console.log("Message.tsx geladen - Debug-Version 031 (Fix für ungültigen 'li<' und alle ungültigen HTML-Tags)");
-
-// Entferne Abhängigkeit von externen Icons durch einfache SVG-Implementierungen
-const IconUser = (props: any) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
-
-const IconCopy = (props: any) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-  </svg>
-);
-
-const IconCheck = (props: any) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-
-const IconThumbUp = (props: any) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M7 10v12" />
-    <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
-  </svg>
-);
-
-const IconThumbDown = (props: any) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M17 14V2" />
-    <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z" />
-  </svg>
-);
-
-export interface MessageProps {
-  message: MessageType
+interface MessageProps {
+  message: {
+    role: 'user' | 'assistant'
+    content: string
+  }
   isLastMessage?: boolean
   botName?: string
   showCopyButton?: boolean
-  botId?: string
   enableFeedback?: boolean
-  isStreaming?: boolean
+  botId?: string
 }
 
-export function Message({
-  message,
+export function Message({ 
+  message, 
   isLastMessage = false,
-  botName = 'Assistent',
+  botName = 'SMG Dialog Engine',
   showCopyButton = true,
-  botId = 'default',
   enableFeedback = false,
-  isStreaming = false
+  botId = 'default'
 }: MessageProps) {
-  const isUser = message.role === 'user'
-  const [copied, setCopied] = useState(false)
-  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null)
-
-  // Zurücksetzen des Kopierstatus nach 2 Sekunden
+  const [copySuccess, setCopySuccess] = useState(false)
+  const [currentTime, setCurrentTime] = useState<string>("")
+  const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null)
+  const isBot = message.role === 'assistant'
+  
+  // Zeit nur client-seitig festlegen, um Hydration-Fehler zu vermeiden
   useEffect(() => {
-    if (copied) {
-      const timer = setTimeout(() => {
-        setCopied(false)
-      }, 2000)
-      return () => clearTimeout(timer)
+    setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+  }, [])
+  
+  // CSS-Styles für Markdown-Elemente
+  useEffect(() => {
+    // Füge CSS für die Formatierung hinzu, falls es noch nicht existiert
+    if (!document.getElementById('markdown-styles')) {
+      const styleSheet = document.createElement('style');
+      styleSheet.id = 'markdown-styles';
+      styleSheet.innerHTML = `
+        /* Grundlegende Linkstile */
+        .phone-number, .email-address, .url-address {
+          display: inline-flex;
+          align-items: center;
+          padding: 0.15rem 0.4rem;
+          border-radius: 0.25rem;
+          font-weight: 500;
+          white-space: nowrap;
+          margin: 0 1px;
+          border: 1px solid transparent;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+        
+        /* Telefonnummern */
+        .phone-number {
+          background-color: rgba(236, 253, 245, 0.6);
+          color: #065f46;
+          border-color: rgba(6, 95, 70, 0.2);
+        }
+        
+        .phone-number:hover {
+          background-color: rgba(236, 253, 245, 0.9);
+          border-color: rgba(6, 95, 70, 0.4);
+        }
+        
+        /* E-Mail-Adressen */
+        .email-address {
+          background-color: rgba(239, 246, 255, 0.6);
+          color: #1e40af;
+          border-color: rgba(30, 64, 175, 0.2);
+        }
+        
+        .email-address:hover {
+          background-color: rgba(239, 246, 255, 0.9);
+          border-color: rgba(30, 64, 175, 0.4);
+        }
+        
+        /* Webseiten */
+        .url-address {
+          background-color: rgba(243, 244, 246, 0.6);
+          color: #374151;
+          border-color: rgba(55, 65, 81, 0.2);
+        }
+        
+        .url-address:hover {
+          background-color: rgba(243, 244, 246, 0.9);
+          border-color: rgba(55, 65, 81, 0.4);
+        }
+        
+        /* Verbesserte Listenelemente */
+        .list-vertical {
+          padding-left: 0.25rem !important;
+          margin: 0.5rem 0 1rem 0 !important;
+          list-style-type: none !important;
+        }
+        
+        .list-item {
+          margin-bottom: 0.5rem !important;
+          padding-left: 1.5rem !important;
+          position: relative !important;
+          line-height: 1.6 !important;
+          display: flex !important;
+          align-items: flex-start !important;
+          color: #333 !important;
+        }
+        
+        .list-item::before {
+          content: "" !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0.5rem !important;
+          width: 0.5rem !important;
+          height: 0.5rem !important;
+          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.8) !important;
+          border-radius: 50% !important;
+        }
+        
+        /* Verschachtelte Listen */
+        .list-vertical .list-vertical {
+          margin-top: 0.5rem !important;
+          margin-left: 0.5rem !important;
+        }
+        
+        .list-vertical .list-item::before {
+          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+          width: 0.4rem !important;
+          height: 0.4rem !important;
+        }
+        
+        /* Spezielle Formatierung für Kontaktdaten */
+        .contact-info {
+          margin: 0.75rem 0 !important;
+          padding: 0.75rem !important;
+          background-color: rgba(249, 250, 251, 0.6) !important;
+          border-radius: 0.375rem !important;
+          border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        /* Verbesserte Überschriften */
+        h1, h2, h3, h4, h5, h6 {
+          margin-top: 1.5rem;
+          margin-bottom: 0.75rem;
+          line-height: 1.3;
+          font-weight: 600;
+          color: #111827;
+        }
+        
+        h1 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          letter-spacing: -0.025em;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          padding-bottom: 0.5rem;
+        }
+        
+        h2 {
+          font-size: 1.3rem;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          padding-bottom: 0.3rem;
+          color: rgba(var(--primary-rgb, 59, 130, 246), 1);
+        }
+        
+        h3 {
+          font-size: 1.1rem;
+          color: #4b5563;
+          margin-top: 1.25rem;
+          margin-bottom: 0.5rem;
+        }
+        
+        h4 {
+          font-size: 1rem;
+          color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.025em;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+        }
+        
+        /* Absätze und Text */
+        p {
+          margin: 0.5rem 0 0.75rem 0;
+          line-height: 1.6;
+          color: #374151;
+        }
+        
+        strong {
+          font-weight: 600;
+          color: #111827;
+        }
+        
+        /* Spezielles Styling für Kontaktbereiche */
+        .contact-section {
+          margin: 1rem 0;
+          padding: 0.75rem;
+          background-color: rgba(249, 250, 251, 0.8);
+          border-radius: 0.5rem;
+          border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.6);
+        }
+        
+        .contact-label {
+          color: rgba(var(--primary-rgb, 59, 130, 246), 0.9);
+          margin-right: 0.25rem;
+          font-weight: 600;
+        }
+        
+        /* Füge etwas Abstand nach den Überschriften für bessere Lesbarkeit hinzu */
+        h2 + p, h3 + p, h4 + p {
+          margin-top: 0.5rem;
+        }
+        
+        /* Trennlinien */
+        hr {
+          margin: 1.5rem 0;
+          border: 0;
+          height: 1px;
+          background-color: rgba(0, 0, 0, 0.1);
+        }
+      `;
+      document.head.appendChild(styleSheet);
     }
-  }, [copied])
+  }, []);
+  
+  // Debug-Ausgabe beim Rendern einer Nachricht
+  useEffect(() => {
+    console.log("MESSAGE-DEBUG-009: Nachricht gerendert:", {
+      role: message.role,
+      contentLength: message.content?.length || 0,
+      isLastMessage,
+      showCopyButton,
+      enableFeedback
+    });
+  }, [message, isLastMessage, showCopyButton, enableFeedback]);
 
-  // Text in die Zwischenablage kopieren
+  // Funktion zum Kopieren der Nachricht
   const copyToClipboard = () => {
-    if (message.content) {
-      navigator.clipboard.writeText(message.content)
-      setCopied(true)
+    // Erstellt einen temporären DOM-Knoten um HTML-Tags aus dem Text zu entfernen
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = message.content || ''
+    const plainText = tempDiv.textContent || tempDiv.innerText || ''
 
-      // Kopier-Event tracken
+    // Versuche erst navigator.clipboard.writeText zu verwenden
+    const copyWithAPI = () => {
+      navigator.clipboard.writeText(plainText).then(
+        () => {
+          setCopySuccess(true)
+          setTimeout(() => setCopySuccess(false), 2000)
+          
+          // Tracking für Kopieren
+          LunaryClient.track({
+            eventName: 'message_copied',
+            properties: { botId },
+            metadata: { messageContent: plainText.slice(0, 100) }
+          })
+        },
+        (err) => {
+          console.error('Fehler beim Kopieren mit Clipboard API:', err)
+          // Fallback zu document.execCommand
+          copyWithExecCommand()
+        }
+      )
+    }
+
+    // Fallback mit document.execCommand
+    const copyWithExecCommand = () => {
       try {
-        LunaryClient.track({
-          eventName: 'message_copied',
-          properties: { botId, messageLength: message.content.length }
-        })
-      } catch (error) {
-        console.error('Tracking error:', error)
+        // Erstelle temporäres Textarea-Element
+        const textArea = document.createElement('textarea')
+        textArea.value = plainText
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+
+        // Führe Kopier-Befehl aus
+        const successful = document.execCommand('copy')
+        if (successful) {
+          setCopySuccess(true)
+          setTimeout(() => setCopySuccess(false), 2000)
+          
+          // Tracking für Kopieren
+          LunaryClient.track({
+            eventName: 'message_copied',
+            properties: { botId },
+            metadata: { messageContent: plainText.slice(0, 100) }
+          })
+        } else {
+          console.error('Fehler beim Kopieren mit execCommand')
+        }
+        
+        // Entferne temporäres Element
+        document.body.removeChild(textArea)
+      } catch (err) {
+        console.error('Fehler beim Kopieren mit Fallback-Methode:', err)
       }
     }
-  }
 
-  // Feedback senden
-  const sendFeedback = (type: 'positive' | 'negative') => {
-    setFeedback(type)
-
-    // Feedback-Event tracken
+    // Versuche erst die moderne API, dann den Fallback
     try {
-      LunaryClient.track({
-        eventName: 'message_feedback',
-        properties: { 
-          botId, 
-          feedback: type, 
-          messageLength: message.content?.length || 0
-        }
-      })
-    } catch (error) {
-      console.error('Tracking error:', error)
+      copyWithAPI()
+    } catch (err) {
+      console.error('Clipboard API nicht verfügbar, verwende Fallback:', err)
+      copyWithExecCommand()
     }
   }
-
-  // Bereinige den Nachrichteninhalt vor dem Rendern
-  const cleanMessageContent = (content: string | null | undefined): string => {
-    if (!content || content.trim() === '') {
-      console.log("MESSAGE-RENDER-DEBUG: Leerer Inhalt erkannt");
-      return "";
-    }
-
-    let cleanedContent = content;
+  
+  // Funktion zum Senden von Feedback
+  const sendFeedback = (isPositive: boolean) => {
+    setFeedbackGiven(isPositive ? 'positive' : 'negative')
     
-    // Bereinige HTML-Tags, die falsch formatiert sind
-    cleanedContent = cleanedContent.replace(/<([a-z][a-z0-9]*)\s*<+/gi, '<$1 '); // Ersetze aufeinanderfolgende < in Tags
-    cleanedContent = cleanedContent.replace(/<([^>]*)<([^>]*)>/gi, '<$1$2>'); // Entferne < innerhalb von Tags
-    
-    // Korrigiere spezifisch bekannte fehlerhafte Tag-Formate
-    const invalidTagFormats = ['strong<', 'em<', 'b<', 'i<', 'p<', 'div<', 'span<', 'a<', 'ul<', 'ol<', 'li<', 'h1<', 'h2<', 'h3<', 'h4<', 'h5<', 'h6<', 'table<', 'tr<', 'td<', 'th<'];
-    for (const invalidTag of invalidTagFormats) {
-      const validTag = '<' + invalidTag.substring(0, invalidTag.length - 1);
-      const regex = new RegExp(invalidTag, 'g');
-      cleanedContent = cleanedContent.replace(regex, validTag);
-    }
-
-    // Allgemeine Regel: Wenn ein Wort mit < endet und danach ein Leerzeichen oder ein anderes < folgt, korrigiere das Format
-    cleanedContent = cleanedContent.replace(/([a-z0-9]+)<(\s|<)/gi, '<$1$2');
-    
-    // Entferne ungewollte HTML-Tags am Anfang der Nachricht
-    cleanedContent = cleanedContent.replace(/^<[^>]*>(<[^>]*>)*/g, '');
-    
-    // Entferne JSON-Artefakte
-    if (cleanedContent.includes('{"event":')) {
-      const jsonStartIndex = cleanedContent.indexOf('{"event":');
-      if (jsonStartIndex > 0) {
-        cleanedContent = cleanedContent.substring(0, jsonStartIndex);
+    // Tracking für Feedback
+    LunaryClient.trackFeedback({
+      rating: isPositive,
+      userId: 'anonymous',
+      metadata: { 
+        botId,
+        messageContent: message.content.slice(0, 100) // Ersten 100 Zeichen
       }
+    })
+    
+    console.log(`Feedback gesendet: ${isPositive ? 'positiv' : 'negativ'} für Bot ${botId}`)
+  }
+
+  // Festlegen von Klassen und Stilen basierend auf der Rolle
+  const isUser = message.role === 'user'
+  const containerClasses = classNames(
+    "px-4 py-3 rounded-lg transition-all",
+    isUser 
+      ? "glassmorphism-user ml-auto max-w-[85%] md:max-w-[75%] mb-3" 
+      : "glassmorphism-bot mr-auto max-w-[85%] md:max-w-[75%] mb-3"
+  )
+
+  // Avatar für den Bot
+  const BotAvatar = () => (
+    <div className="bot-avatar flex items-center justify-center w-8 h-8 text-sm font-medium mr-2 rounded-md bg-white/60 border border-primary/20 text-primary shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+      </svg>
+    </div>
+  )
+
+  // Avatar für den User
+  const UserAvatar = () => (
+    <div className="user-avatar flex items-center justify-center w-8 h-8 text-xs font-medium ml-2 rounded-md border border-primary/20 bg-primary/90 text-white shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+    </div>
+  )
+
+  // VERBESSERTE FORMATIERUNGSFUNKTION mit Markdown
+  const renderContent = () => {
+    console.log("MESSAGE-DEBUG-009: renderContent aufgerufen");
+    
+    // Sicherheitsprüfung für leeren Inhalt
+    if (!message.content || typeof message.content !== 'string') {
+      console.log("MESSAGE-DEBUG-009: Ungültiger Inhalt:", message.content);
+      return <div className="text-red-500">Ungültige Nachricht</div>;
     }
     
-    // Entferne [DONE] am Ende
-    cleanedContent = cleanedContent.replace(/\[DONE\]$/g, '');
-
-    // Stelle sicher, dass Tags korrekt geschlossen sind
-    const tagPairs = [
-      ['<strong>', '</strong>'],
-      ['<em>', '</em>'],
-      ['<b>', '</b>'],
-      ['<i>', '</i>'],
-      ['<a', '</a>'],
-      ['<p>', '</p>'],
-      ['<div>', '</div>'],
-      ['<span>', '</span>']
-    ];
+    // Verbesserte Vorverarbeitung des Inhalts für korrekte Abstände nach Doppelpunkten
+    let processedContent = message.content;
     
-    // Überprüfe Tags auf korrekte Formatierung
-    for (const [openTag, closeTag] of tagPairs) {
-      const openBase = openTag.endsWith('>') ? openTag.slice(0, -1) : openTag;
-      
-      // Korrigiere falsch formatierte öffnende Tags (z.B. "strong<" zu "<strong")
-      cleanedContent = cleanedContent.replace(new RegExp(`${openBase.slice(1)}<`, 'g'), openTag);
-      
-      // Zähle öffnende und schließende Tags
-      const openCount = (cleanedContent.match(new RegExp(escapeRegExp(openTag), 'g')) || []).length;
-      const closeCount = (cleanedContent.match(new RegExp(escapeRegExp(closeTag), 'g')) || []).length;
-      
-      // Füge fehlende schließende Tags hinzu, wenn nötig
-      if (openCount > closeCount) {
-        for (let i = 0; i < openCount - closeCount; i++) {
-          cleanedContent += closeTag;
-        }
-      }
-    }
-
-    // Verbesserte Erkennung und Formatierung von E-Mail-Adressen
-    // Regex für E-Mail-Adressen
-    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    // Füge bei Mustern wie "Telefon:(Nummer)" ein Leerzeichen nach dem Doppelpunkt ein
+    processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Ganztagsschule|Standort|Fax):([\S])/g, '$1: $2');
     
-    // Ersetze E-Mail-Adressen mit Markdown-Links
-    cleanedContent = cleanedContent.replace(emailRegex, (match) => {
-      console.log("MESSAGE-RENDER-DEBUG: E-Mail erkannt:", match);
+    // Erkennung und Formatierung von Kontaktdaten-Mustern
+    
+    // "**Telefon:** " -> "**Telefon:** " (behalte Formatierung bei)
+    processedContent = processedContent.replace(/\*\*(.*?): \*\*/g, '**$1:** ');
+    
+    // Automatische Erkennung von Telefonnummern, E-Mails und Webseiten und Umwandlung in Markdown-Links
+
+    // Telefonnummern (Pattern für deutsche Nummern mit Vorwahl)
+    const phonePattern = /(\(\d{4,6}\)\s*\d[\d\s-]{4,}|\d{3,6}[\s-]\d{4,})/g;
+    processedContent = processedContent.replace(phonePattern, (match) => {
+      const cleanNumber = match.replace(/[\s-]/g, '');
+      return `[${match}](tel:${cleanNumber})`;
+    });
+    
+    // E-Mail-Adressen
+    const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    processedContent = processedContent.replace(emailPattern, (match) => {
       return `[${match}](mailto:${match})`;
     });
     
-    // Verbesserte Erkennung und Formatierung von Telefonnummern
-    // Verbesserte Regex für deutsche Telefonnummern - zusammenhängend betrachten
-    const phoneRegex = /(\(0\d{3,5}\)\s*\d{1,10}(?:\s*[-\/]?\s*\d{1,7})*|\b0\d{3,5}[-\/\s]\d{3,10}(?:[-\/\s]\d{1,7})*|\b0\d{3,5}\s\d{3,10}(?:\s*[-]?\s*\d{1,7})*)/g;
-    
-    // Wende verbesserte Telefonnummern-Erkennung an
-    cleanedContent = cleanedContent.replace(phoneRegex, (match) => {
-      console.log("MESSAGE-RENDER-DEBUG: Telefonnummer erkannt:", match);
-      // Entferne Leerzeichen und andere nicht-numerische Zeichen für den Link,
-      // aber behalte das Plus-Zeichen für internationale Nummern
-      const cleanPhone = match.replace(/[^\d+]/g, '');
-      return `[${match}](tel:${cleanPhone})`;
+    // URLs (die noch nicht als Links markiert sind)
+    const urlPattern = /(?<!\(|\[)(https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s)<]*)/g;
+    processedContent = processedContent.replace(urlPattern, (match) => {
+      return `[${match}](${match})`;
     });
-
-    // Prüfen, ob der Inhalt HTML enthält
-    const containsHtml = /<\/?[a-z][\s\S]*>/i.test(cleanedContent);
     
-    // Wenn HTML erkannt wurde, verarbeiten wir es direkt
-    if (containsHtml) {
-      console.log("MESSAGE-RENDER-DEBUG: HTML-Inhalt erkannt");
-      
-      // Korrigiere häufige HTML-Formatierungsprobleme
-      // 1. Stelle sicher, dass Listen korrekt geschlossen werden
-      const openUlCount = (cleanedContent.match(/<ul>/g) || []).length;
-      const closeUlCount = (cleanedContent.match(/<\/ul>/g) || []).length;
-      if (openUlCount > closeUlCount) {
-        for (let i = 0; i < openUlCount - closeUlCount; i++) {
-          cleanedContent += '</ul>';
-        }
-      }
-      
-      // 2. Stelle sicher, dass Listen-Elemente korrekt geschlossen werden
-      const openLiCount = (cleanedContent.match(/<li>/g) || []).length;
-      const closeLiCount = (cleanedContent.match(/<\/li>/g) || []).length;
-      if (openLiCount > closeLiCount) {
-        cleanedContent = cleanedContent.replace(/<li>([^<]*?)(?=<li>|<\/ul>)/g, '<li>$1</li>');
-      }
-      
-      // Parsen und Neuformatieren des HTML
-      try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(cleanedContent, 'text/html');
-        
-        // Verbesserung der HTML-Struktur für Listen
-        doc.querySelectorAll('ul').forEach(ulElement => {
-          // Setze Abstände für Listen
-          ulElement.style.margin = '0.5rem 0';
-          ulElement.style.paddingLeft = '1.5rem';
-          
-          // Verbessere verschachtelte Listen
-          ulElement.querySelectorAll('ul').forEach(nestedUl => {
-            nestedUl.style.margin = '0.25rem 0';
-            nestedUl.style.paddingLeft = '1rem';
-          });
-        });
-        
-        // Verbessere Listen-Elemente
-        doc.querySelectorAll('li').forEach(liElement => {
-          // Stelle sicher, dass alle Listenelemente abgeschlossen sind
-          if (!liElement.innerHTML.trim().endsWith('</li>')) {
-            if (!liElement.lastChild || liElement.lastChild.nodeType !== Node.ELEMENT_NODE) {
-              // Füge nur </li> hinzu, wenn das letzte Kind kein Element ist
-              liElement.innerHTML += '</li>';
+    // Verbessere Formatierung für Adressen
+    processedContent = processedContent.replace(/\*\*Standort:\*\* ([^\n]+)/g, '**Standort:**\n$1');
+    
+    // Stelle sicher, dass zwischen aufeinanderfolgenden Sternchen ein Leerzeichen ist
+    processedContent = processedContent.replace(/\*\*\s*\*\*/g, '** **');
+    
+    return (
+      <div className="prose prose-sm break-words pointer-events-auto">
+        <ReactMarkdown
+          components={{
+            a: ({node, ...props}) => (
+              <a 
+                {...props} 
+                className={
+                  props.href?.startsWith('tel:') 
+                    ? 'phone-number' 
+                    : props.href?.startsWith('mailto:') 
+                    ? 'email-address' 
+                    : 'url-address'
+                }
+                target={props.href?.startsWith('http') ? '_blank' : undefined}
+                rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+              />
+            ),
+            ul: ({node, ...props}) => <ul className="list-vertical" {...props} />,
+            ol: ({node, ...props}) => <ol className="list-vertical" {...props} />,
+            li: ({node, ...props}) => <li className="list-item" {...props} />,
+            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-2 mb-0.5" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
+            h4: ({node, ...props}) => <h4 className="text-md font-semibold mt-1.5 mb-0.5" {...props} />,
+            strong: ({node, ...props}) => {
+              // Prüft, ob der Text auf ":" endet, und fügt ein Leerzeichen danach ein
+              let childText = '';
+              if (props.children && typeof props.children === 'string') {
+                childText = props.children;
+              } else if (props.children && Array.isArray(props.children)) {
+                childText = props.children.map(child => 
+                  typeof child === 'string' ? child : ''
+                ).join('');
+              }
+              
+              // Wenn der Text mit einem Doppelpunkt endet, stellen wir sicher, dass ein Leerzeichen folgt
+              if (childText.endsWith(':')) {
+                return <strong {...props} className="contact-label" />;
+              }
+              
+              return <strong {...props} />;
             }
-          }
-        });
-        
-        // Konvertiere zurück zu HTML
-        const serializer = new XMLSerializer();
-        const cleanHtml = serializer.serializeToString(doc.body);
-        
-        // Extrahiere den Body-Inhalt
-        const bodyContent = cleanHtml.replace(/<\/?body[^>]*>/g, '');
-        return bodyContent;
-      } catch (error) {
-        console.error("MESSAGE-RENDER-DEBUG: Fehler bei HTML-Bereinigung:", error);
-      }
-    } else {
-      // Markdown-formatierte Inhalte verarbeiten
-      console.log("MESSAGE-RENDER-DEBUG: Markdown-Inhalt erkannt");
-      
-      // Erkennen von strukturierten Daten (Schulen, Kitas, etc.)
-      const containsStructuredData = /Name:|Adresse:|Kontakt:|Telefon:|E-Mail:|Website:|Schulform:|Angebote:|Öffnungszeiten:|Bürgeramt|Standesamt|Bürgerbüro|Jugendamt/i.test(cleanedContent);
-      
-      if (containsStructuredData) {
-        console.log("MESSAGE-RENDER-DEBUG: Strukturierte Daten erkannt");
-        
-        // Standardisiere Schlüsselwörter für alle strukturierten Daten
-        cleanedContent = cleanedContent
-          .replace(/(\n|^)Name:(\s*)/g, '$1**Name:**$2')
-          .replace(/(\n|^)Schulform:(\s*)/g, '$1**Schulform:**$2')
-          .replace(/(\n|^)Schulleitung:(\s*)/g, '$1**Schulleitung:**$2')
-          .replace(/(\n|^)Standort:(\s*)/g, '$1**Standort:**$2')
-          .replace(/(\n|^)Adresse:(\s*)/g, '$1**Adresse:**$2')
-          .replace(/(\n|^)Kontakt:(\s*)/g, '$1**Kontakt:**$2')
-          .replace(/(\n|^)Telefon:(\s*)/g, '$1**Telefon:**$2')
-          .replace(/(\n|^)E-Mail:(\s*)/g, '$1**E-Mail:**$2')
-          .replace(/(\n|^)Website:(\s*)/g, '$1**Website:**$2')
-          .replace(/(\n|^)Angebote:(\s*)/g, '$1**Angebote:**$2')
-          .replace(/(\n|^)Öffnungszeiten:(\s*)/g, '$1**Öffnungszeiten:**$2')
-          .replace(/(\n|^)Von:(\s*)/g, '$1**Von:**$2')
-          .replace(/(\n|^)Bis:(\s*)/g, '$1**Bis:**$2')
-          .replace(/(\n|^)Link:(\s*)/g, '$1**Link:**$2')
-          .replace(/(\n|^)Ganztagsschule:(\s*)/g, '$1**Ganztagsschule:**$2')
-          .replace(/(\n|^)Bürgeramt(\s+)Standort:(\s*)/g, '$1**Bürgeramt Standort:**$3')
-          .replace(/(\n|^)Das Bürgeramt(\s+)ist(\s+)für(\s+)folgende(\s+)Themen(\s+)zuständig:/g, '$1**Das Bürgeramt ist für folgende Themen zuständig:**')
-          .replace(/(\n|^)Amt für Jugend(\s+)und(\s+)Soziales/g, '$1**Amt für Jugend und Soziales**');
-        
-        // Konvertiere Listen in MD-Format für bessere Darstellung
-        // Erkenne Listen-Muster wie "- Item" oder "* Item"
-        cleanedContent = cleanedContent
-          .replace(/(\n|^)\s*[-*]\s+([^\n]+)/gm, '\n- $2')
-          .replace(/(\n|^)\s*\d+\.\s+([^\n]+)/gm, '\n1. $2');
-        
-        // Formatiere URL-Links korrekt
-        cleanedContent = cleanedContent.replace(
-          /(https?:\/\/[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+(\.[a-z]{2,})([\/\w\.-]*)*\/?)/gi, 
-          '[$1]($1)'
-        );
-        
-        // Füge Abstand zwischen Einträgen wie Schulen oder Kitas ein
-        cleanedContent = cleanedContent.replace(/(\n\n)([A-Z][a-zäöüÄÖÜß]+ [A-Z][a-zäöüÄÖÜß]+)/g, '$1\n## $2');
-        
-        console.log("MESSAGE-RENDER-DEBUG: Strukturierte Daten formatiert");
-      }
-    }
-    
-    // Versuche doppelte Anfänge zu identifizieren und zu entfernen
-    try {
-      // Erstelle ein temporäres Element für Text-Extraktion
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = cleanedContent;
-      const textContent = tempDiv.textContent || tempDiv.innerText || '';
-      
-      // Teile in Wörter und prüfe auf Duplikate am Anfang
-      const words = textContent.trim().split(/\s+/);
-      
-      if (words.length >= 4) {
-        for (let count = 1; count <= Math.min(3, Math.floor(words.length/2)); count++) {
-          const firstPart = words.slice(0, count).join(' ').toLowerCase();
-          const secondPart = words.slice(count, count*2).join(' ').toLowerCase();
-          
-          if (firstPart === secondPart) {
-            // Muster für die ersten Wörter mit möglichen HTML-Tags
-            const pattern = new RegExp(`(<[^>]*>\\s*)?${escapeRegExp(firstPart)}\\s*`, 'i');
-            cleanedContent = cleanedContent.replace(pattern, '');
-            break;
-          }
-        }
-      }
-    } catch (error) {
-      console.error("MESSAGE-RENDER-DEBUG: Fehler bei Duplikat-Prüfung:", error);
-    }
-    
-    return cleanedContent;
+          }}
+        >
+          {processedContent}
+        </ReactMarkdown>
+      </div>
+    );
   }
 
-  // Hilfsfunktion zum Escapen von Zeichen für RegExp
-  function escapeRegExp(string: string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Animation für die Nachrichtenbubble
+  const variants = {
+    hidden: { 
+      opacity: 0, 
+      y: 20,
+      x: isBot ? -20 : 20,
+      scale: 0.95
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      x: 0,
+      scale: 1,
+      transition: { 
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+        mass: 0.8,
+        duration: 0.3,
+      } 
+    }
   }
-
-  // Verarbeite den Nachrichteninhalt für die Anzeige
-  const processedContent = message.content ? cleanMessageContent(message.content) : '';
 
   return (
-    <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-      {/* Absender-Label */}
-      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 px-1">
-        {isUser ? 'Sie' : botName}
-      </div>
-
-      {/* Nachrichtenbubble */}
-      <div
-        className={classNames(
-          'p-3 rounded-lg max-w-[85%] break-words',
-          isUser 
-            ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground' 
-            : 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100',
-          isStreaming && 'animate-pulse'
-        )}
+    <motion.div
+      className={`group relative mb-4 flex items-start ${
+        isBot ? 'justify-start' : 'justify-end'
+      } max-w-full`}
+      initial="hidden"
+      animate="visible"
+      variants={variants}
+      role={isBot ? 'region' : 'none'}
+      aria-label={isBot ? 'Antwort des Assistenten' : 'Deine Nachricht'}
+    >
+      <div 
+        className={`flex max-w-[85%] items-start gap-3 rounded-lg p-3 shadow-lg ${
+          isBot ? 'glassmorphism-bot text-foreground' : 'glassmorphism-user text-white'
+        }`}
         style={{
-          backgroundColor: isUser
-            ? 'var(--user-bg-color, var(--primary))' 
-            : 'var(--bot-bg-color, #f3f4f6)',
-          color: isUser
-            ? 'var(--user-text-color, var(--primary-foreground))' 
-            : 'var(--bot-text-color, #111827)'
+          backgroundColor: isBot 
+            ? 'var(--bot-bg-color, rgba(248, 250, 252, 0.8))' 
+            : 'var(--user-bg-color, linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.85)))',
+          color: isBot
+            ? 'var(--bot-text-color, currentColor)'
+            : 'var(--user-text-color, #ffffff)',
+          boxShadow: isBot 
+            ? '0 8px 32px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(255, 255, 255, 0.1) inset' 
+            : '0 8px 32px rgba(var(--primary-rgb), 0.25)'
         }}
       >
-        {/* Nachrichten-Inhalt mit React Markdown */}
-        {message.content && message.content.trim() !== "" ? (
-          <div className="message-content prose dark:prose-invert max-w-full">
-            {/* ReactMarkdown als ESM Import verwenden mit dynamischer Typisierung */}
-            {React.createElement(ReactMarkdown as any, {
-              rehypePlugins: [rehypeRaw],
-              components: {
-                // Verbessere die Darstellung bestimmter Elemente
-                h1: ({node, ...props}: {node: any, children: React.ReactNode}) => 
-                  <h1 className="text-xl font-bold mt-4 mb-2" {...props} />,
-                h2: ({node, ...props}: {node: any, children: React.ReactNode}) => 
-                  <h2 className="text-lg font-bold mt-3 mb-2" {...props} />,
-                h3: ({node, ...props}: {node: any, children: React.ReactNode}) => 
-                  <h3 className="text-base font-bold mt-2 mb-1" {...props} />,
-                p: ({node, ...props}: {node: any, children: React.ReactNode}) => 
-                  <p className="my-1" {...props} />,
-                ul: ({node, ...props}: {node: any, children: React.ReactNode}) => 
-                  <ul className="pl-5 my-2 list-disc" {...props} />,
-                ol: ({node, ...props}: {node: any, children: React.ReactNode}) => 
-                  <ol className="pl-5 my-2 list-decimal" {...props} />,
-                li: ({node, ...props}: {node: any, children: React.ReactNode}) => 
-                  <li className="mb-1" {...props} />,
-                a: ({node, href, ...props}: {node: any, href: string, children: React.ReactNode}) => 
-                  <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" href={href} {...props} />,
-                // Spezielle Klassen für Schulinformationen
-                strong: ({node, ...props}: {node: any, children: React.ReactNode}) => {
-                  // Prüfe, ob es eine Informationskennzeichnung ist (z.B. "Name:", "Adresse:")
-                  const content = props.children?.toString() || '';
-                  if (content.endsWith(':')) {
-                    return <strong className="inline-block min-w-24 font-semibold" {...props} />;
-                  }
-                  return <strong className="font-semibold" {...props} />;
-                }
-              },
-              className: "break-words"
-            }, processedContent)}
-          </div>
-        ) : isStreaming ? (
-          <div className="flex items-center justify-start p-2">
-            <div className="flex space-x-2">
-              <div className="animate-bounce delay-0 h-2.5 w-2.5 rounded-full bg-gray-400 dark:bg-gray-300"></div>
-              <div className="animate-bounce delay-150 h-2.5 w-2.5 rounded-full bg-gray-400 dark:bg-gray-300"></div>
-              <div className="animate-bounce delay-300 h-2.5 w-2.5 rounded-full bg-gray-400 dark:bg-gray-300"></div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-start p-2">
-            <div className="flex space-x-2">
-              <div className="h-2.5 w-2.5 rounded-full bg-gray-400 dark:bg-gray-300"></div>
-              <div className="h-2.5 w-2.5 rounded-full bg-gray-400 dark:bg-gray-300"></div>
-              <div className="h-2.5 w-2.5 rounded-full bg-gray-400 dark:bg-gray-300"></div>
-            </div>
+        {isBot && (
+          <div 
+            className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-background/90 backdrop-blur-sm shadow-inner"
+            style={{
+              backgroundColor: 'var(--bot-avatar-bg, hsla(var(--background), 0.9))',
+              borderColor: 'var(--bot-accent-color, hsla(var(--border), 0.5))'
+            }}
+          >
+            <BotIcon 
+              aria-hidden="true" 
+              className="h-5 w-5" 
+              style={{ color: 'var(--bot-accent-color, currentColor)' }}
+            />
           </div>
         )}
-      </div>
-
-      {/* Aktionen (Kopieren, Feedback) für Assistenten-Nachrichten */}
-      {!isUser && !isStreaming && message.content && (
-        <div className="flex items-center mt-1 space-x-2">
-          {showCopyButton && (
-            <button
-              onClick={copyToClipboard}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 text-xs flex items-center"
-              aria-label="Nachricht kopieren"
-            >
-              {copied ? (
-                <>
-                  <span className="h-3 w-3 mr-1">✓</span>
-                  <span>Kopiert</span>
-                </>
-              ) : (
-                <>
-                  <span className="h-3 w-3 mr-1">📋</span>
-                  <span>Kopieren</span>
-                </>
-              )}
-            </button>
-          )}
-
-          {/* Feedback-Buttons */}
-          {enableFeedback && isLastMessage && (
-            <div className="flex items-center space-x-2 ml-2">
-              <button
-                onClick={() => sendFeedback('positive')}
-                className={`p-1 rounded-full ${
-                  feedback === 'positive'
-                    ? 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-200'
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-                }`}
-                aria-label="Positive Rückmeldung"
-              >
-                <span className="h-3 w-3">👍</span>
-              </button>
-              <button
-                onClick={() => sendFeedback('negative')}
-                className={`p-1 rounded-full ${
-                  feedback === 'negative'
-                    ? 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-200'
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-                }`}
-                aria-label="Negative Rückmeldung"
-              >
-                <span className="h-3 w-3">👎</span>
-              </button>
-            </div>
-          )}
+        
+        <div className="flex-1 space-y-2 overflow-hidden">
+          <div 
+            className="text-sm font-medium"
+            style={{ color: isBot ? 'var(--bot-text-color, currentColor)' : 'var(--user-text-color, #ffffff)' }}
+          >
+            {isBot ? botName : 'Du'}
+          </div>
+          {renderContent()}
+          
+          <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
+            {isBot && (
+              <div className="flex items-center gap-2">
+                {showCopyButton && (
+                  <button
+                    onClick={copyToClipboard}
+                    className="flex items-center gap-1 rounded px-1.5 py-0.5 opacity-0 hover:bg-muted/50 group-hover:opacity-100 focus:opacity-100"
+                    aria-label="Nachricht kopieren"
+                    title="Nachricht kopieren"
+                  >
+                    {copySuccess ? (
+                      <>
+                        <CheckIcon className="h-3.5 w-3.5" />
+                        <span>Kopiert</span>
+                      </>
+                    ) : (
+                      <>
+                        <CopyIcon className="h-3.5 w-3.5" />
+                        <span>Kopieren</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                
+                {enableFeedback && feedbackGiven === null && (
+                  <div className="flex items-center gap-1 ml-2">
+                    <button
+                      onClick={() => sendFeedback(true)}
+                      className="rounded p-1 opacity-0 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 group-hover:opacity-100 focus:opacity-100"
+                      aria-label="Positive Bewertung"
+                      title="Diese Nachricht war hilfreich"
+                    >
+                      <ThumbsUpIcon className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => sendFeedback(false)}
+                      className="rounded p-1 opacity-0 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-900/30 dark:hover:text-rose-400 group-hover:opacity-100 focus:opacity-100"
+                      aria-label="Negative Bewertung"
+                      title="Diese Nachricht war nicht hilfreich"
+                    >
+                      <ThumbsDownIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+                
+                {enableFeedback && feedbackGiven === 'positive' && (
+                  <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
+                    Danke für Ihr positives Feedback!
+                  </span>
+                )}
+                
+                {enableFeedback && feedbackGiven === 'negative' && (
+                  <span className="ml-2 text-xs text-rose-600 dark:text-rose-400">
+                    Danke für Ihr Feedback. Wir verbessern uns stetig.
+                  </span>
+                )}
+              </div>
+            )}
+            
+            {isUser && isLastMessage && (
+              <div className="flex items-center gap-1">
+                <CheckIcon className="h-3.5 w-3.5" />
+                <span>Gesendet</span>
+              </div>
+            )}
+            
+            <span suppressHydrationWarning>
+              {currentTime}
+            </span>
+          </div>
         </div>
-      )}
-    </div>
+        
+        {isUser && (
+          <UserAvatar />
+        )}
+      </div>
+    </motion.div>
   )
-}
-
-// Einfache Markdown-zu-HTML-Konvertierung als Fallback
-function simpleMarkdownToHtml(text: string): string {
-  // Ersetze Links
-  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline">$1</a>');
-  
-  // Ersetze **bold** mit <strong>
-  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  
-  // Ersetze *italic* mit <em>
-  text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  
-  // Ersetze Listen (sehr einfach)
-  text = text.replace(/^\s*-\s+(.+)$/gm, '<li>$1</li>');
-  
-  // Prüfe, ob es irgendwelche Liste-Items gibt
-  if (text.includes('<li>')) {
-    // Verpacke alle benachbarten <li>-Elemente in eine <ul>
-    let inList = false;
-    const lines = text.split('\n');
-    const processedLines = [];
-    
-    for (const line of lines) {
-      if (line.includes('<li>')) {
-        if (!inList) {
-          processedLines.push('<ul>');
-          inList = true;
-        }
-        processedLines.push(line);
-      } else {
-        if (inList) {
-          processedLines.push('</ul>');
-          inList = false;
-        }
-        processedLines.push(line);
-      }
-    }
-    
-    if (inList) {
-      processedLines.push('</ul>');
-    }
-    
-    text = processedLines.join('\n');
-  }
-  
-  // Ersetze Zeilenumbrüche mit <br />
-  text = text.replace(/\n/g, '<br />');
-  
-  return text;
 } 
