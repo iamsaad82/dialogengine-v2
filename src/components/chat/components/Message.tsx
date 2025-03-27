@@ -7,313 +7,106 @@ import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import classNames from 'classnames'
 import { LunaryClient } from '@/lib/lunary-client'
+import { Message as MessageType } from '../types'
+import cn from '@/lib/utils/cn'
+import { Bot, User, Loader2, Check, Copy, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { Markdown } from './Markdown'
 
-// VERSION-MARKER: Message-Debug-Code - Version 009
-console.log("Message.tsx geladen - Debug-Version 009");
+// VERSION-MARKER: Message-Debug-Code - Version 010
+console.log("Message.tsx geladen - Debug-Version 010 (Streaming)");
 
-interface MessageProps {
-  message: {
-    role: 'user' | 'assistant'
-    content: string
-  }
+export interface MessageProps {
+  message: MessageType
   isLastMessage?: boolean
+  isStreaming?: boolean
   botName?: string
   showCopyButton?: boolean
-  enableFeedback?: boolean
   botId?: string
 }
+
+// Komponenten für UserAvatar
+const UserAvatar = () => (
+  <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-gradient-to-br from-primary/90 to-primary shadow">
+    <User className="h-4 w-4 text-primary-foreground" />
+  </div>
+)
 
 export function Message({ 
   message, 
   isLastMessage = false,
+  isStreaming = false,
   botName = 'SMG Dialog Engine',
   showCopyButton = true,
-  enableFeedback = false,
-  botId = 'default'
+  botId = 'default' 
 }: MessageProps) {
-  const [copySuccess, setCopySuccess] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
   const [currentTime, setCurrentTime] = useState<string>("")
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null)
-  const isBot = message.role === 'assistant'
+  const [displayRole, setDisplayRole] = useState<string>(message.role)
   
   // Zeit nur client-seitig festlegen, um Hydration-Fehler zu vermeiden
   useEffect(() => {
     setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
   }, [])
   
-  // CSS-Styles für Markdown-Elemente
-  useEffect(() => {
-    // Füge CSS für die Formatierung hinzu, falls es noch nicht existiert
-    if (!document.getElementById('markdown-styles')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'markdown-styles';
-      styleSheet.innerHTML = `
-        .phone-number {
-          display: inline-flex;
-          align-items: center;
-          background-color: #f0f4f8;
-          color: #2d3748;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-weight: 500;
-          white-space: nowrap;
-          margin: 0 1px;
-          border: 1px solid #e2e8f0;
-          cursor: pointer;
-          text-decoration: none;
-        }
-        
-        .phone-number:hover {
-          background-color: #e6eef7;
-        }
-        
-        .email-address, .url-address {
-          display: inline-flex;
-          align-items: center;
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
-          color: rgba(var(--primary-rgb, 59, 130, 246), 1);
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-weight: 500;
-          white-space: nowrap;
-          margin: 0 1px;
-          border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.2);
-          cursor: pointer;
-          text-decoration: none;
-        }
-        
-        .email-address:hover, .url-address:hover {
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.15);
-        }
-        
-        /* Vertikale Listen */
-        .list-vertical {
-          padding-left: 0.5rem;
-          margin: 0.5rem 0;
-          list-style-type: none;
-        }
-        
-        .list-item {
-          margin-bottom: 0.4rem;
-          line-height: 1.4;
-          display: flex;
-          align-items: flex-start;
-        }
-        
-        .list-item::before {
-          content: "•";
-          display: inline-block;
-          width: 1em;
-          margin-right: 0.5em;
-          font-weight: bold;
-        }
-      `;
-      document.head.appendChild(styleSheet);
-    }
-  }, []);
-  
-  // Debug-Ausgabe beim Rendern einer Nachricht
-  useEffect(() => {
-    console.log("MESSAGE-DEBUG-009: Nachricht gerendert:", {
-      role: message.role,
-      contentLength: message.content?.length || 0,
-      isLastMessage,
-      showCopyButton,
-      enableFeedback
-    });
-  }, [message, isLastMessage, showCopyButton, enableFeedback]);
-
-  // Funktion zum Kopieren der Nachricht
-  const copyToClipboard = () => {
-    // Erstellt einen temporären DOM-Knoten um HTML-Tags aus dem Text zu entfernen
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = message.content || ''
-    const plainText = tempDiv.textContent || tempDiv.innerText || ''
-
-    // Versuche erst navigator.clipboard.writeText zu verwenden
-    const copyWithAPI = () => {
-      navigator.clipboard.writeText(plainText).then(
-        () => {
-          setCopySuccess(true)
-          setTimeout(() => setCopySuccess(false), 2000)
-          
-          // Tracking für Kopieren
-          LunaryClient.track({
-            eventName: 'message_copied',
-            properties: { botId },
-            metadata: { messageContent: plainText.slice(0, 100) }
-          })
-        },
-        (err) => {
-          console.error('Fehler beim Kopieren mit Clipboard API:', err)
-          // Fallback zu document.execCommand
-          copyWithExecCommand()
-        }
-      )
-    }
-
-    // Fallback mit document.execCommand
-    const copyWithExecCommand = () => {
-      try {
-        // Erstelle temporäres Textarea-Element
-        const textArea = document.createElement('textarea')
-        textArea.value = plainText
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-999999px'
-        textArea.style.top = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
-
-        // Führe Kopier-Befehl aus
-        const successful = document.execCommand('copy')
-        if (successful) {
-          setCopySuccess(true)
-          setTimeout(() => setCopySuccess(false), 2000)
-          
-          // Tracking für Kopieren
-          LunaryClient.track({
-            eventName: 'message_copied',
-            properties: { botId },
-            metadata: { messageContent: plainText.slice(0, 100) }
-          })
-        } else {
-          console.error('Fehler beim Kopieren mit execCommand')
-        }
-        
-        // Entferne temporäres Element
-        document.body.removeChild(textArea)
-      } catch (err) {
-        console.error('Fehler beim Kopieren mit Fallback-Methode:', err)
-      }
-    }
-
-    // Versuche erst die moderne API, dann den Fallback
+  // Kopieren-Funktion
+  const copyToClipboard = async () => {
     try {
-      copyWithAPI()
+      await navigator.clipboard.writeText(message.content)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+      
+      LunaryClient.track({
+        eventName: 'message_copied',
+        properties: { botId }
+      })
+      
     } catch (err) {
-      console.error('Clipboard API nicht verfügbar, verwende Fallback:', err)
-      copyWithExecCommand()
+      console.error('Failed to copy text: ', err)
     }
   }
   
-  // Funktion zum Senden von Feedback
+  // Feedback senden
   const sendFeedback = (isPositive: boolean) => {
     setFeedbackGiven(isPositive ? 'positive' : 'negative')
     
-    // Tracking für Feedback
-    LunaryClient.trackFeedback({
-      rating: isPositive,
-      userId: 'anonymous',
-      metadata: { 
-        botId,
-        messageContent: message.content.slice(0, 100) // Ersten 100 Zeichen
+    // Tracking-Event für Feedback
+    LunaryClient.track({
+      eventName: 'message_feedback',
+      properties: { 
+        feedback: isPositive ? 'positive' : 'negative',
+        botId
       }
     })
     
     console.log(`Feedback gesendet: ${isPositive ? 'positiv' : 'negativ'} für Bot ${botId}`)
   }
 
+  // Bei Rollen-Änderungen aktualisieren (z.B. von 'system' zu 'assistant')
+  useEffect(() => {
+    // Setze 'system' auf 'assistant' für die Anzeige
+    if (message.role === 'system') {
+      setDisplayRole('assistant')
+    } else {
+      setDisplayRole(message.role)
+    }
+  }, [message.role])
+
   // Festlegen von Klassen und Stilen basierend auf der Rolle
-  const isUser = message.role === 'user'
+  const isUser = displayRole === 'user'
   const containerClasses = classNames(
     "px-4 py-3 rounded-lg transition-all",
-    isUser 
-      ? "glassmorphism-user ml-auto max-w-[85%] md:max-w-[75%] mb-3" 
-      : "glassmorphism-bot mr-auto max-w-[85%] md:max-w-[75%] mb-3"
+    isUser ? "bg-blue-600 text-white ml-auto" : "bg-gray-100 text-gray-800 mr-auto",
+    "mb-3",
+    "message-container"
   )
-
-  // Avatar für den Bot
-  const BotAvatar = () => (
-    <div className="bot-avatar flex items-center justify-center w-8 h-8 text-sm font-medium mr-2 rounded-md bg-white/60 border border-primary/20 text-primary shadow-sm">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-      </svg>
-    </div>
-  )
-
-  // Avatar für den User
-  const UserAvatar = () => (
-    <div className="user-avatar flex items-center justify-center w-8 h-8 text-xs font-medium ml-2 rounded-md border border-primary/20 bg-primary/90 text-white shadow-sm">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    </div>
-  )
-
-  // VERBESSERTE FORMATIERUNGSFUNKTION mit Markdown
-  const renderContent = () => {
-    console.log("MESSAGE-DEBUG-009: renderContent aufgerufen");
-    
-    // Sicherheitsprüfung für leeren Inhalt
-    if (!message.content || typeof message.content !== 'string') {
-      console.log("MESSAGE-DEBUG-009: Ungültiger Inhalt:", message.content);
-      return <div className="text-red-500">Ungültige Nachricht</div>;
-    }
-    
-    // Verbesserte Vorverarbeitung des Inhalts für korrekte Abstände nach Doppelpunkten
-    let processedContent = message.content;
-    
-    // Füge bei Mustern wie "Telefon:(Nummer)" ein Leerzeichen nach dem Doppelpunkt ein
-    processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Ganztagsschule):([\S])/g, '$1: $2');
-    
-    return (
-      <div className="prose prose-sm break-words pointer-events-auto">
-        <ReactMarkdown
-          components={{
-            a: ({node, ...props}) => (
-              <a 
-                {...props} 
-                className={
-                  props.href?.startsWith('tel:') 
-                    ? 'phone-number' 
-                    : props.href?.startsWith('mailto:') 
-                    ? 'email-address' 
-                    : 'url-address'
-                }
-                target={props.href?.startsWith('http') ? '_blank' : undefined}
-                rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-              />
-            ),
-            ul: ({node, ...props}) => <ul className="list-vertical" {...props} />,
-            ol: ({node, ...props}) => <ol className="list-vertical" {...props} />,
-            li: ({node, ...props}) => <li className="list-item" {...props} />,
-            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-2 mb-0.5" {...props} />,
-            h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
-            h3: ({node, ...props}) => <h3 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
-            h4: ({node, ...props}) => <h4 className="text-md font-semibold mt-1.5 mb-0.5" {...props} />,
-            strong: ({node, ...props}) => {
-              // Prüft, ob der Text auf ":" endet, und fügt ein Leerzeichen danach ein
-              let childText = '';
-              if (props.children && typeof props.children === 'string') {
-                childText = props.children;
-              } else if (props.children && Array.isArray(props.children)) {
-                childText = props.children.map(child => 
-                  typeof child === 'string' ? child : ''
-                ).join('');
-              }
-              
-              // Wenn der Text mit einem Doppelpunkt endet, stellen wir sicher, dass ein Leerzeichen folgt
-              if (childText.endsWith(':')) {
-                return <strong {...props} className="contact-label" />;
-              }
-              
-              return <strong {...props} />;
-            }
-          }}
-        >
-          {processedContent}
-        </ReactMarkdown>
-      </div>
-    );
-  }
-
-  // Animation für die Nachrichtenbubble
+  
+  // Animation für das Einblenden von Nachrichten
   const variants = {
     hidden: { 
       opacity: 0, 
       y: 20,
-      x: isBot ? -20 : 20,
+      x: displayRole === 'assistant' ? -20 : 20,
       scale: 0.95
     },
     visible: { 
@@ -322,143 +115,145 @@ export function Message({
       x: 0,
       scale: 1,
       transition: { 
-        type: "spring",
-        stiffness: 400,
-        damping: 25,
-        mass: 0.8,
-        duration: 0.3,
+        type: "spring", 
+        stiffness: 260, 
+        damping: 20,
+        duration: 0.4
       } 
     }
+  }
+  
+  // Vereinfachtes Rendering des Markdown-Inhalts
+  const renderContent = () => {
+    return (
+      <div className="prose prose-sm dark:prose-invert max-w-none">
+        <ReactMarkdown>
+          {message.content}
+        </ReactMarkdown>
+      </div>
+    )
   }
 
   return (
     <motion.div
       className={`group relative mb-4 flex items-start ${
-        isBot ? 'justify-start' : 'justify-end'
+        displayRole === 'assistant' ? 'justify-start' : 'justify-end'
       } max-w-full`}
       initial="hidden"
       animate="visible"
       variants={variants}
-      role={isBot ? 'region' : 'none'}
-      aria-label={isBot ? 'Antwort des Assistenten' : 'Deine Nachricht'}
+      role={displayRole === 'assistant' ? 'region' : 'none'}
+      aria-label={displayRole === 'assistant' ? 'Antwort des Assistenten' : 'Deine Nachricht'}
     >
       <div 
         className={`flex max-w-[85%] items-start gap-3 rounded-lg p-3 shadow-lg ${
-          isBot ? 'glassmorphism-bot text-foreground' : 'glassmorphism-user text-white'
+          displayRole === 'assistant' ? 'glassmorphism-bot text-foreground' : 'glassmorphism-user text-white'
         }`}
         style={{
-          backgroundColor: isBot 
+          backgroundColor: displayRole === 'assistant' 
             ? 'var(--bot-bg-color, rgba(248, 250, 252, 0.8))' 
             : 'var(--user-bg-color, linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.85)))',
-          color: isBot
+          color: displayRole === 'assistant'
             ? 'var(--bot-text-color, currentColor)'
             : 'var(--user-text-color, #ffffff)',
-          boxShadow: isBot 
+          boxShadow: displayRole === 'assistant' 
             ? '0 8px 32px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(255, 255, 255, 0.1) inset' 
             : '0 8px 32px rgba(var(--primary-rgb), 0.25)'
         }}
       >
-        {isBot && (
+        {displayRole === 'assistant' && (
           <div 
             className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-background/90 backdrop-blur-sm shadow-inner"
-            style={{
-              backgroundColor: 'var(--bot-avatar-bg, hsla(var(--background), 0.9))',
-              borderColor: 'var(--bot-accent-color, hsla(var(--border), 0.5))'
+            style={{ 
+              borderColor: 'var(--bot-accent-color, rgba(0, 0, 0, 0.1))', 
+              color: 'var(--bot-accent-color, currentColor)' 
             }}
           >
-            <BotIcon 
-              aria-hidden="true" 
-              className="h-5 w-5" 
-              style={{ color: 'var(--bot-accent-color, currentColor)' }}
-            />
+            <Bot className="h-4 w-4" />
           </div>
         )}
         
-        <div className="flex-1 space-y-2 overflow-hidden">
-          <div 
-            className="text-sm font-medium"
-            style={{ color: isBot ? 'var(--bot-text-color, currentColor)' : 'var(--user-text-color, #ffffff)' }}
-          >
-            {isBot ? botName : 'Du'}
+        <div className="w-full">
+          <div className="mb-0.5 flex items-center justify-between">
+            <div 
+              className="text-sm font-medium"
+              style={{ color: displayRole === 'assistant' ? 'var(--bot-text-color, currentColor)' : 'var(--user-text-color, #ffffff)' }}
+            >
+              {displayRole === 'assistant' ? botName : 'Du'}
+            </div>
+            <div className="text-xs opacity-70">{currentTime}</div>
           </div>
+          
           {renderContent()}
           
           <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
-            {isBot && (
+            {displayRole === 'assistant' && (
               <div className="flex items-center gap-2">
                 {showCopyButton && (
                   <button
                     onClick={copyToClipboard}
-                    className="flex items-center gap-1 rounded px-1.5 py-0.5 opacity-0 hover:bg-muted/50 group-hover:opacity-100 focus:opacity-100"
-                    aria-label="Nachricht kopieren"
-                    title="Nachricht kopieren"
+                    className="flex items-center gap-1 rounded p-1 text-xs opacity-70 transition-opacity hover:opacity-100"
+                    aria-label="Kopieren"
                   >
-                    {copySuccess ? (
-                      <>
-                        <CheckIcon className="h-3.5 w-3.5" />
-                        <span>Kopiert</span>
-                      </>
-                    ) : (
-                      <>
-                        <CopyIcon className="h-3.5 w-3.5" />
-                        <span>Kopieren</span>
-                      </>
-                    )}
+                    {isCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {isCopied ? 'Kopiert' : 'Kopieren'}
                   </button>
                 )}
                 
-                {enableFeedback && feedbackGiven === null && (
-                  <div className="flex items-center gap-1 ml-2">
+                {!feedbackGiven && (
+                  <div className="flex items-center gap-1 opacity-70">
                     <button
                       onClick={() => sendFeedback(true)}
-                      className="rounded p-1 opacity-0 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 group-hover:opacity-100 focus:opacity-100"
-                      aria-label="Positive Bewertung"
-                      title="Diese Nachricht war hilfreich"
+                      className="rounded p-1 hover:text-green-500 transition-colors"
+                      aria-label="Gut"
                     >
-                      <ThumbsUpIcon className="h-3.5 w-3.5" />
+                      <ThumbsUp className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => sendFeedback(false)}
-                      className="rounded p-1 opacity-0 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-900/30 dark:hover:text-rose-400 group-hover:opacity-100 focus:opacity-100"
-                      aria-label="Negative Bewertung"
-                      title="Diese Nachricht war nicht hilfreich"
+                      className="rounded p-1 hover:text-red-500 transition-colors"
+                      aria-label="Schlecht"
                     >
-                      <ThumbsDownIcon className="h-3.5 w-3.5" />
+                      <ThumbsDown className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 )}
                 
-                {enableFeedback && feedbackGiven === 'positive' && (
-                  <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
-                    Danke für Ihr positives Feedback!
+                {feedbackGiven === 'positive' && (
+                  <span className="text-green-500 flex items-center gap-1">
+                    <ThumbsUp className="h-3.5 w-3.5" />
+                    Danke für dein Feedback!
                   </span>
                 )}
                 
-                {enableFeedback && feedbackGiven === 'negative' && (
-                  <span className="ml-2 text-xs text-rose-600 dark:text-rose-400">
-                    Danke für Ihr Feedback. Wir verbessern uns stetig.
+                {feedbackGiven === 'negative' && (
+                  <span className="text-red-500 flex items-center gap-1">
+                    <ThumbsDown className="h-3.5 w-3.5" />
+                    Danke für dein Feedback!
                   </span>
                 )}
               </div>
             )}
             
-            {isUser && isLastMessage && (
+            {displayRole === 'user' && isLastMessage && (
               <div className="flex items-center gap-1">
-                <CheckIcon className="h-3.5 w-3.5" />
-                <span>Gesendet</span>
+                <Check className="h-3.5 w-3.5" />
+                Gesendet
               </div>
             )}
-            
-            <span suppressHydrationWarning>
-              {currentTime}
-            </span>
           </div>
         </div>
         
-        {isUser && (
+        {displayRole === 'user' && (
           <UserAvatar />
         )}
       </div>
+      {isLastMessage && isStreaming && (
+        <div className="streaming-indicator mt-1 inline-flex items-center absolute bottom-0 left-12">
+          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+          <span className="text-xs opacity-70">Schreiben...</span>
+        </div>
+      )}
     </motion.div>
   )
 } 
