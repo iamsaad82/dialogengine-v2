@@ -3,10 +3,9 @@
 import { KeyboardEvent, useRef, useState, ChangeEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LunaryClient } from '@/lib/lunary-client'
-import { Send, Loader2, X } from 'lucide-react'
 
-// VERSION-MARKER: ChatInput-Debug-Code - Version 003
-console.log("ChatInput.tsx geladen - Debug-Version 003 (Streaming)");
+// VERSION-MARKER: ChatInput-Debug-Code - Version 004
+console.log("ChatInput.tsx geladen - Debug-Version 004 (Streaming)");
 
 export interface ChatInputProps {
   input: string
@@ -19,8 +18,29 @@ export interface ChatInputProps {
   className?: string
 }
 
+// Einfache SVG Icons für die Komponente
+const SendIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m22 2-7 20-4-9-9-4Z" />
+    <path d="M22 2 11 13" />
+  </svg>
+);
+
+const CancelIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </svg>
+);
+
+const LoadingIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+);
+
 export function ChatInput({
-  input,
+  input = '',
   setInput,
   isLoading,
   onSubmit,
@@ -120,7 +140,7 @@ export function ChatInput({
                 aria-label="Abbrechen"
                 type="button"
               >
-                {onCancel ? <X className="h-5 w-5" /> : <Loader2 className="h-5 w-5 animate-spin" />}
+                {onCancel ? <CancelIcon /> : <LoadingIcon />}
               </motion.button>
             ) : (
               <motion.button
@@ -141,7 +161,7 @@ export function ChatInput({
                 }}
                 type="button"
               >
-                <Send className="h-5 w-5" />
+                <SendIcon />
               </motion.button>
             )}
           </AnimatePresence>
