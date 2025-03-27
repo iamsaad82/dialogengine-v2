@@ -1,6 +1,6 @@
 'use client'
 
-import { KeyboardEvent, useRef, useState, ChangeEvent } from 'react'
+import { KeyboardEvent, useRef, useState, ChangeEvent, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LunaryClient } from '@/lib/lunary-client'
 
@@ -51,6 +51,12 @@ export function ChatInput({
 }: ChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [ctrlEnterUsed, setCtrlEnterUsed] = useState(false)
+  const [localInput, setLocalInput] = useState(input)
+
+  // Synchronisiere lokalen Status mit externem Input, wenn sich dieser ändert
+  useEffect(() => {
+    setLocalInput(input)
+  }, [input])
 
   // Event-Handler für Tastatureingaben (Enter zum Absenden, Shift+Enter für neue Zeile)
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -69,16 +75,28 @@ export function ChatInput({
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       setCtrlEnterUsed(true)
       // Tracking für Ctrl+Enter Nutzung
-      LunaryClient.track({
-        eventName: 'ctrl_enter_used',
-        properties: { botId }
-      })
+      try {
+        LunaryClient.track({
+          eventName: 'ctrl_enter_used',
+          properties: { botId }
+        })
+      } catch (error) {
+        console.error('Tracking-Fehler:', error)
+      }
     }
   }
 
   // Nachrichtenlänge automatisch anpassen
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value)
+    const newValue = e.target.value
+    setLocalInput(newValue)
+    
+    // Wenn setInput eine Funktion ist, rufe sie auf
+    if (typeof setInput === 'function') {
+      setInput(newValue)
+    } else {
+      console.warn('ChatInput: setInput ist keine Funktion')
+    }
     
     // Automatisch die Höhe anpassen
     if (inputRef.current) {
@@ -89,11 +107,16 @@ export function ChatInput({
 
   // Nachricht senden
   const sendMessage = async () => {
-    if (input.trim() === '' || isLoading) return
+    if (localInput.trim() === '' || isLoading) return
     
     // Input temporär speichern und zurücksetzen
-    const message = input.trim()
-    setInput('')
+    const message = localInput.trim()
+    setLocalInput('')
+    
+    // Wenn setInput eine Funktion ist, rufe sie auf
+    if (typeof setInput === 'function') {
+      setInput('')
+    }
     
     // Textarea zurücksetzen
     if (inputRef.current) {
@@ -101,16 +124,20 @@ export function ChatInput({
     }
     
     // An die Parent-Komponente senden
-    await onSubmit(message)
-    
-    // Tracking für Nachrichten-Länge
-    LunaryClient.track({
-      eventName: 'message_length',
-      properties: { 
-        length: message.length,
-        botId
-      }
-    })
+    try {
+      await onSubmit(message)
+      
+      // Tracking für Nachrichten-Länge
+      LunaryClient.track({
+        eventName: 'message_length',
+        properties: { 
+          length: message.length,
+          botId
+        }
+      })
+    } catch (error) {
+      console.error('Fehler beim Senden der Nachricht:', error)
+    }
   }
 
   return (
@@ -118,7 +145,7 @@ export function ChatInput({
       <div className="flex items-end border rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-sm focus-within:ring-1 focus-within:ring-primary focus-within:border-primary">
         <textarea
           ref={inputRef}
-          value={input}
+          value={localInput}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
@@ -149,15 +176,15 @@ export function ChatInput({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={sendMessage}
-                disabled={input.trim() === ''}
+                disabled={localInput.trim() === ''}
                 className={`p-1 rounded-md ${
-                  input.trim() === ''
+                  localInput.trim() === ''
                     ? 'text-gray-300 dark:text-gray-600'
                     : 'text-primary hover:bg-primary/10'
                 }`}
                 aria-label="Senden"
                 style={{
-                  color: input.trim() === '' ? undefined : 'var(--bot-accent-color, currentColor)'
+                  color: localInput.trim() === '' ? undefined : 'var(--bot-accent-color, currentColor)'
                 }}
                 type="button"
               >
