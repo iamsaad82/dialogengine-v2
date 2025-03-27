@@ -45,6 +45,9 @@ console.log("Message.tsx geladen - Debug-Version 028 (Verbesserte HTML-Tag und T
 // VERSION-MARKER: Message-Debug-Code - Version 029
 console.log("Message.tsx geladen - Debug-Version 029 (Verbesserte Telefonnummern-Erkennung ohne Split)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 030
+console.log("Message.tsx geladen - Debug-Version 030 (Fix für ungültigen 'strong<' Tag)");
+
 // Entferne Abhängigkeit von externen Icons durch einfache SVG-Implementierungen
 const IconUser = (props: any) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -159,6 +162,10 @@ export function Message({
 
     let cleanedContent = content;
     
+    // Bereinige HTML-Tags, die falsch formatiert sind
+    cleanedContent = cleanedContent.replace(/<([a-z][a-z0-9]*)\s*<+/gi, '<$1 '); // Ersetze aufeinanderfolgende < in Tags
+    cleanedContent = cleanedContent.replace(/<([^>]*)<([^>]*)>/gi, '<$1$2>'); // Entferne < innerhalb von Tags
+    
     // Entferne ungewollte HTML-Tags am Anfang der Nachricht
     cleanedContent = cleanedContent.replace(/^<[^>]*>(<[^>]*>)*/g, '');
     
@@ -172,6 +179,37 @@ export function Message({
     
     // Entferne [DONE] am Ende
     cleanedContent = cleanedContent.replace(/\[DONE\]$/g, '');
+
+    // Stelle sicher, dass Tags korrekt geschlossen sind
+    const tagPairs = [
+      ['<strong>', '</strong>'],
+      ['<em>', '</em>'],
+      ['<b>', '</b>'],
+      ['<i>', '</i>'],
+      ['<a', '</a>'],
+      ['<p>', '</p>'],
+      ['<div>', '</div>'],
+      ['<span>', '</span>']
+    ];
+    
+    // Überprüfe Tags auf korrekte Formatierung
+    for (const [openTag, closeTag] of tagPairs) {
+      const openBase = openTag.endsWith('>') ? openTag.slice(0, -1) : openTag;
+      
+      // Korrigiere falsch formatierte öffnende Tags (z.B. "strong<" zu "<strong")
+      cleanedContent = cleanedContent.replace(new RegExp(`${openBase.slice(1)}<`, 'g'), openTag);
+      
+      // Zähle öffnende und schließende Tags
+      const openCount = (cleanedContent.match(new RegExp(escapeRegExp(openTag), 'g')) || []).length;
+      const closeCount = (cleanedContent.match(new RegExp(escapeRegExp(closeTag), 'g')) || []).length;
+      
+      // Füge fehlende schließende Tags hinzu, wenn nötig
+      if (openCount > closeCount) {
+        for (let i = 0; i < openCount - closeCount; i++) {
+          cleanedContent += closeTag;
+        }
+      }
+    }
 
     // Verbesserte Erkennung und Formatierung von E-Mail-Adressen
     // Regex für E-Mail-Adressen
