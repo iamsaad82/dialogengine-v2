@@ -21,6 +21,7 @@ interface MessageProps {
   showCopyButton?: boolean
   enableFeedback?: boolean
   botId?: string
+  isStreaming?: boolean
 }
 
 export function Message({ 
@@ -29,7 +30,7 @@ export function Message({
   botName = 'SMG Dialog Engine',
   showCopyButton = true,
   enableFeedback = false,
-  botId = 'default'
+  isStreaming = false
 }: MessageProps) {
   const [copySuccess, setCopySuccess] = useState(false)
   const [currentTime, setCurrentTime] = useState<string>("")
@@ -249,366 +250,237 @@ export function Message({
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = message.content || ''
     const plainText = tempDiv.textContent || tempDiv.innerText || ''
-
-    // Versuche erst navigator.clipboard.writeText zu verwenden
-    const copyWithAPI = () => {
-      navigator.clipboard.writeText(plainText).then(
-        () => {
-          setCopySuccess(true)
-          setTimeout(() => setCopySuccess(false), 2000)
-          
-          // Tracking für Kopieren
-          LunaryClient.track({
-            eventName: 'message_copied',
-            properties: { botId },
-            metadata: { messageContent: plainText.slice(0, 100) }
-          })
-        },
-        (err) => {
-          console.error('Fehler beim Kopieren mit Clipboard API:', err)
-          // Fallback zu document.execCommand
-          copyWithExecCommand()
-        }
-      )
-    }
-
-    // Fallback mit document.execCommand
-    const copyWithExecCommand = () => {
-      try {
-        // Erstelle temporäres Textarea-Element
-        const textArea = document.createElement('textarea')
-        textArea.value = plainText
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-999999px'
-        textArea.style.top = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
-
-        // Führe Kopier-Befehl aus
-        const successful = document.execCommand('copy')
-        if (successful) {
-          setCopySuccess(true)
-          setTimeout(() => setCopySuccess(false), 2000)
-          
-          // Tracking für Kopieren
-          LunaryClient.track({
-            eventName: 'message_copied',
-            properties: { botId },
-            metadata: { messageContent: plainText.slice(0, 100) }
-          })
-        } else {
-          console.error('Fehler beim Kopieren mit execCommand')
-        }
-        
-        // Entferne temporäres Element
-        document.body.removeChild(textArea)
-      } catch (err) {
-        console.error('Fehler beim Kopieren mit Fallback-Methode:', err)
-      }
-    }
-
-    // Versuche erst die moderne API, dann den Fallback
-    try {
-      copyWithAPI()
-    } catch (err) {
-      console.error('Clipboard API nicht verfügbar, verwende Fallback:', err)
-      copyWithExecCommand()
-    }
-  }
-  
-  // Funktion zum Senden von Feedback
-  const sendFeedback = (isPositive: boolean) => {
-    setFeedbackGiven(isPositive ? 'positive' : 'negative')
     
-    // Tracking für Feedback
-    LunaryClient.trackFeedback({
-      rating: isPositive,
-      userId: 'anonymous',
-      metadata: { 
-        botId,
-        messageContent: message.content.slice(0, 100) // Ersten 100 Zeichen
-      }
+    navigator.clipboard.writeText(plainText).then(() => {
+      setCopySuccess(true)
+      // Nach 2 Sekunden den Erfolgshinweis zurücksetzen
+      setTimeout(() => {
+        setCopySuccess(false)
+      }, 2000)
+    }).catch(err => {
+      console.error('Fehler beim Kopieren in die Zwischenablage: ', err)
     })
-    
-    console.log(`Feedback gesendet: ${isPositive ? 'positiv' : 'negativ'} für Bot ${botId}`)
   }
 
-  // Festlegen von Klassen und Stilen basierend auf der Rolle
-  const isUser = message.role === 'user'
-  const containerClasses = classNames(
-    "px-4 py-3 rounded-lg transition-all",
-    isUser 
-      ? "glassmorphism-user ml-auto max-w-[85%] md:max-w-[75%] mb-3" 
-      : "glassmorphism-bot mr-auto max-w-[85%] md:max-w-[75%] mb-3"
-  )
+  // Feedback-Funktion
+  const sendFeedback = (type: 'positive' | 'negative') => {
+    if (feedbackGiven !== null) return; // Verhindere mehrfaches Feedback
 
-  // Avatar für den Bot
-  const BotAvatar = () => (
-    <div className="bot-avatar flex items-center justify-center w-8 h-8 text-sm font-medium mr-2 rounded-md bg-white/60 border border-primary/20 text-primary shadow-sm">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-      </svg>
-    </div>
-  )
-
-  // Avatar für den User
-  const UserAvatar = () => (
-    <div className="user-avatar flex items-center justify-center w-8 h-8 text-xs font-medium ml-2 rounded-md border border-primary/20 bg-primary/90 text-white shadow-sm">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    </div>
-  )
-
-  // VERBESSERTE FORMATIERUNGSFUNKTION mit Markdown
-  const renderContent = () => {
-    console.log("MESSAGE-DEBUG-009: renderContent aufgerufen");
+    setFeedbackGiven(type);
     
-    // Sicherheitsprüfung für leeren Inhalt
-    if (!message.content || typeof message.content !== 'string') {
-      console.log("MESSAGE-DEBUG-009: Ungültiger Inhalt:", message.content);
-      return <div className="text-red-500">Ungültige Nachricht</div>;
+    // Optional: Senden Sie das Feedback an den Server
+    console.log(`Feedback zu Nachricht gesendet: ${type}`);
+    
+    // Hier können Sie Ihre eigene API aufrufen, um das Feedback zu speichern
+    try {
+      LunaryClient.track({
+        eventName: 'chat_feedback',
+        properties: { 
+          messageContent: message.content,
+          feedbackType: type
+        }
+      });
+    } catch (error) {
+      console.error('Fehler beim Senden des Feedbacks:', error);
     }
+  };
+
+  // Parse HTML-Tags in Markdown
+  function formatTextWithHTML(text: string) {
+    if (!text) return '';
     
-    // Verbesserte Vorverarbeitung des Inhalts für korrekte Abstände nach Doppelpunkten
-    let processedContent = message.content;
+    let processedContent = text;
+    let cleanedContent = text;
+    
+    // Liste von HTML-Tag-Paaren, die entfernt werden müssen
+    const tagPairs = [
+      ['<ul>', '</ul>'],
+      ['<ol>', '</ol>'],
+      ['<li>', '</li>'],
+      ['<p>', '</p>'],
+      ['<h1>', '</h1>'],
+      ['<h2>', '</h2>'],
+      ['<h3>', '</h3>'],
+      ['<h4>', '</h4>'],
+      ['<h5>', '</h5>'],
+      ['<h6>', '</h6>'],
+      ['<strong>', '</strong>'],
+      ['<em>', '</em>'],
+      ['<i>', '</i>'],
+      ['<b>', '</b>'],
+      ['<a>', '</a>'],
+      ['<div>', '</div>'],
+      ['<span>', '</span>']
+    ];
     
     // Füge bei Mustern wie "Telefon:(Nummer)" ein Leerzeichen nach dem Doppelpunkt ein
     processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Ganztagsschule|Standort|Fax):([\S])/g, '$1: $2');
     
-    // Erkennung und Formatierung von Kontaktdaten-Mustern
+    // Verbessere die Struktur von Listen, indem ein Leerzeichen zwischen Punkt und Text hinzugefügt wird
+    processedContent = processedContent.replace(/^(\s*[0-9]+\.|\s*-|\s*\*\s*)([^\s])/gm, '$1 $2');
     
-    // "**Telefon:** " -> "**Telefon:** " (behalte Formatierung bei)
-    processedContent = processedContent.replace(/\*\*(.*?): \*\*/g, '**$1:** ');
-    
-    // Automatische Erkennung von Telefonnummern, E-Mails und Webseiten und Umwandlung in Markdown-Links
-
-    // Telefonnummern (Pattern für deutsche Nummern mit Vorwahl)
-    const phonePattern = /(\(\d{4,6}\)\s*\d[\d\s-]{4,}|\d{3,6}[\s-]\d{4,})/g;
-    processedContent = processedContent.replace(phonePattern, (match) => {
-      const cleanNumber = match.replace(/[\s-]/g, '');
-      return `[${match}](tel:${cleanNumber})`;
+    // Erkenne Kontaktabschnitte und formatiere sie besser
+    processedContent = processedContent.replace(/(Kontaktdaten:|Kontakt:|Adresse und Kontakt:|Adressdaten:|Anschrift:)([\s\S]*?)(?=\n\n|\n#|\n\*\*|\n__|\n<h|$)/g, (match, p1, p2) => {
+      return `<div class="contact-info">${p1}${p2}</div>`;
     });
     
-    // E-Mail-Adressen
-    const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-    processedContent = processedContent.replace(emailPattern, (match) => {
-      return `[${match}](mailto:${match})`;
+    // Verbessere die Formatierung von Aufzählungslisten, die mit *, - oder • beginnen
+    processedContent = processedContent.replace(/^(\s*)(\*|\-|\•|\+)(\s+)([^\n]*)/gm, (match, indent, bullet, space, content) => {
+      return `${indent}<li class="list-item">${content}</li>`;
     });
     
-    // URLs (die noch nicht als Links markiert sind)
-    const urlPattern = /(?<!\(|\[)(https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s)<]*)/g;
-    processedContent = processedContent.replace(urlPattern, (match) => {
-      return `[${match}](${match})`;
-    });
+    // Füge Klassen zu ungeordneten Listen hinzu
+    processedContent = processedContent.replace(/(<ul>)([\s\S]*?)(<\/ul>)/g, '<ul class="list-vertical">$2</ul>');
     
-    // Verbessere Formatierung für Adressen
-    processedContent = processedContent.replace(/\*\*Standort:\*\* ([^\n]+)/g, '**Standort:**\n$1');
+    // Telefonnummern mit speziellem Styling versehen
+    // Erkennt verschiedene Telefonnummernformate: mit Vorwahl, mit Klammern, mit Leerzeichen, etc.
+    processedContent = processedContent.replace(/(\+\d{1,4}[\s\-]*)?(\(?\d{2,5}\)?[\s\-]*)?\d{3,4}[\s\-]*\d{3,4}([\s\-]*\d{1,4})?/g, (match) => {
+      if (match.trim().length > 6) { // Nur längere Nummern, um falsche Positive zu vermeiden
+        return `<a href="tel:${match.replace(/[\s\-\(\)]/g, '')}" class="phone-number">${match}</a>`;
+      }
+      return match;
+    });
     
     // Stelle sicher, dass zwischen aufeinanderfolgenden Sternchen ein Leerzeichen ist
     processedContent = processedContent.replace(/\*\*\s*\*\*/g, '** **');
     
-    return (
-      <div className="prose prose-sm break-words pointer-events-auto">
-        <ReactMarkdown
-          components={{
-            a: ({node, ...props}) => (
-              <a 
-                {...props} 
-                className={
-                  props.href?.startsWith('tel:') 
-                    ? 'phone-number' 
-                    : props.href?.startsWith('mailto:') 
-                    ? 'email-address' 
-                    : 'url-address'
-                }
-                target={props.href?.startsWith('http') ? '_blank' : undefined}
-                rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-              />
-            ),
-            ul: ({node, ...props}) => <ul className="list-vertical" {...props} />,
-            ol: ({node, ...props}) => <ol className="list-vertical" {...props} />,
-            li: ({node, ...props}) => <li className="list-item" {...props} />,
-            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-2 mb-0.5" {...props} />,
-            h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
-            h3: ({node, ...props}) => <h3 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
-            h4: ({node, ...props}) => <h4 className="text-md font-semibold mt-1.5 mb-0.5" {...props} />,
-            strong: ({node, ...props}) => {
-              // Prüft, ob der Text auf ":" endet, und fügt ein Leerzeichen danach ein
-              let childText = '';
-              if (props.children && typeof props.children === 'string') {
-                childText = props.children;
-              } else if (props.children && Array.isArray(props.children)) {
-                childText = props.children.map(child => 
-                  typeof child === 'string' ? child : ''
-                ).join('');
-              }
-              
-              // Wenn der Text mit einem Doppelpunkt endet, stellen wir sicher, dass ein Leerzeichen folgt
-              if (childText.endsWith(':')) {
-                return <strong {...props} className="contact-label" />;
-              }
-              
-              return <strong {...props} />;
-            }
-          }}
-        >
-          {processedContent}
-        </ReactMarkdown>
-      </div>
-    );
+    // Verbesserte Erkennung und Formatierung von E-Mail-Adressen
+    // Regex für E-Mail-Adressen
+    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    
+    // Ersetze E-Mail-Adressen mit Markdown-Links
+    cleanedContent = cleanedContent.replace(emailRegex, (match) => {
+      return `<a href="mailto:${match}" class="email-address">${match}</a>`;
+    });
+    
+    // Webseiten-URLs erkennen und formatieren
+    const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+\.[^\s]+)/g;
+    cleanedContent = cleanedContent.replace(urlRegex, (match) => {
+      // Stelle sicher, dass die URL ein http/https Präfix hat
+      const url = match.startsWith('www.') ? 'https://' + match : match;
+      // Zeige die URL ohne http/https an, wenn es mit www beginnt
+      const displayText = match.startsWith('http') ? match.replace(/^https?:\/\//, '') : match;
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="url-address">${displayText}</a>`;
+    });
+    
+    return cleanedContent;
   }
 
-  // Animation für die Nachrichtenbubble
-  const variants = {
-    hidden: { 
-      opacity: 0, 
-      y: 20,
-      x: isBot ? -20 : 20,
-      scale: 0.95
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      x: 0,
-      scale: 1,
-      transition: { 
-        type: "spring",
-        stiffness: 400,
-        damping: 25,
-        mass: 0.8,
-        duration: 0.3,
-      } 
-    }
-  }
+  // Festlegen von Klassen und Stilen basierend auf der Rolle
+  const isUser = message.role === 'user'
+  const [copied, setCopied] = useState(false)
+  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null)
 
   return (
     <motion.div
-      className={`group relative mb-4 flex items-start ${
-        isBot ? 'justify-start' : 'justify-end'
-      } max-w-full`}
-      initial="hidden"
-      animate="visible"
-      variants={variants}
-      role={isBot ? 'region' : 'none'}
-      aria-label={isBot ? 'Antwort des Assistenten' : 'Deine Nachricht'}
+      className={classNames(
+        'px-4 py-3 mb-2 rounded-lg flex items-start',
+        {
+          'bg-gray-100': isUser,
+          'bg-blue-50': !isUser,
+          'text-gray-800': isUser,
+          'text-gray-700': !isUser,
+        }
+      )}
+      initial={{ opacity: 0, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <div 
-        className={`flex max-w-[85%] items-start gap-3 rounded-lg p-3 shadow-lg ${
-          isBot ? 'glassmorphism-bot text-foreground' : 'glassmorphism-user text-white'
-        }`}
-        style={{
-          backgroundColor: isBot 
-            ? 'var(--bot-bg-color, rgba(248, 250, 252, 0.8))' 
-            : 'var(--user-bg-color, linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.85)))',
-          color: isBot
-            ? 'var(--bot-text-color, currentColor)'
-            : 'var(--user-text-color, #ffffff)',
-          boxShadow: isBot 
-            ? '0 8px 32px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(255, 255, 255, 0.1) inset' 
-            : '0 8px 32px rgba(var(--primary-rgb), 0.25)'
-        }}
-      >
-        {isBot && (
-          <div 
-            className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-background/90 backdrop-blur-sm shadow-inner"
-            style={{
-              backgroundColor: 'var(--bot-avatar-bg, hsla(var(--background), 0.9))',
-              borderColor: 'var(--bot-accent-color, hsla(var(--border), 0.5))'
-            }}
-          >
-            <BotIcon 
-              aria-hidden="true" 
-              className="h-5 w-5" 
-              style={{ color: 'var(--bot-accent-color, currentColor)' }}
-            />
+      {/* Avatar für Benutzer oder Bot */}
+      <div className="mt-1 mr-3 flex-shrink-0">
+        {isUser ? (
+          <div className="h-6 w-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">
+            <UserIcon className="h-4 w-4 text-white" />
+          </div>
+        ) : (
+          <div className="h-6 w-6 rounded-full bg-white text-primary border border-primary flex items-center justify-center text-sm">
+            <BotIcon className="h-4 w-4" />
           </div>
         )}
-        
-        <div className="flex-1 space-y-2 overflow-hidden">
-          <div 
-            className="text-sm font-medium"
-            style={{ color: isBot ? 'var(--bot-text-color, currentColor)' : 'var(--user-text-color, #ffffff)' }}
-          >
-            {isBot ? botName : 'Du'}
-          </div>
-          {renderContent()}
-          
-          <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
-            {isBot && (
-              <div className="flex items-center gap-2">
-                {showCopyButton && (
-                  <button
-                    onClick={copyToClipboard}
-                    className="flex items-center gap-1 rounded px-1.5 py-0.5 opacity-0 hover:bg-muted/50 group-hover:opacity-100 focus:opacity-100"
-                    aria-label="Nachricht kopieren"
-                    title="Nachricht kopieren"
-                  >
-                    {copySuccess ? (
-                      <>
-                        <CheckIcon className="h-3.5 w-3.5" />
-                        <span>Kopiert</span>
-                      </>
-                    ) : (
-                      <>
-                        <CopyIcon className="h-3.5 w-3.5" />
-                        <span>Kopieren</span>
-                      </>
-                    )}
-                  </button>
-                )}
-                
-                {enableFeedback && feedbackGiven === null && (
-                  <div className="flex items-center gap-1 ml-2">
-                    <button
-                      onClick={() => sendFeedback(true)}
-                      className="rounded p-1 opacity-0 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 group-hover:opacity-100 focus:opacity-100"
-                      aria-label="Positive Bewertung"
-                      title="Diese Nachricht war hilfreich"
-                    >
-                      <ThumbsUpIcon className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => sendFeedback(false)}
-                      className="rounded p-1 opacity-0 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-900/30 dark:hover:text-rose-400 group-hover:opacity-100 focus:opacity-100"
-                      aria-label="Negative Bewertung"
-                      title="Diese Nachricht war nicht hilfreich"
-                    >
-                      <ThumbsDownIcon className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                )}
-                
-                {enableFeedback && feedbackGiven === 'positive' && (
-                  <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
-                    Danke für Ihr positives Feedback!
-                  </span>
-                )}
-                
-                {enableFeedback && feedbackGiven === 'negative' && (
-                  <span className="ml-2 text-xs text-rose-600 dark:text-rose-400">
-                    Danke für Ihr Feedback. Wir verbessern uns stetig.
-                  </span>
-                )}
-              </div>
-            )}
-            
-            {isUser && isLastMessage && (
-              <div className="flex items-center gap-1">
-                <CheckIcon className="h-3.5 w-3.5" />
-                <span>Gesendet</span>
-              </div>
-            )}
-            
-            <span suppressHydrationWarning>
-              {currentTime}
-            </span>
-          </div>
+      </div>
+
+      {/* Nachrichteninhalt und Header */}
+      <div className="flex-1 min-w-0 relative">
+        <div className="flex items-baseline mb-1">
+          <span className="font-medium text-xs mr-auto">
+            {isUser ? 'Sie' : botName}
+          </span>
+          <span className="text-gray-400 text-xs ml-2">{currentTime}</span>
         </div>
-        
-        {isUser && (
-          <UserAvatar />
+
+        {/* Markdown-Inhalt der Nachricht */}
+        <div className="prose max-w-none text-sm break-words">
+          <ReactMarkdown 
+            components={{
+              a: ({ node, ...props }) => (
+                <a {...props} className="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer" />
+              ),
+              ul: ({ node, ...props }) => <ul {...props} className="list-vertical" />,
+              li: ({ node, ...props }) => <li {...props} className="list-item" />,
+              p: ({ node, ...props }) => <p {...props} className="text-gray-700" />,
+              h1: ({ node, ...props }) => <h1 {...props} className="text-xl font-bold mt-3 mb-2" />,
+              h2: ({ node, ...props }) => <h2 {...props} className="text-lg font-semibold mt-2 mb-1" />,
+              h3: ({ node, ...props }) => <h3 {...props} className="text-md font-semibold mt-2 mb-1" />,
+              pre: ({ node, ...props }) => (
+                <pre {...props} className="bg-gray-100 p-2 rounded overflow-auto text-sm" />
+              ),
+              code: ({ node, ...props }) => (
+                <code {...props} className="bg-gray-100 px-1 py-0.5 rounded text-sm" />
+              ),
+            }}
+          >
+            {formatTextWithHTML(message.content || '')}
+          </ReactMarkdown>
+        </div>
+
+        {/* Aktionsleiste (nur bei Bot-Nachrichten) */}
+        {!isUser && (
+          <div className="flex items-center mt-2 text-xs text-gray-500">
+            {showCopyButton && !isStreaming && (
+              <button
+                onClick={copyToClipboard}
+                className="flex items-center mr-4 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label="Nachricht kopieren"
+              >
+                {copySuccess ? (
+                  <>
+                    <CheckIcon className="h-3 w-3 mr-1" />
+                    <span>Kopiert</span>
+                  </>
+                ) : (
+                  <>
+                    <CopyIcon className="h-3 w-3 mr-1" />
+                    <span>Kopieren</span>
+                  </>
+                )}
+              </button>
+            )}
+            
+            {enableFeedback && !isStreaming && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => sendFeedback('positive')}
+                  className={`flex items-center hover:text-green-600 transition-colors ${
+                    feedbackGiven === 'positive' ? 'text-green-600' : ''
+                  }`}
+                  disabled={feedbackGiven !== null}
+                  aria-label="Positives Feedback"
+                >
+                  <ThumbsUpIcon className="h-3 w-3 mr-1" />
+                </button>
+                <button
+                  onClick={() => sendFeedback('negative')}
+                  className={`flex items-center hover:text-red-600 transition-colors ${
+                    feedbackGiven === 'negative' ? 'text-red-600' : ''
+                  }`}
+                  disabled={feedbackGiven !== null}
+                  aria-label="Negatives Feedback"
+                >
+                  <ThumbsDownIcon className="h-3 w-3 mr-1" />
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </motion.div>
