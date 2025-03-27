@@ -277,9 +277,25 @@ export function useChat({
                     }
                     else if (jsonData.event === "start") {
                       console.log("useChat-DEBUG: Start-Event von Flowise:", jsonData.data);
-                      // Start-Event kann auch Text enthalten
-                      if (jsonData.data && typeof jsonData.data === 'string' && jsonData.data.trim() !== "") {
-                        streamingContent += jsonData.data;
+                      // Start-Event enthält oft den Anfang der Antwort, der als ersten Text angezeigt werden sollte
+                      if (jsonData.data && typeof jsonData.data === 'string') {
+                        console.log("useChat-DEBUG: Start-Event enthält Text:", jsonData.data);
+                        
+                        // Starte mit dem Start-Event-Text als Basis
+                        // Auch leeren Text verarbeiten, um die Nachricht zu initialisieren
+                        streamingContent = jsonData.data;
+                        
+                        // Fallback setzen, wenn der Inhalt leer oder nur ein leerer Paragraph ist
+                        if (jsonData.data.trim() === "" || 
+                            jsonData.data === "<p></p>" || 
+                            jsonData.data === "<p> </p>") {
+                          // Setze einen temporären Text, der anzeigt, dass Verarbeitung stattfindet
+                          streamingContent = "<p>Verarbeite Ihre Anfrage...</p>";
+                        }
+                        
+                        console.log("useChat-DEBUG: Setze Streaming-Content auf:", streamingContent);
+                        
+                        // UI aktualisieren mit dem Anfangstext
                         setStreamingBuffer(streamingContent);
                         updateLastMessage(streamingContent);
                       }
@@ -662,9 +678,25 @@ export function useChat({
                     }
                     else if (jsonData.event === "start") {
                       console.log("useChat-DEBUG: Start-Event von Flowise:", jsonData.data);
-                      // Start-Event kann auch Text enthalten
-                      if (jsonData.data && typeof jsonData.data === 'string' && jsonData.data.trim() !== "") {
-                        streamingContent += jsonData.data;
+                      // Start-Event enthält oft den Anfang der Antwort, der als ersten Text angezeigt werden sollte
+                      if (jsonData.data && typeof jsonData.data === 'string') {
+                        console.log("useChat-DEBUG: Start-Event enthält Text:", jsonData.data);
+                        
+                        // Starte mit dem Start-Event-Text als Basis
+                        // Auch leeren Text verarbeiten, um die Nachricht zu initialisieren
+                        streamingContent = jsonData.data;
+                        
+                        // Fallback setzen, wenn der Inhalt leer oder nur ein leerer Paragraph ist
+                        if (jsonData.data.trim() === "" || 
+                            jsonData.data === "<p></p>" || 
+                            jsonData.data === "<p> </p>") {
+                          // Setze einen temporären Text, der anzeigt, dass Verarbeitung stattfindet
+                          streamingContent = "<p>Verarbeite Ihre Anfrage...</p>";
+                        }
+                        
+                        console.log("useChat-DEBUG: Setze Streaming-Content auf:", streamingContent);
+                        
+                        // UI aktualisieren mit dem Anfangstext
                         setStreamingBuffer(streamingContent);
                         updateLastMessage(streamingContent);
                       }
@@ -685,12 +717,45 @@ export function useChat({
       }
     } catch (err) {
       console.error("useChat-DEBUG: Fehler beim Senden der Nachricht:", err);
+      
+      // Füge eine Fehlernachricht als Assistenten-Antwort hinzu
+      setMessages((prevMessages) => {
+        // Finde den letzten Eintrag und prüfe, ob er vom Assistenten ist und leer
+        const lastMessage = prevMessages[prevMessages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant' && (!lastMessage.content || lastMessage.content.trim() === '')) {
+          // Ersetze die leere Nachricht durch eine Fehlermeldung
+          const newMessages = [...prevMessages];
+          newMessages[newMessages.length - 1] = {
+            role: 'assistant',
+            content: 'Entschuldigung, ich konnte keine Antwort generieren. Bitte versuchen Sie es später noch einmal.'
+          };
+          return newMessages;
+        }
+        return prevMessages;
+      });
+      
       setError(err instanceof Error ? err.message : 'Beim Senden der Nachricht ist ein Fehler aufgetreten.');
     } finally {
       setIsStreaming(false);
       setIsLoading(false);
       setStreamingBuffer('');
       setInput('');
+      
+      // Prüfe, ob die letzte Nachricht leer ist und füge einen Fallback ein
+      setMessages((prevMessages) => {
+        // Finde den letzten Eintrag und prüfe, ob er vom Assistenten ist und leer
+        const lastMessage = prevMessages[prevMessages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant' && (!lastMessage.content || lastMessage.content.trim() === '')) {
+          // Ersetze die leere Nachricht durch einen Fallback
+          const newMessages = [...prevMessages];
+          newMessages[newMessages.length - 1] = {
+            role: 'assistant',
+            content: '<p>Ich konnte leider keine Antwort generieren. Bitte versuchen Sie es später noch einmal.</p>'
+          };
+          return newMessages;
+        }
+        return prevMessages;
+      });
     }
   };
 
