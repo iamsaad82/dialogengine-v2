@@ -11,6 +11,9 @@ console.log("Message.tsx geladen - Debug-Version 018 (Duplikat-Wörter + [DONE]-
 // VERSION-MARKER: Message-Debug-Code - Version 019
 console.log("Message.tsx geladen - Debug-Version 019 (Ladeanimation-Fix)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 020
+console.log("Message.tsx geladen - Debug-Version 020 (Verbesserte Duplikat-Erkennung)");
+
 export interface MessageProps {
   message: MessageType
   isLastMessage?: boolean
@@ -117,14 +120,43 @@ export function Message({
       console.warn("MESSAGE-RENDER-DEBUG: [DONE] aus der Nachricht entfernt");
     }
     
-    // Prüfe auf doppelte Wörter am Anfang (wie "Klar, Klar ich...")
-    const words = formattedContent.trim().split(' ');
-    if (words.length >= 2 && words[0] === words[1]) {
-      console.warn("MESSAGE-RENDER-DEBUG: Doppeltes Wort am Anfang gefunden:", words[0]);
-      formattedContent = formattedContent.replace(words[0] + ' ', '');
+    // Verbesserte Erkennung von doppelten Anfängen
+    // Teile den Text in Zeilen (für HTML-Inhalte)
+    const lines = formattedContent.split('\n');
+    
+    // Prüfe jede Zeile auf doppelte Anfänge
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Überspringe leere Zeilen und HTML-Tags
+      if (line === '' || line.startsWith('<') || line.startsWith('</')) {
+        continue;
+      }
+      
+      // Teile die Zeile in Wörter
+      const words = line.split(' ');
+      
+      // Wenn mindestens 3 Wörter vorhanden sind, prüfe auf Duplikate am Anfang
+      if (words.length >= 3) {
+        // Prüfe, ob die ersten 1-3 Wörter weiter hinten im Text wieder auftauchen
+        for (let wordCount = 1; wordCount <= Math.min(3, Math.floor(words.length/2)); wordCount++) {
+          const firstPart = words.slice(0, wordCount).join(' ');
+          const secondPart = words.slice(wordCount, wordCount*2).join(' ');
+          
+          // Wenn die ersten n Wörter den nächsten n Wörtern entsprechen
+          if (firstPart.toLowerCase() === secondPart.toLowerCase()) {
+            console.warn(`MESSAGE-RENDER-DEBUG: Doppelter Anfang gefunden: "${firstPart}" wird entfernt`);
+            
+            // Entferne die ersten n Wörter und aktualisiere die Zeile
+            lines[i] = words.slice(wordCount).join(' ');
+            break;
+          }
+        }
+      }
     }
     
-    return formattedContent;
+    // Setze die Zeilen wieder zusammen
+    return lines.join('\n');
   }
 
   // Debug-Ausgabe bei leerem Inhalt
