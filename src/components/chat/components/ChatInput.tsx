@@ -4,14 +4,14 @@ import { KeyboardEvent, useRef, useState, ChangeEvent, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LunaryClient } from '@/lib/lunary-client'
 
-// VERSION-MARKER: ChatInput-Debug-Code - Version 004
-console.log("ChatInput.tsx geladen - Debug-Version 004 (Streaming)");
+// VERSION-MARKER: ChatInput-Debug-Code - Version 005
+console.log("ChatInput.tsx geladen - Debug-Version 005 (Streaming)");
 
 export interface ChatInputProps {
-  input: string
-  setInput: (value: string) => void
-  isLoading: boolean
-  onSubmit: (content: string) => Promise<void>
+  input?: string
+  setInput?: (value: string) => void
+  isLoading?: boolean
+  onSubmit?: (content: string) => Promise<void>
   onCancel?: () => void
   botId?: string
   placeholder?: string
@@ -42,7 +42,7 @@ const LoadingIcon = () => (
 export function ChatInput({
   input = '',
   setInput,
-  isLoading,
+  isLoading = false,
   onSubmit,
   onCancel,
   botId = 'default',
@@ -52,6 +52,19 @@ export function ChatInput({
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [ctrlEnterUsed, setCtrlEnterUsed] = useState(false)
   const [localInput, setLocalInput] = useState(input)
+  const [error, setError] = useState<string | null>(null)
+
+  // Debug-Logging für Props
+  useEffect(() => {
+    console.log("ChatInput-DEBUG-005: Props empfangen", {
+      inputProp: input ? '✓' : '✗',
+      setInputProp: typeof setInput === 'function' ? '✓' : '✗',
+      onSubmitProp: typeof onSubmit === 'function' ? '✓' : '✗',
+      onCancelProp: typeof onCancel === 'function' ? '✓' : '✗',
+      isLoadingProp: isLoading,
+      botId
+    });
+  }, [input, setInput, onSubmit, onCancel, isLoading, botId]);
 
   // Synchronisiere lokalen Status mit externem Input, wenn sich dieser ändert
   useEffect(() => {
@@ -63,7 +76,7 @@ export function ChatInput({
     // Sende Nachricht mit Enter (aber nicht mit Shift+Enter)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      sendMessage()
+      handleSendMessage()
     }
 
     // Neue Zeile mit Shift+Enter
@@ -94,8 +107,6 @@ export function ChatInput({
     // Wenn setInput eine Funktion ist, rufe sie auf
     if (typeof setInput === 'function') {
       setInput(newValue)
-    } else {
-      console.warn('ChatInput: setInput ist keine Funktion')
     }
     
     // Automatisch die Höhe anpassen
@@ -105,13 +116,14 @@ export function ChatInput({
     }
   }
 
-  // Nachricht senden
-  const sendMessage = async () => {
+  // Nachricht senden - umbenannt zur Vermeidung von Konflikten mit der übergebenen Funktion
+  const handleSendMessage = async () => {
     if (localInput.trim() === '' || isLoading) return
     
     // Input temporär speichern und zurücksetzen
     const message = localInput.trim()
     setLocalInput('')
+    setError(null)
     
     // Wenn setInput eine Funktion ist, rufe sie auf
     if (typeof setInput === 'function') {
@@ -123,20 +135,39 @@ export function ChatInput({
       inputRef.current.style.height = 'auto'
     }
     
-    // An die Parent-Komponente senden
-    try {
-      await onSubmit(message)
-      
-      // Tracking für Nachrichten-Länge
-      LunaryClient.track({
-        eventName: 'message_length',
-        properties: { 
-          length: message.length,
-          botId
+    // An die Parent-Komponente senden, wenn die Funktion existiert
+    if (typeof onSubmit === 'function') {
+      try {
+        await onSubmit(message)
+        
+        // Tracking für Nachrichten-Länge
+        try {
+          LunaryClient.track({
+            eventName: 'message_length',
+            properties: { 
+              length: message.length,
+              botId
+            }
+          })
+        } catch (trackError) {
+          console.error('Tracking-Fehler:', trackError)
         }
-      })
-    } catch (error) {
-      console.error('Fehler beim Senden der Nachricht:', error)
+      } catch (error) {
+        console.error('Fehler beim Senden der Nachricht:', error)
+        setError('Nachricht konnte nicht gesendet werden')
+      }
+    } else {
+      console.warn('ChatInput: onSubmit ist keine Funktion')
+      setError('Chat-Funktionalität ist nicht verfügbar')
+    }
+  }
+
+  // Handler für Abbrechen-Button
+  const handleCancel = () => {
+    if (typeof onCancel === 'function') {
+      onCancel()
+    } else {
+      console.warn('ChatInput: onCancel ist keine Funktion')
     }
   }
 
@@ -162,7 +193,7 @@ export function ChatInput({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                onClick={onCancel}
+                onClick={handleCancel}
                 className="p-1.5 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
                 aria-label="Abbrechen"
                 type="button"
@@ -175,7 +206,7 @@ export function ChatInput({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                onClick={sendMessage}
+                onClick={handleSendMessage}
                 disabled={localInput.trim() === ''}
                 className={`p-1 rounded-md ${
                   localInput.trim() === ''
@@ -194,6 +225,9 @@ export function ChatInput({
           </AnimatePresence>
         </div>
       </div>
+      {error && (
+        <div className="mt-1 text-xs text-red-500">{error}</div>
+      )}
     </div>
   )
 } 

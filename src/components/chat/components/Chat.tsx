@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Message as MessageComponent } from './Message'
 import { ChatInput } from './ChatInput'
 import { useChat } from '../hooks/useChat'
-import { CHAT_VERSION } from '../../../config/version'
-import cn from 'classnames'
+import { Message } from '../types'
+import classNames from 'classnames'
 
-// VERSION-MARKER: Chat-Debug-Code - Version 006
-console.log("Chat.tsx geladen - Debug-Version 006 (Streaming)");
+// VERSION-MARKER: Chat-Debug-Code - Version 007
+console.log("Chat.tsx geladen - Debug-Version 007 (Streaming)");
 
 interface ChatProps {
   initialMessages?: any[]
@@ -25,22 +25,76 @@ export function Chat({
   welcomeMessage,
   apiEndpoint
 }: ChatProps) {
-  const {
-    messages,
-    input,
-    setInput,
-    isLoading,
-    isStreaming,
-    error,
-    sendMessage,
-    messagesEndRef,
-    cancelMessage
-  } = useChat({
-    initialMessages: welcomeMessage
+  // Fallback-Werte für fehlende Props im useChat-Hook
+  const [fallbackMessages, setFallbackMessages] = useState<Message[]>(
+    welcomeMessage
       ? [{ role: 'assistant', content: welcomeMessage }]
-      : initialMessages,
-    botId
-  })
+      : initialMessages as Message[]
+  )
+  const [fallbackInput, setFallbackInput] = useState('')
+  const [fallbackIsLoading, setFallbackIsLoading] = useState(false)
+  const [fallbackError, setFallbackError] = useState<string | null>(null)
+  
+  // Verwende einen Try-Catch-Block, um Fehler beim useChat-Hook abzufangen
+  let chatData: any = {}
+  try {
+    chatData = useChat({
+      initialMessages: welcomeMessage
+        ? [{ role: 'assistant', content: welcomeMessage }]
+        : initialMessages as Message[],
+      botId
+    })
+    
+    console.log("Chat-Debug-007: useChat-Daten:", {
+      messagesCount: chatData.messages?.length || 0,
+      isLoading: chatData.isLoading,
+      isStreaming: chatData.isStreaming,
+      hasSetInput: typeof chatData.setInput === 'function',
+      hasSendMessage: typeof chatData.sendMessage === 'function'
+    })
+  } catch (error) {
+    console.error("Chat-Debug-007: Fehler beim useChat-Hook:", error)
+    // Bei Fehler im useChat-Hook verwenden wir die Fallback-Werte
+    chatData = {
+      messages: fallbackMessages,
+      input: fallbackInput,
+      setInput: setFallbackInput,
+      isLoading: fallbackIsLoading,
+      isStreaming: false,
+      error: fallbackError,
+      sendMessage: async (message: string) => {
+        console.warn("Chat-Debug-007: Fallback sendMessage verwendet")
+        setFallbackIsLoading(true)
+        
+        // Simuliere Nachrichtenverarbeitung
+        setTimeout(() => {
+          setFallbackMessages([
+            ...fallbackMessages,
+            { role: 'user', content: message },
+            { role: 'assistant', content: 'Entschuldigung, der Chat ist derzeit nicht verfügbar. Bitte versuchen Sie es später erneut.' }
+          ])
+          setFallbackIsLoading(false)
+        }, 1000)
+      },
+      messagesEndRef: null,
+      cancelMessage: () => { 
+        setFallbackIsLoading(false)
+      }
+    }
+  }
+  
+  // Extrahiere alle benötigten Props mit sicheren Fallbacks
+  const {
+    messages = fallbackMessages,
+    input = fallbackInput,
+    setInput = setFallbackInput,
+    isLoading = fallbackIsLoading,
+    isStreaming = false,
+    error = fallbackError,
+    sendMessage = async () => { console.warn("Chat-Debug-007: Leere sendMessage-Funktion") },
+    messagesEndRef = null,
+    cancelMessage = () => { setFallbackIsLoading(false) }
+  } = chatData
 
   // Scroll zum Ende, wenn neue Nachrichten hinzugefügt werden
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -52,15 +106,13 @@ export function Chat({
     }
   }, [messages, isStreaming]) // Auch auf Streaming-Status reagieren
 
-  console.log(`Chat-Debug-006: Chat mit ${messages.length} Nachrichten wird gerendert.`);
-
   return (
-    <div className={cn('flex flex-col w-full h-full max-h-[600px]', className)}>
+    <div className={classNames('flex flex-col w-full h-full max-h-[600px]', className)}>
       <div 
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto py-4 px-3 space-y-4"
       >
-        {messages.map((message, index) => (
+        {Array.isArray(messages) && messages.map((message, index) => (
           <MessageComponent
             key={`${message.role}-${index}`}
             message={message}
@@ -68,7 +120,7 @@ export function Chat({
             isStreaming={isLastMessageAssistant(messages) && isStreaming && index === messages.length - 1}
           />
         ))}
-        <div ref={messagesEndRef} />
+        {messagesEndRef && <div ref={messagesEndRef} />}
       </div>
 
       <div className="p-4 border-t">
@@ -78,12 +130,13 @@ export function Chat({
           isLoading={isLoading || isStreaming}
           onSubmit={sendMessage}
           onCancel={cancelMessage}
+          botId={botId}
         />
         {error && (
           <div className="mt-2 text-sm text-red-500">{error}</div>
         )}
         <div className="mt-2 text-xs text-gray-400 text-right">
-          {CHAT_VERSION ? `v${CHAT_VERSION}` : 'Entwicklungsversion'}
+          v1.5.0 (Streaming)
         </div>
       </div>
     </div>
@@ -92,7 +145,7 @@ export function Chat({
 
 // Hilfsfunktion, um zu prüfen, ob die letzte Nachricht vom Assistenten ist
 function isLastMessageAssistant(messages: any[]) {
-  if (messages.length === 0) return false;
+  if (!Array.isArray(messages) || messages.length === 0) return false;
   const lastMessage = messages[messages.length - 1];
   return lastMessage.role === 'assistant';
 } 
