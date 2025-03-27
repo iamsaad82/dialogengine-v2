@@ -246,21 +246,33 @@ export function useChat({
                     if (jsonData.event === "token" && jsonData.data) {
                       // Der eigentliche Text ist in jsonData.data
                       const tokenText = jsonData.data;
-                      console.log("useChat-DEBUG: Token-Text extrahiert:", tokenText.substring(0, 50) + (tokenText.length > 50 ? "..." : ""));
                       
-                      // Prüfe auf HTML-Tags und entferne sie, wenn nötig
-                      let processedText = tokenText;
-                      const hasHtmlTags = /<[^>]*>/g.test(tokenText);
+                      // Erweiterte Debug-Ausgabe
+                      console.warn("useChat-CRITICAL-DEBUG: Token empfangen", {
+                        text: tokenText.substring(0, 30),
+                        type: typeof tokenText,
+                        hasHTML: tokenText.includes("<"),
+                        isEmpty: !tokenText.trim()
+                      });
                       
-                      // EXPLIZITES DEBUG-LOGGING
-                      console.warn("useChat-HTML-DEBUG: Text erhalten:", processedText);
-                      console.warn("useChat-HTML-DEBUG: Enthält HTML-Tags:", hasHtmlTags);
-                      console.warn("useChat-HTML-DEBUG: Bytes:", [...processedText].map(c => c.charCodeAt(0)).join(','));
-                      
-                      // Text zum Buffer hinzufügen
-                      streamingContent += processedText;
-                      setStreamingBuffer(streamingContent);
-                      updateLastMessage(streamingContent);
+                      if (tokenText && tokenText.trim()) {
+                        // Bei HTML einmal den ganzen Paragraph in die Antwort schreiben,
+                        // nicht Token für Token, da sonst die HTML-Tags kaputt gehen können
+                        if (tokenText.startsWith("<p>") && streamingContent === "") {
+                          streamingContent = tokenText;
+                        } else {
+                          // Normale Tokens aneinanderreihen
+                          streamingContent += tokenText;
+                        }
+                        
+                        // Content immer mit aktuellem streamingContent aktualisieren
+                        console.warn("useChat-CRITICAL-DEBUG: Aktualisiere Buffer", 
+                          streamingContent.substring(0, 30) + (streamingContent.length > 30 ? "..." : ""));
+                        
+                        // UI aktualisieren
+                        setStreamingBuffer(streamingContent);
+                        updateLastMessage(streamingContent);
+                      }
                     } 
                     else if (jsonData.event === "error") {
                       console.error("useChat-DEBUG: Fehler-Event von Flowise:", jsonData.data);
@@ -622,21 +634,33 @@ export function useChat({
                     if (jsonData.event === "token" && jsonData.data) {
                       // Der eigentliche Text ist in jsonData.data
                       const tokenText = jsonData.data;
-                      console.log("useChat-DEBUG: Token-Text extrahiert:", tokenText.substring(0, 50) + (tokenText.length > 50 ? "..." : ""));
                       
-                      // Prüfe auf HTML-Tags und entferne sie, wenn nötig
-                      let processedText = tokenText;
-                      const hasHtmlTags = /<[^>]*>/g.test(tokenText);
+                      // Erweiterte Debug-Ausgabe
+                      console.warn("useChat-CRITICAL-DEBUG: Token empfangen", {
+                        text: tokenText.substring(0, 30),
+                        type: typeof tokenText,
+                        hasHTML: tokenText.includes("<"),
+                        isEmpty: !tokenText.trim()
+                      });
                       
-                      // EXPLIZITES DEBUG-LOGGING
-                      console.warn("useChat-HTML-DEBUG: Text erhalten:", processedText);
-                      console.warn("useChat-HTML-DEBUG: Enthält HTML-Tags:", hasHtmlTags);
-                      console.warn("useChat-HTML-DEBUG: Bytes:", [...processedText].map(c => c.charCodeAt(0)).join(','));
-                      
-                      // Text zum Buffer hinzufügen
-                      streamingContent += processedText;
-                      setStreamingBuffer(streamingContent);
-                      updateLastMessage(streamingContent);
+                      if (tokenText && tokenText.trim()) {
+                        // Bei HTML einmal den ganzen Paragraph in die Antwort schreiben,
+                        // nicht Token für Token, da sonst die HTML-Tags kaputt gehen können
+                        if (tokenText.startsWith("<p>") && streamingContent === "") {
+                          streamingContent = tokenText;
+                        } else {
+                          // Normale Tokens aneinanderreihen
+                          streamingContent += tokenText;
+                        }
+                        
+                        // Content immer mit aktuellem streamingContent aktualisieren
+                        console.warn("useChat-CRITICAL-DEBUG: Aktualisiere Buffer", 
+                          streamingContent.substring(0, 30) + (streamingContent.length > 30 ? "..." : ""));
+                        
+                        // UI aktualisieren
+                        setStreamingBuffer(streamingContent);
+                        updateLastMessage(streamingContent);
+                      }
                     } 
                     else if (jsonData.event === "error") {
                       console.error("useChat-DEBUG: Fehler-Event von Flowise:", jsonData.data);

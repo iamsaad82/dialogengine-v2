@@ -79,18 +79,21 @@ export function Message({
   }
 
   // Hilfsfunktion, die HTML-Tags korrekt verarbeitet
-  const processMessageContent = (content: string): string => {
-    // Log für Debugging-Zwecke
-    console.warn("MESSAGE-PROCESS-DEBUG: Verarbeite Inhalt", content.substring(0, 50));
-    
-    // Wenn der Inhalt mit <p> beginnt, direkt zurückgeben
-    if (content.startsWith('<p>')) {
-      console.warn("MESSAGE-PROCESS-DEBUG: HTML erkannt");
-      return content;
+  const processMessageContent = (content: string | null | undefined): string => {
+    // Prüfe auf null/undefined/leere Strings
+    if (!content || content.trim() === '') {
+      console.warn("MESSAGE-RENDER-DEBUG: Leerer Inhalt erkannt!");
+      return "..."; // Sichtbarer Platzhalter für leere Nachrichten
     }
     
-    // Wenn der Inhalt kein HTML ist, Zeilenumbrüche zu <br> konvertieren
-    return content.replace(/\n/g, '<br />');
+    // Ausgabe des Inhalts für Debugging-Zwecke (begrenzt auf 100 Zeichen)
+    console.warn(
+      "MESSAGE-RENDER-DEBUG: Verarbeite Inhalt:", 
+      content.length > 100 ? content.substring(0, 100) + "..." : content,
+      "HTML-Tags:", content.includes("<")
+    );
+    
+    return content;
   }
 
   return (
@@ -119,12 +122,19 @@ export function Message({
         }}
       >
         {/* Nachrichteninhalt mit Markdown */}
-        <div className="prose dark:prose-invert prose-p:my-1 prose-pre:my-1 prose-ul:my-1 prose-ul:pl-4 prose-li:my-0 max-w-none">
-          <div 
-            dangerouslySetInnerHTML={{ 
-              __html: processMessageContent(message.content || '') 
-            }} 
-          />
+        <div className="prose dark:prose-invert max-w-none break-words overflow-hidden">
+          {message.content ? (
+            <div
+              className="message-content"
+              dangerouslySetInnerHTML={{
+                __html: processMessageContent(message.content)
+              }}
+            />
+          ) : isStreaming ? (
+            <div className="text-gray-500 italic">Ich bereite eine Antwort vor...</div>
+          ) : (
+            <div className="text-gray-500 italic">Keine Nachricht verfügbar</div>
+          )}
         </div>
       </div>
 
