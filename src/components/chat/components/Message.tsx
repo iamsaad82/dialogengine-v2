@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import React from 'react'
 import { BotIcon, UserIcon, CopyIcon, CheckIcon, ThumbsUpIcon, ThumbsDownIcon } from './ui/icons'
 import { motion } from 'framer-motion'
@@ -36,6 +36,7 @@ export function Message({
   const [currentTime, setCurrentTime] = useState<string>("")
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null)
   const isBot = message.role === 'assistant'
+  const preRef = useRef<HTMLDivElement>(null)
   
   // Zeit nur client-seitig festlegen, um Hydration-Fehler zu vermeiden
   useEffect(() => {
@@ -44,192 +45,137 @@ export function Message({
   
   // CSS-Styles für Markdown-Elemente
   useEffect(() => {
-    // Füge CSS für die Formatierung hinzu, falls es noch nicht existiert
-    if (!document.getElementById('markdown-styles')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'markdown-styles';
-      styleSheet.innerHTML = `
-        /* Grundlegende Linkstile */
-        .phone-number, .email-address, .url-address {
+    console.log("MESSAGE-DEBUG-009: useEffect für Styles aufgerufen");
+    
+    // Check if styles already exist to avoid duplicates
+    if (!document.getElementById('message-component-styles')) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'message-component-styles';
+      styleEl.innerHTML = `
+        /* Allgemeine Formatierung */
+        .message-content a {
+          color: #2563eb;
+          text-decoration: underline;
+          text-decoration-color: rgba(37, 99, 235, 0.3);
+          text-underline-offset: 2px;
+          transition: text-decoration-color 0.2s;
+        }
+        
+        .message-content a:hover {
+          text-decoration-color: rgba(37, 99, 235, 0.8);
+        }
+        
+        /* Telefonnummern, E-Mail-Links und Web-Links */
+        .message-content .phone-link, 
+        .message-content .email-link,
+        .message-content .web-link {
           display: inline-flex;
           align-items: center;
-          padding: 0.15rem 0.4rem;
-          border-radius: 0.25rem;
-          font-weight: 500;
-          white-space: nowrap;
-          margin: 0 1px;
-          border: 1px solid transparent;
+          padding: 6px 12px;
+          border-radius: 6px;
           text-decoration: none;
+          font-weight: 500;
           transition: all 0.2s ease;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+          margin: 2px 0;
         }
         
-        /* Telefonnummern */
-        .phone-number {
-          background-color: rgba(236, 253, 245, 0.6);
-          color: #065f46;
-          border-color: rgba(6, 95, 70, 0.2);
+        .message-content .phone-link {
+          background-color: rgba(37, 99, 235, 0.1);
+          color: #2563eb;
+          border: 1px solid rgba(37, 99, 235, 0.2);
         }
         
-        .phone-number:hover {
-          background-color: rgba(236, 253, 245, 0.9);
-          border-color: rgba(6, 95, 70, 0.4);
+        .message-content .phone-link:hover {
+          background-color: rgba(37, 99, 235, 0.15);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(37, 99, 235, 0.1);
         }
         
-        /* E-Mail-Adressen */
-        .email-address {
-          background-color: rgba(239, 246, 255, 0.6);
-          color: #1e40af;
-          border-color: rgba(30, 64, 175, 0.2);
+        .message-content .email-link {
+          background-color: rgba(14, 165, 233, 0.1);
+          color: #0ea5e9;
+          border: 1px solid rgba(14, 165, 233, 0.2);
         }
         
-        .email-address:hover {
-          background-color: rgba(239, 246, 255, 0.9);
-          border-color: rgba(30, 64, 175, 0.4);
+        .message-content .email-link:hover {
+          background-color: rgba(14, 165, 233, 0.15);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(14, 165, 233, 0.1);
         }
         
-        /* Webseiten */
-        .url-address {
-          background-color: rgba(243, 244, 246, 0.6);
-          color: #374151;
-          border-color: rgba(55, 65, 81, 0.2);
+        .message-content .web-link {
+          background-color: rgba(79, 70, 229, 0.1);
+          color: #4f46e5;
+          border: 1px solid rgba(79, 70, 229, 0.2);
         }
         
-        .url-address:hover {
-          background-color: rgba(243, 244, 246, 0.9);
-          border-color: rgba(55, 65, 81, 0.4);
+        .message-content .web-link:hover {
+          background-color: rgba(79, 70, 229, 0.15);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(79, 70, 229, 0.1);
         }
         
-        /* Verbesserte Listenelemente */
-        .list-vertical {
-          padding-left: 0.25rem !important;
-          margin: 0.5rem 0 1rem 0 !important;
-          list-style-type: none !important;
-        }
-        
-        .list-item {
-          margin-bottom: 0.5rem !important;
-          padding-left: 1.5rem !important;
-          position: relative !important;
-          line-height: 1.6 !important;
-          display: flex !important;
-          align-items: flex-start !important;
-          color: #333 !important;
-        }
-        
-        .list-item::before {
-          content: "" !important;
-          position: absolute !important;
-          left: 0 !important;
-          top: 0.5rem !important;
-          width: 0.5rem !important;
-          height: 0.5rem !important;
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.8) !important;
-          border-radius: 50% !important;
-        }
-        
-        /* Verschachtelte Listen */
-        .list-vertical .list-vertical {
-          margin-top: 0.5rem !important;
-          margin-left: 0.5rem !important;
-        }
-        
-        .list-vertical .list-item::before {
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-          width: 0.4rem !important;
-          height: 0.4rem !important;
-        }
-        
-        /* Spezielle Formatierung für Kontaktdaten */
-        .contact-info {
-          margin: 0.75rem 0 !important;
-          padding: 0.75rem !important;
-          background-color: rgba(249, 250, 251, 0.6) !important;
-          border-radius: 0.375rem !important;
-          border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
-        }
-        
-        /* Verbesserte Überschriften */
-        h1, h2, h3, h4, h5, h6 {
+        /* Überschriften */
+        .message-content h2 {
+          font-size: 1.25rem;
+          font-weight: 700;
           margin-top: 1.5rem;
           margin-bottom: 0.75rem;
+          color: #24292f;
           line-height: 1.3;
+        }
+        
+        .message-content h3 {
+          font-size: 1.125rem;
           font-weight: 600;
-          color: #111827;
-        }
-        
-        h1 {
-          font-size: 1.5rem;
-          font-weight: 700;
-          letter-spacing: -0.025em;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          padding-bottom: 0.5rem;
-        }
-        
-        h2 {
-          font-size: 1.3rem;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          padding-bottom: 0.3rem;
-          color: rgba(var(--primary-rgb, 59, 130, 246), 1);
-        }
-        
-        h3 {
-          font-size: 1.1rem;
-          color: #4b5563;
-          margin-top: 1.25rem;
-          margin-bottom: 0.5rem;
-        }
-        
-        h4 {
-          font-size: 1rem;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.025em;
           margin-top: 1rem;
           margin-bottom: 0.5rem;
+          color: #24292f;
+          line-height: 1.3;
         }
         
-        /* Absätze und Text */
-        p {
-          margin: 0.5rem 0 0.75rem 0;
-          line-height: 1.6;
-          color: #374151;
+        /* Listen */
+        .message-content ul {
+          list-style-type: none;
+          padding-left: 1.5rem;
+          margin-top: 0.75rem;
+          margin-bottom: 1rem;
         }
         
-        strong {
+        .message-content li {
+          position: relative;
+          margin-bottom: 0.5rem;
+          line-height: 1.5;
+        }
+        
+        /* Nur für normale Listenelemente Bullet-Points anzeigen */
+        .message-content li:not(.numbered-item)::before {
+          content: "•";
+          position: absolute;
+          left: -1rem;
+          color: #6b7280;
+        }
+        
+        /* Nummerierte Listenelemente */
+        .message-content .numbered-item {
+          padding-left: 0;
+        }
+        
+        /* Überschreibe das Pseudo-Element für nummerierte Elemente */
+        .message-content .numbered-item::before {
+          content: none !important;
+        }
+        
+        /* Kontaktinformationen */
+        .message-content .contact-label {
           font-weight: 600;
-          color: #111827;
-        }
-        
-        /* Spezielles Styling für Kontaktbereiche */
-        .contact-section {
-          margin: 1rem 0;
-          padding: 0.75rem;
-          background-color: rgba(249, 250, 251, 0.8);
-          border-radius: 0.5rem;
-          border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.6);
-        }
-        
-        .contact-label {
-          color: rgba(var(--primary-rgb, 59, 130, 246), 0.9);
-          margin-right: 0.25rem;
-          font-weight: 600;
-        }
-        
-        /* Füge etwas Abstand nach den Überschriften für bessere Lesbarkeit hinzu */
-        h2 + p, h3 + p, h4 + p {
-          margin-top: 0.5rem;
-        }
-        
-        /* Trennlinien */
-        hr {
-          margin: 1.5rem 0;
-          border: 0;
-          height: 1px;
-          background-color: rgba(0, 0, 0, 0.1);
+          color: #4b5563;
+          min-width: 100px;
+          display: inline-block;
         }
       `;
-      document.head.appendChild(styleSheet);
+      document.head.appendChild(styleEl);
     }
   }, []);
   
@@ -368,8 +314,181 @@ export function Message({
 
   // Festlegen von Klassen und Stilen basierend auf der Rolle
   const isUser = message.role === 'user'
-  const [copied, setCopied] = useState(false)
-  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null)
+  const containerClasses = classNames(
+    "px-4 py-3 rounded-lg transition-all",
+    isUser 
+      ? "bg-blue-50 text-blue-800 border border-blue-100 ml-auto" 
+      : "bg-white text-gray-800 border border-gray-100",
+    isLastMessage && isBot && isStreaming && "animate-pulse"
+  )
+
+  // Avatar für den Bot
+  const BotAvatar = () => (
+    <div className="bot-avatar flex items-center justify-center w-8 h-8 text-sm font-medium mr-2 rounded-md bg-white/60 border border-primary/20 text-primary shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+      </svg>
+    </div>
+  )
+
+  // Avatar für den User
+  const UserAvatar = () => (
+    <div className="user-avatar flex items-center justify-center w-8 h-8 text-xs font-medium ml-2 rounded-md border border-primary/20 bg-primary/90 text-white shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+    </div>
+  )
+
+  // VERBESSERTE FORMATIERUNGSFUNKTION mit Markdown
+  const renderContent = () => {
+    console.log("MESSAGE-DEBUG-009: renderContent aufgerufen");
+    
+    // Sicherheitsprüfung für leeren Inhalt
+    if (!message.content || typeof message.content !== 'string') {
+      console.log("MESSAGE-DEBUG-009: Ungültiger Inhalt:", message.content);
+      return <div className="text-red-500">Ungültige Nachricht</div>;
+    }
+    
+    // Vorverarbeitung
+    let processedContent = message.content;
+    
+    // Entferne automatische Leerzeichen-Einfügung nach Doppelpunkten
+    // processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Standort|Fax|Öffnungszeiten|Angebote):([\S])/g, '$1: $2');
+    
+    // Konvertiere Telefonnummern in Links (wenn nicht bereits Links)
+    // Erweitertes Muster für verschiedene Telefonnummernformate
+    processedContent = processedContent.replace(/(\(?\d{3,5}\)?\s*[-\s]?\d+[\s\d-]*\d+)/g, (match) => {
+      // Überspringe, wenn bereits ein Link
+      if (match.includes('[') || match.includes('](')) return match;
+      
+      // Telefonnummer bereinigen: Nur Zahlen behalten
+      const cleanNumber = match.replace(/\D/g, '');
+      return `[${match}](tel:${cleanNumber})`;
+    });
+    
+    // Konvertiere Web-URLs in Links (wenn nicht bereits Links)
+    processedContent = processedContent.replace(/(https?:\/\/[^\s]+|www\.[^\s]+\.[a-z]{2,}[^\s]*)/g, (match) => {
+      // Überspringe, wenn bereits ein Link
+      if (match.includes('[') || match.includes('](')) return match;
+      
+      // Füge http:// hinzu, wenn es mit www. beginnt
+      const url = match.startsWith('www.') ? `https://${match}` : match;
+      return `[${match}](${url})`;
+    });
+    
+    // Erkenne Domänen ohne Protokoll (z.B. example.com)
+    processedContent = processedContent.replace(/\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,}(\/[^\s]*)?/g, (match) => {
+      // Überspringe, wenn bereits ein Link oder Teil einer E-Mail
+      if (match.includes('[') || match.includes('](') || 
+          processedContent.includes(`mailto:${match}`) || 
+          processedContent.includes(`@${match}`)) return match;
+      
+      return `[${match}](https://${match})`;
+    });
+    
+    // Konvertiere E-Mail-Adressen in Links (wenn nicht bereits Links)
+    processedContent = processedContent.replace(/\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g, (match) => {
+      if (match.includes('[') || match.includes('](')) return match; // Bereits ein Link
+      return `[${match}](mailto:${match})`;
+    });
+    
+    return (
+      <div className="prose prose-sm break-words pointer-events-auto message-content">
+        <ReactMarkdown
+          components={{
+            a: ({node, ...props}) => {
+              let className = '';
+              
+              // Linktyp basierend auf href bestimmen
+              if (props.href?.startsWith('tel:')) {
+                className = 'phone-link';
+              } else if (props.href?.startsWith('mailto:')) {
+                className = 'email-link';
+              } else if (props.href?.startsWith('http')) {
+                className = 'web-link';
+              }
+              
+              return (
+                <a 
+                  {...props} 
+                  className={className}
+                  target={props.href?.startsWith('http') ? '_blank' : undefined}
+                  rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                />
+              );
+            },
+            ul: ({node, ...props}) => <ul {...props} />,
+            li: ({node, children, ...props}) => {
+              // Text des Listenelements
+              const content = String(children);
+              
+              // Prüfe, ob es mit einer Zahl mit Punkt beginnt (z.B. "1. Kita")
+              const isNumbered = /^\d+\./.test(content);
+              
+              return (
+                <li 
+                  className={isNumbered ? 'numbered-item' : ''}
+                  {...props}
+                >
+                  {children}
+                </li>
+              );
+            },
+            h2: ({node, ...props}) => <h2 {...props} />,
+            h3: ({node, ...props}) => <h3 {...props} />,
+            p: ({node, children, ...props}) => {
+              // Prüfen auf Kontaktinformationen
+              const content = String(children);
+              const isContactInfo = /^(Adresse|Telefon|E-Mail|Standort|Öffnungszeiten|Angebote|Schulform|Schulleitung|Ganztagsschule|Kontakt|Website)/.test(content);
+              
+              if (isContactInfo) {
+                // Extrahiere Labeltext (bis zum Doppelpunkt)
+                const labelMatch = content.match(/^([^:]+):/);
+                if (labelMatch) {
+                  const label = labelMatch[1];
+                  const restContent = content.replace(/^[^:]+:/, '').trim();
+                  
+                  return (
+                    <p {...props}>
+                      <span className="contact-label">{label}:</span>{restContent}
+                    </p>
+                  );
+                }
+              }
+              
+              return <p {...props}>{children}</p>;
+            }
+          }}
+        >
+          {processedContent}
+        </ReactMarkdown>
+      </div>
+    );
+  }
+
+  // Animation für die Nachrichtenbubble
+  const variants = {
+    hidden: { 
+      opacity: 0, 
+      y: 20,
+      x: isBot ? -20 : 20,
+      scale: 0.95
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      x: 0,
+      scale: 1,
+      transition: { 
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+        mass: 0.8,
+        duration: 0.3,
+      } 
+    }
+  }
 
   return (
     <motion.div
