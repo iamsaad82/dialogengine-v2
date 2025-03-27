@@ -238,6 +238,9 @@ export function useChat({
                   const rawData = dataMatch[1].trim();
                   console.log("useChat-DEBUG: Rohe Daten empfangen:", rawData.substring(0, 50) + (rawData.length > 50 ? "..." : ""));
                   
+                  // Verbesserte Verarbeitung für HTML-Tokens
+                  console.log("useChat-EXTREME-DEBUG: Token-Rohdaten:", rawData);
+
                   try {
                     // Parse das JSON
                     const jsonData = JSON.parse(rawData);
@@ -247,27 +250,15 @@ export function useChat({
                       // Der eigentliche Text ist in jsonData.data
                       const tokenText = jsonData.data;
                       
-                      // Erweiterte Debug-Ausgabe
-                      console.warn("useChat-CRITICAL-DEBUG: Token empfangen", {
-                        text: tokenText.substring(0, 30),
-                        type: typeof tokenText,
-                        hasHTML: tokenText.includes("<"),
-                        isEmpty: !tokenText.trim()
+                      // EXTREME Debug-Ausgabe für jedes Token
+                      console.warn("TOKEN-DEBUG:", {
+                        raw: tokenText.substring(0, 50),
+                        charCodes: Array.from(tokenText.substring(0, 10)).map((c: string) => c.charCodeAt(0))
                       });
                       
+                      // Sammle Tokens und verarbeite sie, unabhängig von HTML-Tags
                       if (tokenText && tokenText.trim()) {
-                        // Bei HTML einmal den ganzen Paragraph in die Antwort schreiben,
-                        // nicht Token für Token, da sonst die HTML-Tags kaputt gehen können
-                        if (tokenText.startsWith("<p>") && streamingContent === "") {
-                          streamingContent = tokenText;
-                        } else {
-                          // Normale Tokens aneinanderreihen
-                          streamingContent += tokenText;
-                        }
-                        
-                        // Content immer mit aktuellem streamingContent aktualisieren
-                        console.warn("useChat-CRITICAL-DEBUG: Aktualisiere Buffer", 
-                          streamingContent.substring(0, 30) + (streamingContent.length > 30 ? "..." : ""));
+                        streamingContent += tokenText;
                         
                         // UI aktualisieren
                         setStreamingBuffer(streamingContent);
@@ -626,6 +617,9 @@ export function useChat({
                   const rawData = dataMatch[1].trim();
                   console.log("useChat-DEBUG: Rohe Daten empfangen:", rawData.substring(0, 50) + (rawData.length > 50 ? "..." : ""));
                   
+                  // Verbesserte Verarbeitung für HTML-Tokens
+                  console.log("useChat-EXTREME-DEBUG: Token-Rohdaten:", rawData);
+
                   try {
                     // Parse das JSON
                     const jsonData = JSON.parse(rawData);
@@ -635,27 +629,15 @@ export function useChat({
                       // Der eigentliche Text ist in jsonData.data
                       const tokenText = jsonData.data;
                       
-                      // Erweiterte Debug-Ausgabe
-                      console.warn("useChat-CRITICAL-DEBUG: Token empfangen", {
-                        text: tokenText.substring(0, 30),
-                        type: typeof tokenText,
-                        hasHTML: tokenText.includes("<"),
-                        isEmpty: !tokenText.trim()
+                      // EXTREME Debug-Ausgabe für jedes Token
+                      console.warn("TOKEN-DEBUG:", {
+                        raw: tokenText.substring(0, 50),
+                        charCodes: Array.from(tokenText.substring(0, 10)).map((c: string) => c.charCodeAt(0))
                       });
                       
+                      // Sammle Tokens und verarbeite sie, unabhängig von HTML-Tags
                       if (tokenText && tokenText.trim()) {
-                        // Bei HTML einmal den ganzen Paragraph in die Antwort schreiben,
-                        // nicht Token für Token, da sonst die HTML-Tags kaputt gehen können
-                        if (tokenText.startsWith("<p>") && streamingContent === "") {
-                          streamingContent = tokenText;
-                        } else {
-                          // Normale Tokens aneinanderreihen
-                          streamingContent += tokenText;
-                        }
-                        
-                        // Content immer mit aktuellem streamingContent aktualisieren
-                        console.warn("useChat-CRITICAL-DEBUG: Aktualisiere Buffer", 
-                          streamingContent.substring(0, 30) + (streamingContent.length > 30 ? "..." : ""));
+                        streamingContent += tokenText;
                         
                         // UI aktualisieren
                         setStreamingBuffer(streamingContent);

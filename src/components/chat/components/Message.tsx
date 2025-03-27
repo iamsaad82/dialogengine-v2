@@ -5,8 +5,8 @@ import { Message as MessageType } from '../types'
 import classNames from 'classnames'
 import { LunaryClient } from '@/lib/lunary-client'
 
-// VERSION-MARKER: Message-Debug-Code - Version 014
-console.log("Message.tsx geladen - Debug-Version 014 (Streaming)");
+// VERSION-MARKER: Message-Debug-Code - Version 015
+console.log("Message.tsx geladen - Debug-Version 015 (vereinfacht)");
 
 export interface MessageProps {
   message: MessageType
@@ -78,22 +78,13 @@ export function Message({
     }
   }
 
-  // Hilfsfunktion, die HTML-Tags korrekt verarbeitet
-  const processMessageContent = (content: string | null | undefined): string => {
-    // Prüfe auf null/undefined/leere Strings
-    if (!content || content.trim() === '') {
-      console.warn("MESSAGE-RENDER-DEBUG: Leerer Inhalt erkannt!");
-      return "..."; // Sichtbarer Platzhalter für leere Nachrichten
-    }
-    
-    // Ausgabe des Inhalts für Debugging-Zwecke (begrenzt auf 100 Zeichen)
-    console.warn(
-      "MESSAGE-RENDER-DEBUG: Verarbeite Inhalt:", 
-      content.length > 100 ? content.substring(0, 100) + "..." : content,
-      "HTML-Tags:", content.includes("<")
-    );
-    
-    return content;
+  // Debug-Ausgabe bei leerem Inhalt
+  if (!message.content) {
+    console.warn("MESSAGE-RENDER-DEBUG: Leere Nachricht!", { isStreaming });
+  } else {
+    // Log eine Vorschau des Inhalts
+    console.warn("MESSAGE-RENDER-DEBUG: Nachrichteninhalt:",
+      message.content.substring(0, 100) + (message.content.length > 100 ? "..." : ""));
   }
 
   return (
@@ -121,21 +112,19 @@ export function Message({
             : 'var(--bot-text-color, #111827)'
         }}
       >
-        {/* Nachrichteninhalt mit Markdown */}
-        <div className="prose dark:prose-invert max-w-none break-words overflow-hidden">
-          {message.content ? (
-            <div
-              className="message-content"
-              dangerouslySetInnerHTML={{
-                __html: processMessageContent(message.content)
-              }}
-            />
-          ) : isStreaming ? (
-            <div className="text-gray-500 italic">Ich bereite eine Antwort vor...</div>
-          ) : (
-            <div className="text-gray-500 italic">Keine Nachricht verfügbar</div>
-          )}
-        </div>
+        {/* Nachrichten-Inhalt direkt anzeigen */}
+        {message.content ? (
+          <div 
+            className="message-content prose dark:prose-invert"
+            dangerouslySetInnerHTML={{ 
+              __html: message.content 
+            }}
+          />
+        ) : isStreaming ? (
+          <div className="text-gray-500 italic">Ich bereite eine Antwort vor...</div>
+        ) : (
+          <div className="text-gray-500 italic">Keine Nachricht verfügbar</div>
+        )}
       </div>
 
       {/* Aktionen (Kopieren, Feedback) für Assistenten-Nachrichten */}
