@@ -438,11 +438,59 @@ export function useChat({
     };
   }, []);
 
+  // Füge eine sendMessage-Funktion hinzu, die sendMessageWithStreaming aufruft
+  const sendMessage = async (content: string): Promise<void> => {
+    console.log("useChat-DEBUG: sendMessage aufgerufen, ruft sendMessageWithStreaming auf");
+    
+    if (!content || content.trim() === '') {
+      return;
+    }
+    
+    try {
+      // Anfang des Ladevorgangs
+      setIsLoading(true);
+      setError(null);
+      
+      // Benutzer-Nachricht hinzufügen
+      const userMessage: Message = { role: 'user', content };
+      addMessage(userMessage);
+      
+      // Abbrechen wenn schon eine Anfrage läuft
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Tracking für gesendete Nachricht
+      LunaryClient.track({
+        eventName: 'message_sent',
+        properties: { 
+          content: content.slice(0, 100), // Ersten 100 Zeichen der Nachricht
+          botId,
+          streaming: true
+        },
+        metadata: { sessionId: sessionIdRef.current }
+      });
+      
+      // Leere Assistenten-Nachricht hinzufügen, die später aktualisiert wird
+      const assistantMessage: Message = { role: 'assistant', content: '' };
+      addMessage(assistantMessage);
+      
+      // Streaming-Anfrage senden
+      await sendMessageWithStreaming(content);
+      
+    } catch (err) {
+      console.error("useChat-DEBUG: Fehler beim Senden der Nachricht:", err);
+      setError(err instanceof Error ? err.message : 'Beim Senden der Nachricht ist ein Fehler aufgetreten.');
+    } finally {
+      setInput('');
+    }
+  };
+
   return {
     messages,
     isLoading,
-    isStreaming,  // Neues Flag für Streaming-Status
-    streamingBuffer, // Buffer für Streaming
+    isStreaming,
+    streamingBuffer,
     error,
     isOpen,
     mode,
@@ -453,7 +501,7 @@ export function useChat({
     cycleMode,
     setCurrentMode,
     addMessage,
-    // Verwende sendMessage für Streaming, optional sendMessageWithoutStreaming für Fallback
+    sendMessage, // Exportiere die neue sendMessage-Funktion
     sendMessageWithStreaming,
     sendMessageWithoutStreaming,
     cancelMessage,
