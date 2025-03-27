@@ -14,6 +14,9 @@ console.log("Message.tsx geladen - Debug-Version 019 (Ladeanimation-Fix)");
 // VERSION-MARKER: Message-Debug-Code - Version 020
 console.log("Message.tsx geladen - Debug-Version 020 (Verbesserte Duplikat-Erkennung)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 021
+console.log("Message.tsx geladen - Debug-Version 021 (HTML-Duplikat-Erkennung-Fix)");
+
 export interface MessageProps {
   message: MessageType
   isLastMessage?: boolean
@@ -120,43 +123,48 @@ export function Message({
       console.warn("MESSAGE-RENDER-DEBUG: [DONE] aus der Nachricht entfernt");
     }
     
-    // Verbesserte Erkennung von doppelten Anfängen
-    // Teile den Text in Zeilen (für HTML-Inhalte)
-    const lines = formattedContent.split('\n');
-    
-    // Prüfe jede Zeile auf doppelte Anfänge
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+    // Verbesserte Erkennung von doppelten Anfängen in HTML-Inhalten
+    try {
+      // Extrahiere den Textinhalt ohne HTML-Tags für die Duplikat-Erkennung
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = formattedContent;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
       
-      // Überspringe leere Zeilen und HTML-Tags
-      if (line === '' || line.startsWith('<') || line.startsWith('</')) {
-        continue;
-      }
+      console.warn("MESSAGE-RENDER-DEBUG: Extrahierter Text für Duplikat-Prüfung:", 
+        textContent.length > 50 ? textContent.substring(0, 50) + "..." : textContent);
       
-      // Teile die Zeile in Wörter
-      const words = line.split(' ');
+      // Prüfe auf doppelte Wörter am Anfang (für 1-3 Wörter)
+      const words = textContent.trim().split(/\s+/);
       
-      // Wenn mindestens 3 Wörter vorhanden sind, prüfe auf Duplikate am Anfang
-      if (words.length >= 3) {
-        // Prüfe, ob die ersten 1-3 Wörter weiter hinten im Text wieder auftauchen
+      // Wenn wir genügend Wörter haben
+      if (words.length >= 4) { // Mindestens 4 Wörter benötigt für Duplikat-Erkennung
         for (let wordCount = 1; wordCount <= Math.min(3, Math.floor(words.length/2)); wordCount++) {
-          const firstPart = words.slice(0, wordCount).join(' ');
-          const secondPart = words.slice(wordCount, wordCount*2).join(' ');
+          const firstPart = words.slice(0, wordCount).join(' ').toLowerCase();
+          const secondPart = words.slice(wordCount, wordCount*2).join(' ').toLowerCase();
           
-          // Wenn die ersten n Wörter den nächsten n Wörtern entsprechen
-          if (firstPart.toLowerCase() === secondPart.toLowerCase()) {
-            console.warn(`MESSAGE-RENDER-DEBUG: Doppelter Anfang gefunden: "${firstPart}" wird entfernt`);
+          if (firstPart === secondPart) {
+            console.warn(`MESSAGE-RENDER-DEBUG: Doppelter Anfang gefunden: "${firstPart}"`);
             
-            // Entferne die ersten n Wörter und aktualisiere die Zeile
-            lines[i] = words.slice(wordCount).join(' ');
+            // Entferne die ersten n Wörter aus dem HTML-Inhalt
+            // Wir suchen nach dem ersten Vorkommen des duplizierten Texts
+            const pattern = new RegExp(`(<[^>]*>\\s*)?${escapeRegExp(firstPart)}\\s*`, 'i');
+            formattedContent = formattedContent.replace(pattern, '');
+            console.warn("MESSAGE-RENDER-DEBUG: Nachricht nach Duplikat-Entfernung:", 
+              formattedContent.length > 100 ? formattedContent.substring(0, 100) + "..." : formattedContent);
             break;
           }
         }
       }
+    } catch (error) {
+      console.error("MESSAGE-RENDER-DEBUG: Fehler bei der Duplikat-Erkennung:", error);
     }
     
-    // Setze die Zeilen wieder zusammen
-    return lines.join('\n');
+    return formattedContent;
+  }
+
+  // Hilfsfunktion zum Escapen von Zeichen für RegExp
+  function escapeRegExp(string: string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   // Debug-Ausgabe bei leerem Inhalt
