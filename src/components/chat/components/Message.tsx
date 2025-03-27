@@ -33,6 +33,9 @@ console.log("Message.tsx geladen - Debug-Version 024 (verbesserte Markdown-Darst
 // VERSION-MARKER: Message-Debug-Code - Version 025
 console.log("Message.tsx geladen - Debug-Version 025 (Tabellarische Darstellung für Schulen)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 026
+console.log("Message.tsx geladen - Debug-Version 026 (Verbesserte Darstellung für alle strukturierten Daten)");
+
 // Entferne Abhängigkeit von externen Icons durch einfache SVG-Implementierungen
 const IconUser = (props: any) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -158,43 +161,113 @@ export function Message({
     // Entferne [DONE] am Ende
     cleanedContent = cleanedContent.replace(/\[DONE\]$/g, '');
 
-    // Erkennung von Schuldaten für bessere Formatierung
-    const containsSchoolInfo = /Schulform:|Adresse:|Kontakt:|Telefon:|E-Mail:|Website:/i.test(cleanedContent);
+    // Prüfen, ob der Inhalt HTML enthält
+    const containsHtml = /<\/?[a-z][\s\S]*>/i.test(cleanedContent);
     
-    if (containsSchoolInfo) {
-      console.log("MESSAGE-RENDER-DEBUG: Schulinformationen erkannt, formatiere speziell");
+    // Wenn HTML erkannt wurde, verarbeiten wir es direkt
+    if (containsHtml) {
+      console.log("MESSAGE-RENDER-DEBUG: HTML-Inhalt erkannt");
       
-      // Standardisiere Überschriften und Schlüsselwörter
-      cleanedContent = cleanedContent
-        .replace(/(\n|^)Name:(\s*)/g, '$1**Name:**$2')
-        .replace(/(\n|^)Schulform:(\s*)/g, '$1**Schulform:**$2')
-        .replace(/(\n|^)Schulleitung:(\s*)/g, '$1**Schulleitung:**$2')
-        .replace(/(\n|^)Adresse:(\s*)/g, '$1**Adresse:**$2')
-        .replace(/(\n|^)Kontakt:(\s*)/g, '$1**Kontakt:**$2')
-        .replace(/(\n|^)Telefon:(\s*)/g, '$1**Telefon:**$2')
-        .replace(/(\n|^)E-Mail:(\s*)/g, '$1**E-Mail:**$2')
-        .replace(/(\n|^)Website:(\s*)/g, '$1**Website:**$2')
-        .replace(/(\n|^)Angebote:(\s*)/g, '$1**Angebote:**$2')
-        .replace(/(\n|^)Öffnungszeiten:(\s*)/g, '$1**Öffnungszeiten:**$2')
-        .replace(/(\n|^)Von:(\s*)/g, '$1**Von:**$2')
-        .replace(/(\n|^)Bis:(\s*)/g, '$1**Bis:**$2')
-        .replace(/(\n|^)Ganztagsschule:(\s*)/g, '$1**Ganztagsschule:**$2')
-        .replace(/(\n|^)Link:(\s*)/g, '$1**Link:**$2');
+      // Korrigiere häufige HTML-Formatierungsprobleme
+      // 1. Stelle sicher, dass Listen korrekt geschlossen werden
+      const openUlCount = (cleanedContent.match(/<ul>/g) || []).length;
+      const closeUlCount = (cleanedContent.match(/<\/ul>/g) || []).length;
+      if (openUlCount > closeUlCount) {
+        for (let i = 0; i < openUlCount - closeUlCount; i++) {
+          cleanedContent += '</ul>';
+        }
+      }
+      
+      // 2. Stelle sicher, dass Listen-Elemente korrekt geschlossen werden
+      const openLiCount = (cleanedContent.match(/<li>/g) || []).length;
+      const closeLiCount = (cleanedContent.match(/<\/li>/g) || []).length;
+      if (openLiCount > closeLiCount) {
+        cleanedContent = cleanedContent.replace(/<li>([^<]*?)(?=<li>|<\/ul>)/g, '<li>$1</li>');
+      }
+      
+      // Parsen und Neuformatieren des HTML
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(cleanedContent, 'text/html');
         
-      // Formatiere URL-Links korrekt
-      cleanedContent = cleanedContent.replace(
-        /(https?:\/\/[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+(\.[a-z]{2,})([\/\w\.-]*)*\/?)/gi, 
-        '[$1]($1)'
-      );
+        // Verbesserung der HTML-Struktur für Listen
+        doc.querySelectorAll('ul').forEach(ulElement => {
+          // Setze Abstände für Listen
+          ulElement.style.margin = '0.5rem 0';
+          ulElement.style.paddingLeft = '1.5rem';
+          
+          // Verbessere verschachtelte Listen
+          ulElement.querySelectorAll('ul').forEach(nestedUl => {
+            nestedUl.style.margin = '0.25rem 0';
+            nestedUl.style.paddingLeft = '1rem';
+          });
+        });
+        
+        // Verbessere Listen-Elemente
+        doc.querySelectorAll('li').forEach(liElement => {
+          // Stelle sicher, dass alle Listenelemente abgeschlossen sind
+          if (!liElement.innerHTML.trim().endsWith('</li>')) {
+            if (!liElement.lastChild || liElement.lastChild.nodeType !== Node.ELEMENT_NODE) {
+              // Füge nur </li> hinzu, wenn das letzte Kind kein Element ist
+              liElement.innerHTML += '</li>';
+            }
+          }
+        });
+        
+        // Konvertiere zurück zu HTML
+        const serializer = new XMLSerializer();
+        const cleanHtml = serializer.serializeToString(doc.body);
+        
+        // Extrahiere den Body-Inhalt
+        const bodyContent = cleanHtml.replace(/<\/?body[^>]*>/g, '');
+        return bodyContent;
+      } catch (error) {
+        console.error("MESSAGE-RENDER-DEBUG: Fehler bei HTML-Bereinigung:", error);
+      }
+    } else {
+      // Markdown-formatierte Inhalte verarbeiten
+      console.log("MESSAGE-RENDER-DEBUG: Markdown-Inhalt erkannt");
       
-      // Stelle sicher, dass Listeneinträge korrekt formatiert sind
-      cleanedContent = cleanedContent.replace(/(\n|^)- /g, '\n- ');
+      // Erkennen von strukturierten Daten (Schulen, Kitas, etc.)
+      const containsStructuredData = /Name:|Adresse:|Kontakt:|Telefon:|E-Mail:|Website:|Schulform:|Angebote:|Öffnungszeiten:/i.test(cleanedContent);
       
-      // Füge Abstand zwischen Schulen ein, wenn mehrere Schulen aufgelistet sind
-      cleanedContent = cleanedContent.replace(/(\n\n)([A-Z][a-zäöüÄÖÜß]+ [A-Z][a-zäöüÄÖÜß]+)/g, '$1\n## $2');
-      
-      console.log("MESSAGE-RENDER-DEBUG: Formatierte Schulinfos:", 
-        cleanedContent.length > 100 ? cleanedContent.substring(0, 100) + "..." : cleanedContent);
+      if (containsStructuredData) {
+        console.log("MESSAGE-RENDER-DEBUG: Strukturierte Daten erkannt");
+        
+        // Standardisiere Schlüsselwörter für alle strukturierten Daten
+        cleanedContent = cleanedContent
+          .replace(/(\n|^)Name:(\s*)/g, '$1**Name:**$2')
+          .replace(/(\n|^)Schulform:(\s*)/g, '$1**Schulform:**$2')
+          .replace(/(\n|^)Schulleitung:(\s*)/g, '$1**Schulleitung:**$2')
+          .replace(/(\n|^)Adresse:(\s*)/g, '$1**Adresse:**$2')
+          .replace(/(\n|^)Kontakt:(\s*)/g, '$1**Kontakt:**$2')
+          .replace(/(\n|^)Telefon:(\s*)/g, '$1**Telefon:**$2')
+          .replace(/(\n|^)E-Mail:(\s*)/g, '$1**E-Mail:**$2')
+          .replace(/(\n|^)Website:(\s*)/g, '$1**Website:**$2')
+          .replace(/(\n|^)Angebote:(\s*)/g, '$1**Angebote:**$2')
+          .replace(/(\n|^)Öffnungszeiten:(\s*)/g, '$1**Öffnungszeiten:**$2')
+          .replace(/(\n|^)Von:(\s*)/g, '$1**Von:**$2')
+          .replace(/(\n|^)Bis:(\s*)/g, '$1**Bis:**$2')
+          .replace(/(\n|^)Link:(\s*)/g, '$1**Link:**$2')
+          .replace(/(\n|^)Ganztagsschule:(\s*)/g, '$1**Ganztagsschule:**$2');
+        
+        // Konvertiere Listen in MD-Format für bessere Darstellung
+        // Erkenne Listen-Muster wie "- Item" oder "* Item"
+        cleanedContent = cleanedContent
+          .replace(/(\n|^)\s*[-*]\s+([^\n]+)/gm, '\n- $2')
+          .replace(/(\n|^)\s*\d+\.\s+([^\n]+)/gm, '\n1. $2');
+        
+        // Formatiere URL-Links korrekt
+        cleanedContent = cleanedContent.replace(
+          /(https?:\/\/[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+(\.[a-z]{2,})([\/\w\.-]*)*\/?)/gi, 
+          '[$1]($1)'
+        );
+        
+        // Füge Abstand zwischen Einträgen wie Schulen oder Kitas ein
+        cleanedContent = cleanedContent.replace(/(\n\n)([A-Z][a-zäöüÄÖÜß]+ [A-Z][a-zäöüÄÖÜß]+)/g, '$1\n## $2');
+        
+        console.log("MESSAGE-RENDER-DEBUG: Strukturierte Daten formatiert");
+      }
     }
     
     // Versuche doppelte Anfänge zu identifizieren und zu entfernen
