@@ -72,15 +72,24 @@ export async function POST(request: NextRequest) {
   console.log("CHAT-STREAM-API: Request-Body:", JSON.stringify(body));
   
   try {
+    // Verbessere das Erkennen der letzten Benutzernachricht 
     // Extrahiere die letzte Benutzernachricht für die Weiterverarbeitung
     let userQuestion = "";
     if (body.messages && body.messages.length > 0) {
-      const lastUserMessage = [...body.messages].reverse().find(m => m.role === 'user');
+      // Wenn ein Nachrichtenverlauf vorhanden ist
+      const lastUserMessage = [...body.messages].find(m => m.role === 'user');
+      
+      // Falls keine Benutzernachricht im Verlauf ist, prüfe direkt die message
       if (lastUserMessage) {
         userQuestion = lastUserMessage.content;
+        console.log("CHAT-STREAM-API: Benutzernachricht aus Verlauf gefunden:", userQuestion);
+      } else if (body.message) {
+        userQuestion = body.message;
+        console.log("CHAT-STREAM-API: Benutzernachricht aus message-Feld verwendet:", userQuestion);
       }
     } else if (body.message) {
       userQuestion = body.message;
+      console.log("CHAT-STREAM-API: Benutzernachricht aus direktem message-Feld:", userQuestion);
     }
 
     // Behandle sowohl einzelne Nachrichten als auch Nachrichtenverläufe
@@ -173,51 +182,23 @@ export async function POST(request: NextRequest) {
     const apiUrl = `${FLOWISE_URL}/api/v1/prediction/${flowiseId}`;
     console.log("CHAT-STREAM-API: Flowise API URL:", apiUrl);
     
-    // Verbesserte Anfrage-Struktur basierend auf der Flowise API-Dokumentation
+    // Verbessere die requestBody-Struktur für die Message-Verarbeitung
     let requestBody: FlowiseRequestBody;
-    
+
     if (messages && messages.length > 0) {
-      // Extrahiere die letzte Benutzernachricht aus dem messages-Array
-      const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
-      
-      if (lastUserMessage) {
-        console.log("CHAT-STREAM-API: Letzte Benutzernachricht gefunden:", lastUserMessage.content);
-        
-        // Formatiere messages für Flowise API
-        const history: FlowiseMessage[] = messages
-          .filter((m: Message) => m !== lastUserMessage) // Alle Nachrichten außer der letzten Benutzernachricht
-          .map((m: Message) => ({
-            role: m.role === 'assistant' ? 'apiMessage' : 'userMessage', // Konvertiere in Flowise-Format
-            content: m.content
-          }));
-          
-        requestBody = { 
-          question: lastUserMessage.content,
-          history: history.length > 0 ? history : undefined,
-          streaming: true // Aktiviere Streaming für Flowise
-        };
-        
-        // Wenn Bot-Einstellungen verfügbar sind, füge overrideConfig hinzu
-        if (botSettings) {
-          requestBody.overrideConfig = {
-            botPersonality: botSettings.botPersonality || "Du bist ein hilfreicher Assistent",
-            botContext: botSettings.botContext || "Online-Dienst",
-            botScope: botSettings.botScope || "alle Informationen",
-            offerTip: botSettings.offerTip || "",
-            closedDays: botSettings.closedDays || ""
-          };
-          
-          console.log("CHAT-STREAM-API: overrideConfig hinzugefügt:", JSON.stringify(requestBody.overrideConfig));
-        }
-        
-        console.log("CHAT-STREAM-API: Nachrichtenverlauf mit", history.length, "Einträgen");
-      } else {
-        console.error("CHAT-STREAM-API: Keine Benutzernachricht im Verlauf gefunden");
+      // Wenn wir keinen lastUserMessage gefunden haben, verwenden wir die direkte Message
+      if (!userQuestion && message) {
+        console.log("CHAT-STREAM-API: Verwende direktes message-Feld:", message);
+        userQuestion = message;
+      }
+
+      if (!userQuestion) {
+        console.error("CHAT-STREAM-API: Keine Benutzernachricht gefunden");
         
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
           start(controller) {
-            controller.enqueue(encoder.encode(`event: error\ndata: Keine Benutzernachricht im Verlauf gefunden\n\n`));
+            controller.enqueue(encoder.encode(`event: error\ndata: Keine Benutzernachricht gefunden\n\n`));
             controller.close();
           }
         });
@@ -229,6 +210,36 @@ export async function POST(request: NextRequest) {
             'Connection': 'keep-alive'
           }
         });
+      }
+      
+      // Erstelle die History ohne die letzte Benutzernachricht
+      const history: FlowiseMessage[] = messages
+        .filter((m: Message) => m.role === 'assistant') // Nehme nur Assistentennachrichten für History
+        .map((m: Message) => ({
+          role: 'apiMessage',
+          content: m.content
+        }));
+        
+      console.log("CHAT-STREAM-API: Nachrichtenverlauf mit", history.length, "Assistentennachrichten");
+      
+      // Verwende die gefundene userQuestion
+      requestBody = { 
+        question: userQuestion,
+        history: history.length > 0 ? history : undefined,
+        streaming: true // Aktiviere Streaming für Flowise
+      };
+        
+      // Wenn Bot-Einstellungen verfügbar sind, füge overrideConfig hinzu
+      if (botSettings) {
+        requestBody.overrideConfig = {
+          botPersonality: botSettings.botPersonality || "Du bist ein hilfreicher Assistent",
+          botContext: botSettings.botContext || "Online-Dienst",
+          botScope: botSettings.botScope || "alle Informationen",
+          offerTip: botSettings.offerTip || "",
+          closedDays: botSettings.closedDays || ""
+        };
+        
+        console.log("CHAT-STREAM-API: overrideConfig hinzugefügt");
       }
     } else {
       // Einzelne Nachricht verwenden
