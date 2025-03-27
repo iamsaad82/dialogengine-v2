@@ -39,6 +39,9 @@ console.log("Message.tsx geladen - Debug-Version 026 (Verbesserte Darstellung f�
 // VERSION-MARKER: Message-Debug-Code - Version 027
 console.log("Message.tsx geladen - Debug-Version 027 (Verbesserte E-Mail und Telefonnummer Erkennung)");
 
+// VERSION-MARKER: Message-Debug-Code - Version 028
+console.log("Message.tsx geladen - Debug-Version 028 (Verbesserte HTML-Tag und Telefonnummern Erkennung)");
+
 // Entferne Abhängigkeit von externen Icons durch einfache SVG-Implementierungen
 const IconUser = (props: any) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -153,6 +156,9 @@ export function Message({
 
     let cleanedContent = content;
     
+    // Entferne ungewollte HTML-Tags am Anfang der Nachricht
+    cleanedContent = cleanedContent.replace(/^<[^>]*>(<[^>]*>)*/g, '');
+    
     // Entferne JSON-Artefakte
     if (cleanedContent.includes('{"event":')) {
       const jsonStartIndex = cleanedContent.indexOf('{"event":');
@@ -175,26 +181,16 @@ export function Message({
     });
     
     // Verbesserte Erkennung und Formatierung von Telefonnummern
-    // Verschiedene deutsche Telefonnummernformate
-    const phoneRegexes = [
-      // Format: (03381) 12 34 56
-      /\(\d{3,6}\)\s*\d{2,3}(\s*\d{2,3})*/g,
-      // Format: 03381-12345
-      /\d{3,6}-\d{3,6}(-\d{1,6})*/g,
-      // Format: 03381/12345
-      /\d{3,6}\/\d{3,6}(\/\d{1,6})*/g,
-      // Format: 03381 12345
-      /(?<!\d)0\d{3,5}\s\d{3,9}/g
-    ];
+    // Verbesserte Regex für deutsche Telefonnummern - zusammenhängend betrachten
+    const phoneRegex = /(\(0\d{3,5}\)\s*\d{1,10}(?:\s*\d{1,7})*|\b0\d{3,5}[-\/\s]\d{3,10}(?:[-\/\s]\d{1,7})*|\b0\d{3,5}\s\d{3,10})/g;
     
-    // Wende alle Telefonnummer-Regex-Muster an
-    phoneRegexes.forEach(regex => {
-      cleanedContent = cleanedContent.replace(regex, (match) => {
-        console.log("MESSAGE-RENDER-DEBUG: Telefonnummer erkannt:", match);
-        // Entferne Leerzeichen und andere nicht-numerische Zeichen für den Link
-        const cleanPhone = match.replace(/[^\d+]/g, '');
-        return `[${match}](tel:${cleanPhone})`;
-      });
+    // Wende verbesserte Telefonnummern-Erkennung an
+    cleanedContent = cleanedContent.replace(phoneRegex, (match) => {
+      console.log("MESSAGE-RENDER-DEBUG: Telefonnummer erkannt:", match);
+      // Entferne Leerzeichen und andere nicht-numerische Zeichen für den Link,
+      // aber behalte das Plus-Zeichen für internationale Nummern
+      const cleanPhone = match.replace(/[^\d+]/g, '');
+      return `[${match}](tel:${cleanPhone})`;
     });
 
     // Prüfen, ob der Inhalt HTML enthält
@@ -265,7 +261,7 @@ export function Message({
       console.log("MESSAGE-RENDER-DEBUG: Markdown-Inhalt erkannt");
       
       // Erkennen von strukturierten Daten (Schulen, Kitas, etc.)
-      const containsStructuredData = /Name:|Adresse:|Kontakt:|Telefon:|E-Mail:|Website:|Schulform:|Angebote:|Öffnungszeiten:|Bürgeramt|Standesamt|Bürgerbüro/i.test(cleanedContent);
+      const containsStructuredData = /Name:|Adresse:|Kontakt:|Telefon:|E-Mail:|Website:|Schulform:|Angebote:|Öffnungszeiten:|Bürgeramt|Standesamt|Bürgerbüro|Jugendamt/i.test(cleanedContent);
       
       if (containsStructuredData) {
         console.log("MESSAGE-RENDER-DEBUG: Strukturierte Daten erkannt");
@@ -288,7 +284,8 @@ export function Message({
           .replace(/(\n|^)Link:(\s*)/g, '$1**Link:**$2')
           .replace(/(\n|^)Ganztagsschule:(\s*)/g, '$1**Ganztagsschule:**$2')
           .replace(/(\n|^)Bürgeramt(\s+)Standort:(\s*)/g, '$1**Bürgeramt Standort:**$3')
-          .replace(/(\n|^)Das Bürgeramt(\s+)ist(\s+)für(\s+)folgende(\s+)Themen(\s+)zuständig:/g, '$1**Das Bürgeramt ist für folgende Themen zuständig:**');
+          .replace(/(\n|^)Das Bürgeramt(\s+)ist(\s+)für(\s+)folgende(\s+)Themen(\s+)zuständig:/g, '$1**Das Bürgeramt ist für folgende Themen zuständig:**')
+          .replace(/(\n|^)Amt für Jugend(\s+)und(\s+)Soziales/g, '$1**Amt für Jugend und Soziales**');
         
         // Konvertiere Listen in MD-Format für bessere Darstellung
         // Erkenne Listen-Muster wie "- Item" oder "* Item"
