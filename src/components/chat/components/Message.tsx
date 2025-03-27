@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import React from 'react'
 import { BotIcon, UserIcon, CopyIcon, CheckIcon, ThumbsUpIcon, ThumbsDownIcon } from './ui/icons'
 import { motion } from 'framer-motion'
@@ -35,6 +35,7 @@ export function Message({
   const [currentTime, setCurrentTime] = useState<string>("")
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null)
   const isBot = message.role === 'assistant'
+  const preRef = useRef<HTMLDivElement>(null)
   
   // Zeit nur client-seitig festlegen, um Hydration-Fehler zu vermeiden
   useEffect(() => {
@@ -43,72 +44,137 @@ export function Message({
   
   // CSS-Styles für Markdown-Elemente
   useEffect(() => {
-    // Füge CSS für die Formatierung hinzu, falls es noch nicht existiert
-    if (!document.getElementById('markdown-styles')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'markdown-styles';
-      styleSheet.innerHTML = `
-        .phone-number {
+    console.log("MESSAGE-DEBUG-009: useEffect für Styles aufgerufen");
+    
+    // Check if styles already exist to avoid duplicates
+    if (!document.getElementById('message-component-styles')) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'message-component-styles';
+      styleEl.innerHTML = `
+        /* Allgemeine Formatierung */
+        .message-content a {
+          color: #2563eb;
+          text-decoration: underline;
+          text-decoration-color: rgba(37, 99, 235, 0.3);
+          text-underline-offset: 2px;
+          transition: text-decoration-color 0.2s;
+        }
+        
+        .message-content a:hover {
+          text-decoration-color: rgba(37, 99, 235, 0.8);
+        }
+        
+        /* Telefonnummern, E-Mail-Links und Web-Links */
+        .message-content .phone-link, 
+        .message-content .email-link,
+        .message-content .web-link {
           display: inline-flex;
           align-items: center;
-          background-color: #f0f4f8;
-          color: #2d3748;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-weight: 500;
-          white-space: nowrap;
-          margin: 0 1px;
-          border: 1px solid #e2e8f0;
-          cursor: pointer;
+          padding: 6px 12px;
+          border-radius: 6px;
           text-decoration: none;
-        }
-        
-        .phone-number:hover {
-          background-color: #e6eef7;
-        }
-        
-        .email-address, .url-address {
-          display: inline-flex;
-          align-items: center;
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
-          color: rgba(var(--primary-rgb, 59, 130, 246), 1);
-          padding: 2px 6px;
-          border-radius: 4px;
           font-weight: 500;
-          white-space: nowrap;
-          margin: 0 1px;
-          border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.2);
-          cursor: pointer;
-          text-decoration: none;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+          margin: 2px 0;
         }
         
-        .email-address:hover, .url-address:hover {
-          background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.15);
+        .message-content .phone-link {
+          background-color: rgba(37, 99, 235, 0.1);
+          color: #2563eb;
+          border: 1px solid rgba(37, 99, 235, 0.2);
         }
         
-        /* Vertikale Listen */
-        .list-vertical {
-          padding-left: 0.5rem;
-          margin: 0.5rem 0;
+        .message-content .phone-link:hover {
+          background-color: rgba(37, 99, 235, 0.15);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(37, 99, 235, 0.1);
+        }
+        
+        .message-content .email-link {
+          background-color: rgba(14, 165, 233, 0.1);
+          color: #0ea5e9;
+          border: 1px solid rgba(14, 165, 233, 0.2);
+        }
+        
+        .message-content .email-link:hover {
+          background-color: rgba(14, 165, 233, 0.15);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(14, 165, 233, 0.1);
+        }
+        
+        .message-content .web-link {
+          background-color: rgba(79, 70, 229, 0.1);
+          color: #4f46e5;
+          border: 1px solid rgba(79, 70, 229, 0.2);
+        }
+        
+        .message-content .web-link:hover {
+          background-color: rgba(79, 70, 229, 0.15);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(79, 70, 229, 0.1);
+        }
+        
+        /* Überschriften */
+        .message-content h2 {
+          font-size: 1.25rem;
+          font-weight: 700;
+          margin-top: 1.5rem;
+          margin-bottom: 0.75rem;
+          color: #24292f;
+          line-height: 1.3;
+        }
+        
+        .message-content h3 {
+          font-size: 1.125rem;
+          font-weight: 600;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+          color: #24292f;
+          line-height: 1.3;
+        }
+        
+        /* Listen */
+        .message-content ul {
           list-style-type: none;
+          padding-left: 1.5rem;
+          margin-top: 0.75rem;
+          margin-bottom: 1rem;
         }
         
-        .list-item {
-          margin-bottom: 0.4rem;
-          line-height: 1.4;
-          display: flex;
-          align-items: flex-start;
+        .message-content li {
+          position: relative;
+          margin-bottom: 0.5rem;
+          line-height: 1.5;
         }
         
-        .list-item::before {
+        /* Nur für normale Listenelemente Bullet-Points anzeigen */
+        .message-content li:not(.numbered-item)::before {
           content: "•";
+          position: absolute;
+          left: -1rem;
+          color: #6b7280;
+        }
+        
+        /* Nummerierte Listenelemente */
+        .message-content .numbered-item {
+          padding-left: 0;
+        }
+        
+        /* Überschreibe das Pseudo-Element für nummerierte Elemente */
+        .message-content .numbered-item::before {
+          content: none !important;
+        }
+        
+        /* Kontaktinformationen */
+        .message-content .contact-label {
+          font-weight: 600;
+          color: #4b5563;
+          min-width: 100px;
           display: inline-block;
-          width: 1em;
-          margin-right: 0.5em;
-          font-weight: bold;
         }
       `;
-      document.head.appendChild(styleSheet);
+      document.head.appendChild(styleEl);
     }
   }, []);
   
@@ -251,54 +317,114 @@ export function Message({
       return <div className="text-red-500">Ungültige Nachricht</div>;
     }
     
-    // Verbesserte Vorverarbeitung des Inhalts für korrekte Abstände nach Doppelpunkten
+    // Vorverarbeitung
     let processedContent = message.content;
     
-    // Füge bei Mustern wie "Telefon:(Nummer)" ein Leerzeichen nach dem Doppelpunkt ein
-    processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Ganztagsschule|Standort|Fax|Öffnungszeiten|Angebote):([\S])/g, '$1: $2');
+    // Entferne automatische Leerzeichen-Einfügung nach Doppelpunkten
+    // processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Standort|Fax|Öffnungszeiten|Angebote):([\S])/g, '$1: $2');
+    
+    // Konvertiere Telefonnummern in Links (wenn nicht bereits Links)
+    // Erweitertes Muster für verschiedene Telefonnummernformate
+    processedContent = processedContent.replace(/(\(?\d{3,5}\)?\s*[-\s]?\d+[\s\d-]*\d+)/g, (match) => {
+      // Überspringe, wenn bereits ein Link
+      if (match.includes('[') || match.includes('](')) return match;
+      
+      // Telefonnummer bereinigen: Nur Zahlen behalten
+      const cleanNumber = match.replace(/\D/g, '');
+      return `[${match}](tel:${cleanNumber})`;
+    });
+    
+    // Konvertiere Web-URLs in Links (wenn nicht bereits Links)
+    processedContent = processedContent.replace(/(https?:\/\/[^\s]+|www\.[^\s]+\.[a-z]{2,}[^\s]*)/g, (match) => {
+      // Überspringe, wenn bereits ein Link
+      if (match.includes('[') || match.includes('](')) return match;
+      
+      // Füge http:// hinzu, wenn es mit www. beginnt
+      const url = match.startsWith('www.') ? `https://${match}` : match;
+      return `[${match}](${url})`;
+    });
+    
+    // Erkenne Domänen ohne Protokoll (z.B. example.com)
+    processedContent = processedContent.replace(/\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,}(\/[^\s]*)?/g, (match) => {
+      // Überspringe, wenn bereits ein Link oder Teil einer E-Mail
+      if (match.includes('[') || match.includes('](') || 
+          processedContent.includes(`mailto:${match}`) || 
+          processedContent.includes(`@${match}`)) return match;
+      
+      return `[${match}](https://${match})`;
+    });
+    
+    // Konvertiere E-Mail-Adressen in Links (wenn nicht bereits Links)
+    processedContent = processedContent.replace(/\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g, (match) => {
+      if (match.includes('[') || match.includes('](')) return match; // Bereits ein Link
+      return `[${match}](mailto:${match})`;
+    });
     
     return (
-      <div className="prose prose-sm break-words pointer-events-auto">
+      <div className="prose prose-sm break-words pointer-events-auto message-content">
         <ReactMarkdown
           components={{
-            a: ({node, ...props}) => (
-              <a 
-                {...props} 
-                className={
-                  props.href?.startsWith('tel:') 
-                    ? 'phone-number' 
-                    : props.href?.startsWith('mailto:') 
-                    ? 'email-address' 
-                    : 'url-address'
+            a: ({node, ...props}) => {
+              let className = '';
+              
+              // Linktyp basierend auf href bestimmen
+              if (props.href?.startsWith('tel:')) {
+                className = 'phone-link';
+              } else if (props.href?.startsWith('mailto:')) {
+                className = 'email-link';
+              } else if (props.href?.startsWith('http')) {
+                className = 'web-link';
+              }
+              
+              return (
+                <a 
+                  {...props} 
+                  className={className}
+                  target={props.href?.startsWith('http') ? '_blank' : undefined}
+                  rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                />
+              );
+            },
+            ul: ({node, ...props}) => <ul {...props} />,
+            li: ({node, children, ...props}) => {
+              // Text des Listenelements
+              const content = String(children);
+              
+              // Prüfe, ob es mit einer Zahl mit Punkt beginnt (z.B. "1. Kita")
+              const isNumbered = /^\d+\./.test(content);
+              
+              return (
+                <li 
+                  className={isNumbered ? 'numbered-item' : ''}
+                  {...props}
+                >
+                  {children}
+                </li>
+              );
+            },
+            h2: ({node, ...props}) => <h2 {...props} />,
+            h3: ({node, ...props}) => <h3 {...props} />,
+            p: ({node, children, ...props}) => {
+              // Prüfen auf Kontaktinformationen
+              const content = String(children);
+              const isContactInfo = /^(Adresse|Telefon|E-Mail|Standort|Öffnungszeiten|Angebote|Schulform|Schulleitung|Ganztagsschule|Kontakt|Website)/.test(content);
+              
+              if (isContactInfo) {
+                // Extrahiere Labeltext (bis zum Doppelpunkt)
+                const labelMatch = content.match(/^([^:]+):/);
+                if (labelMatch) {
+                  const label = labelMatch[1];
+                  const restContent = content.replace(/^[^:]+:/, '').trim();
+                  
+                  return (
+                    <p {...props}>
+                      <span className="contact-label">{label}:</span>{restContent}
+                    </p>
+                  );
                 }
-                target={props.href?.startsWith('http') ? '_blank' : undefined}
-                rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-              />
-            ),
-            ul: ({node, ...props}) => <ul className="list-vertical" {...props} />,
-            ol: ({node, ...props}) => <ol className="list-vertical" {...props} />,
-            li: ({node, ...props}) => <li className="list-item" {...props} />,
-            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-2 mb-0.5" {...props} />,
-            h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
-            h3: ({node, ...props}) => <h3 className="text-lg font-bold mt-2 mb-0.5" {...props} />,
-            h4: ({node, ...props}) => <h4 className="text-md font-semibold mt-1.5 mb-0.5" {...props} />,
-            strong: ({node, ...props}) => {
-              // Prüft, ob der Text auf ":" endet, und fügt ein Leerzeichen danach ein
-              let childText = '';
-              if (props.children && typeof props.children === 'string') {
-                childText = props.children;
-              } else if (props.children && Array.isArray(props.children)) {
-                childText = props.children.map(child => 
-                  typeof child === 'string' ? child : ''
-                ).join('');
               }
               
-              // Wenn der Text mit einem Doppelpunkt endet, stellen wir sicher, dass ein Leerzeichen folgt
-              if (childText.endsWith(':')) {
-                return <strong {...props} className="contact-label" />;
-              }
-              
-              return <strong {...props} />;
+              return <p {...props}>{children}</p>;
             }
           }}
         >
