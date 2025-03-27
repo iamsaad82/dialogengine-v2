@@ -224,71 +224,55 @@ export function useChat({
               }
             }
             
-            let eventData = '';
-            
             // Prüfe auf verschiedene Event-Typen
             if (event.includes('data:')) {
               try {
-                const dataMatch = event.match(/data: (.*)/);
+                // Ignoriere "message:" am Anfang des Events - dies ist ein Flowise-spezifisches Präfix
+                let eventText = event;
+                if (event.trim().startsWith('message:')) {
+                  eventText = event.substring(event.indexOf('data:'));
+                }
+
+                const dataMatch = eventText.match(/data: (.*)/);
                 if (dataMatch && dataMatch[1]) {
-                  let eventData = dataMatch[1].trim();
-                  console.log("useChat-DEBUG: Token empfangen:", eventData);
+                  const rawData = dataMatch[1].trim();
+                  console.log("useChat-DEBUG: Rohe Daten empfangen:", rawData.substring(0, 50) + (rawData.length > 50 ? "..." : ""));
                   
-                  // Versuche JSON zu parsen, falls es sich um ein JSON-Objekt handelt
                   try {
-                    const jsonData = JSON.parse(eventData);
-                    // Falls es ein JSON-Objekt mit einem 'text' oder 'message' Feld ist
-                    if (jsonData.text) {
-                      eventData = jsonData.text;
-                      console.log("useChat-DEBUG: JSON mit 'text' Feld empfangen:", eventData);
-                    } else if (jsonData.message) {
-                      eventData = jsonData.message;
-                      console.log("useChat-DEBUG: JSON mit 'message' Feld empfangen:", eventData);
-                    } else if (jsonData.content) {
-                      eventData = jsonData.content;
-                      console.log("useChat-DEBUG: JSON mit 'content' Feld empfangen:", eventData);
-                    } else if (typeof jsonData === 'string') {
-                      eventData = jsonData;
-                      console.log("useChat-DEBUG: JSON als String empfangen:", eventData);
-                    } else {
-                      // Wenn keine bekannten Felder, aber ein JSON Objekt, konvertiere zu String
-                      eventData = JSON.stringify(jsonData);
-                      console.log("useChat-DEBUG: Unbekanntes JSON-Format empfangen, konvertiert zu:", eventData);
-                    }
-                  } catch (jsonError) {
-                    // Kein JSON, verwende den Rohtext
-                    console.log("useChat-DEBUG: Normalen Text empfangen (kein JSON)");
-                  }
-                  
-                  // Füge nur Text hinzu, wenn es kein leeres Objekt ist
-                  if (eventData !== "{}" && eventData.trim() !== "") {
-                    // Prüfe, ob es sich um ein "message:"-Format handelt
-                    if (eventData.startsWith("message:")) {
-                      // Extrahiere den Text nach "message:"
-                      eventData = eventData.substring("message:".length).trim();
-                      console.log("useChat-DEBUG: 'message:'-Format erkannt, extrahierter Text:", eventData);
-                    }
+                    // Parse das JSON
+                    const jsonData = JSON.parse(rawData);
                     
-                    // Wenn message: kein Inhalt hatte, nichts anzeigen
-                    if (eventData === "message:" || eventData === "") {
-                      console.log("useChat-DEBUG: Leere Nachricht erkannt, wird übersprungen");
-                      continue;
-                    }
-                    
-                    // Zusätzliches Debug-Logging für den genauen Inhalt
-                    console.log("useChat-DEBUG: Formatierter Text der hinzugefügt wird:", 
-                      eventData.length > 50 ? `${eventData.substring(0, 50)}...` : eventData);
-                    
-                    // Text zum Buffer hinzufügen nur wenn nach der Extraktion noch Text vorhanden ist
-                    if (eventData.trim() !== "") {
-                      streamingContent += eventData;
+                    // Flowise sendet Events im Format {event: "token", data: "text"}
+                    if (jsonData.event === "token" && jsonData.data) {
+                      // Der eigentliche Text ist in jsonData.data
+                      const tokenText = jsonData.data;
+                      console.log("useChat-DEBUG: Token-Text extrahiert:", tokenText.substring(0, 50) + (tokenText.length > 50 ? "..." : ""));
+                      
+                      // Zum Buffer hinzufügen
+                      streamingContent += tokenText;
                       setStreamingBuffer(streamingContent);
                       updateLastMessage(streamingContent);
+                    } 
+                    else if (jsonData.event === "error") {
+                      console.error("useChat-DEBUG: Fehler-Event von Flowise:", jsonData.data);
+                      throw new Error(`Streaming-Fehler: ${jsonData.data}`);
                     }
+                    else if (jsonData.event === "start") {
+                      console.log("useChat-DEBUG: Start-Event von Flowise:", jsonData.data);
+                      // Start-Event kann auch Text enthalten
+                      if (jsonData.data && typeof jsonData.data === 'string' && jsonData.data.trim() !== "") {
+                        streamingContent += jsonData.data;
+                        setStreamingBuffer(streamingContent);
+                        updateLastMessage(streamingContent);
+                      }
+                    }
+                    // Andere Event-Typen wie "end", "metadata", "sourceDocuments" ignorieren wir für die Textanzeige
+                  } catch (jsonError) {
+                    console.error("useChat-DEBUG: Fehler beim Parsen des JSON:", jsonError, "Roher Text:", rawData);
                   }
                 }
               } catch (e) {
-                console.error("useChat-DEBUG: Fehler beim Parsen der Event-Daten:", e);
+                console.error("useChat-DEBUG: Allgemeiner Fehler bei der Event-Verarbeitung:", e);
               }
             }
           } catch (parseError) {
@@ -610,66 +594,52 @@ export function useChat({
             // Prüfe auf verschiedene Event-Typen
             if (event.includes('data:')) {
               try {
-                const dataMatch = event.match(/data: (.*)/);
+                // Ignoriere "message:" am Anfang des Events - dies ist ein Flowise-spezifisches Präfix
+                let eventText = event;
+                if (event.trim().startsWith('message:')) {
+                  eventText = event.substring(event.indexOf('data:'));
+                }
+
+                const dataMatch = eventText.match(/data: (.*)/);
                 if (dataMatch && dataMatch[1]) {
-                  let eventData = dataMatch[1].trim();
-                  console.log("useChat-DEBUG: Token empfangen:", eventData);
+                  const rawData = dataMatch[1].trim();
+                  console.log("useChat-DEBUG: Rohe Daten empfangen:", rawData.substring(0, 50) + (rawData.length > 50 ? "..." : ""));
                   
-                  // Versuche JSON zu parsen, falls es sich um ein JSON-Objekt handelt
                   try {
-                    const jsonData = JSON.parse(eventData);
-                    // Falls es ein JSON-Objekt mit einem 'text' oder 'message' Feld ist
-                    if (jsonData.text) {
-                      eventData = jsonData.text;
-                      console.log("useChat-DEBUG: JSON mit 'text' Feld empfangen:", eventData);
-                    } else if (jsonData.message) {
-                      eventData = jsonData.message;
-                      console.log("useChat-DEBUG: JSON mit 'message' Feld empfangen:", eventData);
-                    } else if (jsonData.content) {
-                      eventData = jsonData.content;
-                      console.log("useChat-DEBUG: JSON mit 'content' Feld empfangen:", eventData);
-                    } else if (typeof jsonData === 'string') {
-                      eventData = jsonData;
-                      console.log("useChat-DEBUG: JSON als String empfangen:", eventData);
-                    } else {
-                      // Wenn keine bekannten Felder, aber ein JSON Objekt, konvertiere zu String
-                      eventData = JSON.stringify(jsonData);
-                      console.log("useChat-DEBUG: Unbekanntes JSON-Format empfangen, konvertiert zu:", eventData);
-                    }
-                  } catch (jsonError) {
-                    // Kein JSON, verwende den Rohtext
-                    console.log("useChat-DEBUG: Normalen Text empfangen (kein JSON)");
-                  }
-                  
-                  // Füge nur Text hinzu, wenn es kein leeres Objekt ist
-                  if (eventData !== "{}" && eventData.trim() !== "") {
-                    // Prüfe, ob es sich um ein "message:"-Format handelt
-                    if (eventData.startsWith("message:")) {
-                      // Extrahiere den Text nach "message:"
-                      eventData = eventData.substring("message:".length).trim();
-                      console.log("useChat-DEBUG: 'message:'-Format erkannt, extrahierter Text:", eventData);
-                    }
+                    // Parse das JSON
+                    const jsonData = JSON.parse(rawData);
                     
-                    // Wenn message: kein Inhalt hatte, nichts anzeigen
-                    if (eventData === "message:" || eventData === "") {
-                      console.log("useChat-DEBUG: Leere Nachricht erkannt, wird übersprungen");
-                      continue;
-                    }
-                    
-                    // Zusätzliches Debug-Logging für den genauen Inhalt
-                    console.log("useChat-DEBUG: Formatierter Text der hinzugefügt wird:", 
-                      eventData.length > 50 ? `${eventData.substring(0, 50)}...` : eventData);
-                    
-                    // Text zum Buffer hinzufügen nur wenn nach der Extraktion noch Text vorhanden ist
-                    if (eventData.trim() !== "") {
-                      streamingContent += eventData;
+                    // Flowise sendet Events im Format {event: "token", data: "text"}
+                    if (jsonData.event === "token" && jsonData.data) {
+                      // Der eigentliche Text ist in jsonData.data
+                      const tokenText = jsonData.data;
+                      console.log("useChat-DEBUG: Token-Text extrahiert:", tokenText.substring(0, 50) + (tokenText.length > 50 ? "..." : ""));
+                      
+                      // Zum Buffer hinzufügen
+                      streamingContent += tokenText;
                       setStreamingBuffer(streamingContent);
                       updateLastMessage(streamingContent);
+                    } 
+                    else if (jsonData.event === "error") {
+                      console.error("useChat-DEBUG: Fehler-Event von Flowise:", jsonData.data);
+                      throw new Error(`Streaming-Fehler: ${jsonData.data}`);
                     }
+                    else if (jsonData.event === "start") {
+                      console.log("useChat-DEBUG: Start-Event von Flowise:", jsonData.data);
+                      // Start-Event kann auch Text enthalten
+                      if (jsonData.data && typeof jsonData.data === 'string' && jsonData.data.trim() !== "") {
+                        streamingContent += jsonData.data;
+                        setStreamingBuffer(streamingContent);
+                        updateLastMessage(streamingContent);
+                      }
+                    }
+                    // Andere Event-Typen wie "end", "metadata", "sourceDocuments" ignorieren wir für die Textanzeige
+                  } catch (jsonError) {
+                    console.error("useChat-DEBUG: Fehler beim Parsen des JSON:", jsonError, "Roher Text:", rawData);
                   }
                 }
               } catch (e) {
-                console.error("useChat-DEBUG: Fehler beim Parsen der Event-Daten:", e);
+                console.error("useChat-DEBUG: Allgemeiner Fehler bei der Event-Verarbeitung:", e);
               }
             }
           } catch (parseError) {

@@ -327,7 +327,11 @@ export async function POST(request: NextRequest) {
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
     
-    // Verbessere die Stream-Transformation, um sicherzustellen, dass die Token korrekt weitergegeben werden
+    // Verbessere die Stream-Transformation, um die Flowise-Events direkt weiterzuleiten
+    // Diese Änderung ist wichtig, da Flowise ein spezielles Format verwendet:
+    // message:
+    // data:{"event":"token","data":"text"}
+
     const transformStream = new ReadableStream({
       async start(controller) {
         if (!reader) {
@@ -339,7 +343,6 @@ export async function POST(request: NextRequest) {
         
         try {
           console.log("CHAT-STREAM-API: Stream-Lesevorgang gestartet");
-          let messageBuffer = '';
           let messageCount = 0;
           
           while (true) {
@@ -347,99 +350,38 @@ export async function POST(request: NextRequest) {
             
             if (done) {
               console.log(`CHAT-STREAM-API: Stream beendet, insgesamt ${messageCount} Nachrichtenteile empfangen`);
-              // Sende den letzten Buffer, falls noch etwas darin ist
-              if (messageBuffer.trim()) {
-                controller.enqueue(encoder.encode(`data: ${messageBuffer}\n\n`));
-              }
-              // Stream ist zu Ende, sende end-Event
               controller.enqueue(encoder.encode("event: end\ndata: {}\n\n"));
               controller.close();
               break;
             }
             
-            // Decodiere den Stream und protokolliere den Chunk
+            // Decodiere den Chunk und leite ihn direkt weiter
             const chunk = decoder.decode(value, { stream: true });
-            console.log("CHAT-STREAM-API: Neuer Chunk (erste 100 Zeichen):", 
-              chunk.substring(0, 100) + (chunk.length > 100 ? "..." : ""));
-            messageBuffer += chunk;
+            console.log("CHAT-STREAM-API: Chunk empfangen (Länge):", chunk.length);
+            
+            if (messageCount === 0) {
+              // Protokolliere den ersten Chunk für Debugging-Zwecke
+              console.log("CHAT-STREAM-API: Erster Chunk (erste 200 Zeichen):", 
+                chunk.substring(0, 200) + (chunk.length > 200 ? "..." : ""));
+            }
+            
             messageCount++;
             
+            // Alle 10 Chunks ein Log ausgeben
             if (messageCount % 10 === 0) {
               console.log(`CHAT-STREAM-API: ${messageCount} Nachrichtenteile empfangen`);
             }
-
-            // Prüfe, ob der Chunk ein vollständiges SSE-Event enthält
-            if (chunk.includes('data:')) {
-              // Extrahiere die Daten und sende sie formatiert weiter
-              const dataMatch = chunk.match(/data: (.*)/);
-              if (dataMatch && dataMatch[1]) {
-                const eventData = dataMatch[1].trim();
-                console.log("CHAT-STREAM-API: Extrahierte Daten:", eventData.substring(0, 50) + (eventData.length > 50 ? "..." : ""));
-                
-                // Versuche die Daten als JSON zu parsen
-                try {
-                  const jsonData = JSON.parse(eventData);
-                  // Wenn es sich um JSON-Daten handelt, extrahiere den tatsächlichen Inhalt
-                  if (jsonData && typeof jsonData === 'object') {
-                    let processedData = eventData;
-                    
-                    // Bekannte Flowise-Formate verarbeiten
-                    if (jsonData.message) {
-                      if (typeof jsonData.message === 'string') {
-                        processedData = jsonData.message;
-                        console.log("CHAT-STREAM-API: JSON 'message' Feld gefunden (String):", 
-                          processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
-                      } else if (jsonData.message && typeof jsonData.message === 'object') {
-                        processedData = JSON.stringify(jsonData.message);
-                        console.log("CHAT-STREAM-API: JSON 'message' Feld gefunden (Objekt):", 
-                          processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
-                      }
-                    } else if (jsonData.text) {
-                      processedData = jsonData.text;
-                      console.log("CHAT-STREAM-API: JSON 'text' Feld gefunden:", 
-                        processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
-                    } else if (jsonData.content) {
-                      processedData = jsonData.content;
-                      console.log("CHAT-STREAM-API: JSON 'content' Feld gefunden:", 
-                        processedData.substring(0, 50) + (processedData.length > 50 ? "..." : ""));
-                    } else {
-                      // Wenn keine bekannten Felder, aber ein JSON-Objekt, sende die rohen Daten
-                      console.log("CHAT-STREAM-API: Unbekanntes JSON-Format (Objekt-Struktur):", 
-                        Object.keys(jsonData).join(", "));
-                    }
-                    
-                    // Überprüfe, ob processedData leer ist oder nur "message:" enthält
-                    if (processedData.trim() === "message:" || processedData.trim() === "") {
-                      console.log("CHAT-STREAM-API: Leere Nachricht erkannt, wird nicht gesendet");
-                      continue; // Diesen Chunk überspringen
-                    }
-                    
-                    // Sende den formatierten Inhalt zurück
-                    controller.enqueue(encoder.encode(`data: ${processedData}\n\n`));
-                  } else {
-                    // Einfacher String oder unbekanntes Format
-                    console.log("CHAT-STREAM-API: JSON als einfachen String erkannt:", 
-                      eventData.substring(0, 50) + (eventData.length > 50 ? "..." : ""));
-                    controller.enqueue(encoder.encode(`data: ${eventData}\n\n`));
-                  }
-                } catch (jsonError) {
-                  // Kein valides JSON, sende die Rohdaten
-                  console.log("CHAT-STREAM-API: Kein JSON-Format erkannt (Rohtext):", 
-                    eventData.substring(0, 50) + (eventData.length > 50 ? "..." : ""));
-                  controller.enqueue(encoder.encode(`data: ${eventData}\n\n`));
-                }
-              } else {
-                // Wenn kein Data-Match gefunden wurde, senden wir den Chunk direkt
-                controller.enqueue(value);
-              }
-            } else {
-              // Sende den Chunk direkt weiter, wenn kein Data-Marker gefunden wurde
-              controller.enqueue(value);
+            
+            // Prüfe, ob "message:" im Chunk ist
+            if (chunk.includes('message:')) {
+              console.log("CHAT-STREAM-API: 'message:'-Format erkannt");
             }
+            
+            // Direkte Weiterleitung des Chunks ohne Verarbeitung
+            controller.enqueue(value);
           }
         } catch (error) {
           console.error("CHAT-STREAM-API: Fehler beim Lesen des Streams:", error);
-          // Sende einen Fehler an den Client
           controller.enqueue(encoder.encode(`event: error\ndata: Fehler beim Lesen des Streams: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\n`));
           controller.close();
         }
