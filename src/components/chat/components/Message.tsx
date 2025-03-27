@@ -255,7 +255,7 @@ export function Message({
     let processedContent = message.content;
     
     // Füge bei Mustern wie "Telefon:(Nummer)" ein Leerzeichen nach dem Doppelpunkt ein
-    processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Ganztagsschule):([\S])/g, '$1: $2');
+    processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Ganztagsschule|Standort|Fax|Öffnungszeiten|Angebote):([\S])/g, '$1: $2');
     
     return (
       <div className="prose prose-sm break-words pointer-events-auto">
