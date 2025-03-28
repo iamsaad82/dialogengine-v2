@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown'
 import classNames from 'classnames'
 import { LunaryClient } from '@/lib/lunary'
 import { BotAvatar, UserAvatar } from './ChatAvatars'
+import { MessageControls } from './MessageControls'
 
 // VERSION-MARKER: Message-Debug-Code - Version 009
 console.log("Message.tsx geladen - Debug-Version 009");
@@ -39,100 +40,9 @@ export function Message({
   const [copySuccess, setCopySuccess] = useState(false)
   const [currentTime, setCurrentTime] = useState<string>("")
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null)
-  const isBot = message.role === 'assistant'
-  const preRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
   
   // Zeit nur client-seitig festlegen, um Hydration-Fehler zu vermeiden
   useEffect(() => {
-    setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
-  }, [])
-  
-  // CSS-Styles für Markdown-Elemente
-  useEffect(() => {
-    console.log("MESSAGE-DEBUG-009: useEffect für Styles aufgerufen");
-    
-    // Check if styles already exist to avoid duplicates
-    if (!document.getElementById('message-component-styles')) {
-      const styleEl = document.createElement('style');
-      styleEl.id = 'message-component-styles';
-      styleEl.innerHTML = `
-        /* Allgemeine Formatierung */
-        .message-content a {
-          color: #2563eb;
-          text-decoration: underline;
-          text-decoration-color: rgba(37, 99, 235, 0.3);
-          text-underline-offset: 2px;
-          transition: text-decoration-color 0.2s;
-        }
-        
-        .message-content a:hover {
-          text-decoration-color: rgba(37, 99, 235, 0.8);
-        }
-        
-        /* Telefonnummern, E-Mail-Links und Web-Links */
-        .message-content .phone-link, 
-        .message-content .email-link,
-        .message-content .web-link {
-          display: inline-flex;
-          align-items: center;
-          padding: 6px 12px;
-          border-radius: 6px;
-          text-decoration: none;
-          font-weight: 500;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-          margin: 2px 0;
-        }
-        
-        .message-content .phone-link {
-          background-color: rgba(37, 99, 235, 0.1);
-          color: #2563eb;
-          border: 1px solid rgba(37, 99, 235, 0.2);
-        }
-        
-        .message-content .phone-link:hover {
-          background-color: rgba(37, 99, 235, 0.15);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(37, 99, 235, 0.1);
-        }
-        
-        .message-content .email-link {
-          background-color: rgba(14, 165, 233, 0.1);
-          color: #0ea5e9;
-          border: 1px solid rgba(14, 165, 233, 0.2);
-        }
-        
-        .message-content .email-link:hover {
-          background-color: rgba(14, 165, 233, 0.15);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(14, 165, 233, 0.1);
-        }
-        
-        .message-content .web-link {
-          background-color: rgba(79, 70, 229, 0.1);
-          color: #4f46e5;
-          border: 1px solid rgba(79, 70, 229, 0.2);
-        }
-        
-        .message-content .web-link:hover {
-          background-color: rgba(79, 70, 229, 0.15);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(79, 70, 229, 0.1);
-        }
-        
-        /* Überschriften */
-        .message-content h2 {
-          font-size: 1.25rem;
-          font-weight: 700;
-          margin-top: 1.5rem;
-          margin-bottom: 0.75rem;
-          color: #24292f;
-          line-height: 1.3;
-        }
-        
-        .message-content h3 {
-          font-size: 1.125rem;
           font-weight: 600;
           margin-top: 1rem;
           margin-bottom: 0.5rem;
@@ -762,8 +672,6 @@ export function Message({
     const plainText = message.content.replace(/\*\*(.*?)\*\*/g, '$1') // Entferne Markdown-Formatierung
     
     // Tracking für Kopieren
-
-    // Tracking für Kopieren
     LunaryClient.track({
       message: 'Nachricht kopiert',
       botId: botId,
@@ -833,15 +741,11 @@ export function Message({
     setFeedbackGiven(isPositive ? 'positive' : 'negative')
     
     // Tracking für Feedback
-
-    // Tracking für Feedback
     LunaryClient.trackFeedback({
       rating: isPositive ? 'positive' : 'negative',
       conversationId: botId || 'unknown',
       botId: botId,
-      metadata: { 
-        messageContent: message.content.slice(0, 100) // Ersten 100 Zeichen
-      }
+      comment: `Feedback zu Nachricht: ${message.content.slice(0, 50)}...` // Verwende comment statt metadata
     })
     
     console.log(`Feedback gesendet: ${isPositive ? 'positiv' : 'negativ'} für Bot ${botId}`)
@@ -1200,76 +1104,14 @@ export function Message({
             {renderContent()}
           </div>
           
-          <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
-            {isBot && (
-              <div className="flex items-center gap-2">
-                {showCopyButton && (
-                  <button
-                    onClick={copyToClipboard}
-                    className="flex items-center gap-1 rounded px-1.5 py-0.5 opacity-0 hover:bg-muted/50 group-hover:opacity-100 focus:opacity-100"
-                    aria-label="Nachricht kopieren"
-                    title="Nachricht kopieren"
-                  >
-                    {copySuccess ? (
-                      <>
-                        <CheckIcon className="h-3.5 w-3.5" />
-                        <span>Kopiert</span>
-                      </>
-                    ) : (
-                      <>
-                        <CopyIcon className="h-3.5 w-3.5" />
-                        <span>Kopieren</span>
-                      </>
-                    )}
-                  </button>
-                )}
-                
-                {enableFeedback && feedbackGiven === null && (
-                  <div className="flex items-center gap-1 ml-2">
-                    <button
-                      onClick={() => sendFeedback(true)}
-                      className="rounded p-1 opacity-0 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 group-hover:opacity-100 focus:opacity-100"
-                      aria-label="Positive Bewertung"
-                      title="Diese Nachricht war hilfreich"
-                    >
-                      <ThumbsUpIcon className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => sendFeedback(false)}
-                      className="rounded p-1 opacity-0 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-900/30 dark:hover:text-rose-400 group-hover:opacity-100 focus:opacity-100"
-                      aria-label="Negative Bewertung"
-                      title="Diese Nachricht war nicht hilfreich"
-                    >
-                      <ThumbsDownIcon className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                )}
-                
-                {enableFeedback && feedbackGiven === 'positive' && (
-                  <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
-                    Danke für Ihr positives Feedback!
-                  </span>
-                )}
-                
-                {enableFeedback && feedbackGiven === 'negative' && (
-                  <span className="ml-2 text-xs text-rose-600 dark:text-rose-400">
-                    Danke für Ihr Feedback. Wir verbessern uns stetig.
-                  </span>
-                )}
-              </div>
-            )}
-            
-            {isUser && isLastMessage && (
-              <div className="flex items-center gap-1">
-                <CheckIcon className="h-3.5 w-3.5" />
-                <span>Gesendet</span>
-              </div>
-            )}
-            
-            <span suppressHydrationWarning>
-              {currentTime}
-            </span>
-          </div>
+          <MessageControls 
+            isBot={isBot}
+            showCopyButton={showCopyButton}
+            enableFeedback={enableFeedback}
+            messageContent={message.content}
+            botId={botId}
+            isLastMessage={isLastMessage}
+          />
         </div>
         
         {isUser && (
