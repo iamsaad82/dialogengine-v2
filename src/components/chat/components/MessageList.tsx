@@ -187,6 +187,7 @@ export function MessageList({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
+
             <motion.h3 
               className="text-xl font-medium mb-4 text-primary relative inline-flex items-center gap-2"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -206,18 +207,10 @@ export function MessageList({
                 }}
                 style={{ height: '100%', width: '100%' }}
               />
-              {botName}
-            </motion.h3>
-
-            {/* Status-Indikator neben dem Bot-Namen */}
-            <motion.div 
-              className="relative flex items-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.4 }}
-            >
+              
+              {/* Status-Indikator (Punkt) links neben dem Bot-Namen */}
               <motion.div 
-                className="w-3 h-3 rounded-full"
+                className="w-3 h-3 rounded-full mr-2"
                 style={{
                   background: `var(--primary, rgba(var(--primary-rgb), 1))`,
                   boxShadow: `0 0 0 rgba(var(--primary-rgb), 0.4)`
@@ -237,14 +230,9 @@ export function MessageList({
                   ease: "easeInOut"
                 }}
               />
-              <motion.span 
-                className="text-xs ml-2 text-primary/80"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                Online
-              </motion.span>
-            </motion.div>
+              
+              {botName}
+            </motion.h3>
 
             {/* Chatwolke für die Willkommensnachricht */}
             <motion.div 
