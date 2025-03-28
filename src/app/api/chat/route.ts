@@ -85,19 +85,6 @@ export async function POST(request: Request) {
       userQuestion = body.message;
     }
 
-    // SPEZIALFALL: "Wer bist du?" und ähnliche Identitätsfragen
-    const identityQuestions = [
-      "wer bist du",
-      "was bist du",
-      "stell dich vor",
-      "wie heißt du",
-      "was kannst du"
-    ];
-
-    // Überprüfe, ob die Frage eine Identitätsfrage ist (case insensitive)
-    const normalizedQuestion = userQuestion.toLowerCase().trim();
-    const isIdentityQuestion = identityQuestions.some(q => normalizedQuestion.includes(q));
-
     // Behandle sowohl einzelne Nachrichten als auch Nachrichtenverläufe
     const message = body.message
     const messages: Message[] = body.messages
@@ -154,30 +141,6 @@ export async function POST(request: Request) {
       } catch (dbError) {
         console.error("CHAT-API-DEBUG-004: Datenbankfehler bei Standard-Bot-Abfrage:", dbError);
       }
-    }
-
-    // Für Identitätsfragen generiere eine direkte Antwort basierend auf den Bot-Einstellungen
-    if (isIdentityQuestion && botSettings) {
-      console.log("CHAT-API-DEBUG-004: Identitätsfrage erkannt, generiere direkte Antwort");
-      
-      const botPersonality = botSettings.botPersonality || "Du bist der Assistent des Einkaufscenters ORO Schwabach";
-      const botContext = botSettings.botContext || "Center";
-      const botScope = botSettings.botScope || "das Center, die Shops und die Produkte";
-      
-      // Generiere eine personalisierte Antwort basierend auf den Bot-Einstellungen
-      let botAnswer = `Ich bin ein digitaler Assistent für das ${botContext} 🤖. Ich helfe dir gerne bei Fragen rund um ${botScope}! 😊`;
-      
-      // Zusätzliche Informationen basierend auf der spezifischen Frage
-      if (normalizedQuestion.includes("was kannst du")) {
-        botAnswer += ` Ich kann dir Informationen zu Öffnungszeiten, Shops, Angeboten und vielem mehr geben. Frag mich einfach! 📝`;
-      }
-      
-      console.log("CHAT-API-DEBUG-004: Benutzerdefinierte Antwort:", botAnswer);
-      
-      return NextResponse.json({
-        text: botAnswer,
-        question: userQuestion
-      });
     }
 
     // Prüfe ob eine Chatflow-ID verfügbar ist
