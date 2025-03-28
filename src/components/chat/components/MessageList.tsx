@@ -216,17 +216,20 @@ export function MessageList({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
               whileHover={{ 
-                boxShadow: `0 10px 30px -10px rgba(var(--primary-rgb), 0.3)`,
-                scale: 1.01,
+                boxShadow: `0 12px 35px -5px rgba(var(--primary-rgb), 0.4)`,
+                scale: 1.02,
                 transition: { duration: 0.2 }
               }}
               style={{
                 maxWidth: "450px",
-                background: "var(--bot-bg-color, rgba(248, 250, 252, 0.9))",
+                background: `linear-gradient(135deg, 
+                  var(--bot-bg-color, rgba(248, 250, 252, 0.92)), 
+                  var(--bot-bg-color, rgba(248, 250, 252, 0.85)) 40%, 
+                  rgba(var(--primary-rgb), 0.15) 120%)`,
                 color: "var(--bot-text-color, #000000)",
-                border: "1px solid rgba(var(--primary-rgb), 0.15)",
+                border: "1px solid rgba(var(--primary-rgb), 0.2)",
                 borderRadius: "1.5rem 1.5rem 1.5rem 0",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(var(--primary-rgb), 0.05)"
+                boxShadow: "0 10px 32px rgba(0, 0, 0, 0.1), 0 2px 12px rgba(var(--primary-rgb), 0.1)"
               }}
             >
               {/* Chatwolken-Spitze und -Blase */}
@@ -252,19 +255,70 @@ export function MessageList({
                 }}
               />
               
-              {/* Hintergrund-Animation */}
+              {/* Verbesserter Hintergrund-Effekt */}
               <motion.div 
-                className="absolute top-0 left-0 w-full h-full opacity-20"
+                className="absolute top-0 left-0 w-full h-full opacity-30"
                 style={{
-                  background: `radial-gradient(circle at 50% 50%, rgba(var(--primary-rgb), 0.2) 0%, transparent 70%)`,
+                  background: `radial-gradient(circle at 30% 40%, rgba(var(--primary-rgb), 0.25) 0%, transparent 60%)`,
                 }}
                 animate={{
                   scale: [1, 1.2, 1],
                 }}
                 transition={{
-                  duration: 6,
+                  duration: 5,
                   repeat: Infinity,
                   repeatType: "reverse",
+                }}
+              />
+              
+              {/* Schimmer-Effekt 1 */}
+              <motion.div 
+                className="absolute top-0 left-0 w-[120%] h-[120%] opacity-40 pointer-events-none"
+                style={{
+                  background: `linear-gradient(135deg, transparent 20%, rgba(var(--primary-rgb), 0.15) 45%, rgba(255, 255, 255, 0.8) 50%, rgba(var(--primary-rgb), 0.15) 55%, transparent 80%)`,
+                }}
+                animate={{
+                  x: ['-100%', '100%'],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  repeatDelay: 5,
+                }}
+              />
+              
+              {/* Schimmer-Effekt 2 (umgekehrte Richtung) */}
+              <motion.div 
+                className="absolute top-0 left-0 w-[120%] h-[120%] opacity-20 pointer-events-none"
+                style={{
+                  background: `linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.6) 50%, transparent 60%)`,
+                }}
+                animate={{
+                  x: ['100%', '-100%'],
+                }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  repeatDelay: 4,
+                  delay: 2
+                }}
+              />
+              
+              {/* Pulsierender Rand-Effekt */}
+              <motion.div 
+                className="absolute inset-0 rounded-[1.5rem_1.5rem_1.5rem_0] pointer-events-none"
+                style={{
+                  border: `1px solid rgba(var(--primary-rgb), 0.3)`,
+                }}
+                animate={{
+                  opacity: [0.2, 0.7, 0.2]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
                 }}
               />
               
@@ -293,12 +347,21 @@ export function MessageList({
                 </motion.p>
               )}
               
-              {/* Pulsierender Punkt am Ende */}
+              {/* Pulsierender Punkt am Ende - auffälliger */}
               <motion.div 
-                className="absolute bottom-3 right-3 w-2 h-2 rounded-full bg-primary"
+                className="absolute bottom-3 right-3 w-3 h-3 rounded-full"
+                style={{
+                  background: `var(--primary, rgba(var(--primary-rgb), 1))`,
+                  boxShadow: `0 0 0 rgba(var(--primary-rgb), 0.4)`
+                }}
                 animate={{ 
-                  scale: [1, 1.3, 1],
-                  opacity: [0.7, 1, 0.7]
+                  scale: [1, 1.4, 1],
+                  opacity: [0.8, 1, 0.8],
+                  boxShadow: [
+                    `0 0 0 rgba(var(--primary-rgb), 0)`,
+                    `0 0 12px rgba(var(--primary-rgb), 0.6)`,
+                    `0 0 0 rgba(var(--primary-rgb), 0)`
+                  ]
                 }}
                 transition={{
                   duration: 2,
