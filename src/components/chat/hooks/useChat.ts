@@ -5,8 +5,31 @@ import { Message, ChatMode } from '../types'
 import { LunaryClient } from '@/lib/lunary-client'
 import { v4 as uuidv4 } from 'uuid'
 
-// VERSION-MARKER: Eindeutiger Debug-Code - Version 006
-console.log("useChat.ts geladen - Debug-Version 006");
+// VERSION-MARKER: Eindeutiger Debug-Code - Version 007
+console.log("useChat.ts geladen - Debug-Version 007");
+
+// Hilfsfunktion für Debounce
+const useDebouncedCallback = (fn: Function, delay: number) => {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastCalledRef = useRef<number>(0);
+
+  return useCallback((...args: any[]) => {
+    const now = Date.now();
+    
+    // Wenn bereits ein Timeout läuft oder der letzte Aufruf zu nah dran ist, abbrechen
+    if (timeoutRef.current || (now - lastCalledRef.current) < delay) {
+      console.log("DEBUG-007: Debounce - Verhindere mehrfachen Aufruf");
+      return;
+    }
+    
+    // Setze den Timeout für die aktuelle Funktion
+    timeoutRef.current = setTimeout(() => {
+      fn(...args);
+      timeoutRef.current = null;
+      lastCalledRef.current = Date.now();
+    }, delay);
+  }, [fn, delay]);
+};
 
 interface UseChatProps {
   initialMessages?: Message[]
@@ -38,7 +61,8 @@ export function useChat({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const sessionIdRef = useRef<string>(uuidv4()) // Eindeutige Sitzungs-ID für Tracking
-  const [botSettings, setBotSettings] = useState<any>(null);
+  const [botSettings, setBotSettings] = useState<any>(null)
+  const lastMessageTimestampRef = useRef<number>(0) // Zeitstempel der letzten gesendeten Nachricht
 
   // Toggle Chat öffnen/schließen
   const toggleChat = useCallback(() => {
@@ -82,7 +106,7 @@ export function useChat({
 
   // Nachricht zur Liste hinzufügen
   const addMessage = useCallback((message: Message) => {
-    console.log("DEBUG-005: addMessage aufgerufen", message);
+    console.log("DEBUG-007: addMessage aufgerufen", message);
     
     // Überprüfen, ob die Nachricht bereits existiert (um Duplikate zu vermeiden)
     setMessages((prevMessages) => {
@@ -94,7 +118,7 @@ export function useChat({
       );
       
       if (isDuplicate) {
-        console.log("DEBUG-005: Duplikat gefunden, Nachricht wird nicht hinzugefügt");
+        console.log("DEBUG-007: Duplikat gefunden, Nachricht wird nicht hinzugefügt");
         return prevMessages;
       }
       
@@ -102,37 +126,44 @@ export function useChat({
     });
   }, []);
 
-  // Nachricht senden und Antwort erhalten
-  const sendMessage = useCallback(async (content: string) => {
-    console.log('Sending message:', content)
-    
+  // Debounced sendMessage Funktion, verhindert mehrfache Aufrufe innerhalb von 500ms
+  const debouncedSendMessage = useDebouncedCallback(async (content: string) => {
+    // Die normale sendMessage-Logik hier
     if (!content || content.trim() === '') {
-      return
+      return;
     }
     
     // Verhindere erneutes Senden, wenn gerade geladen wird
     if (isLoading) {
-      console.log('DEBUG-005: Sendeprozess läuft bereits, ignoriere erneuten Aufruf');
+      console.log('DEBUG-007: Sendeprozess läuft bereits, ignoriere erneuten Aufruf');
       return;
     }
     
+    // Prüfe, ob die letzte Nachricht erst kürzlich gesendet wurde (doppelte Absicherung)
+    const now = Date.now();
+    if (now - lastMessageTimestampRef.current < 1000) {
+      console.log('DEBUG-007: Letzte Nachricht wurde vor weniger als 1 Sekunde gesendet, ignoriere');
+      return;
+    }
+    lastMessageTimestampRef.current = now;
+    
     try {
       // Anfang des Ladevorgangs
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
       
       // Benutzer-Nachricht hinzufügen
-      const userMessage: Message = { role: 'user', content }
-      addMessage(userMessage)
+      const userMessage: Message = { role: 'user', content };
+      addMessage(userMessage);
       
       // Abbrechen wenn schon eine Anfrage läuft
       if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
+        abortControllerRef.current.abort();
       }
       
       // Neue AbortController-Instanz erstellen
-      abortControllerRef.current = new AbortController()
-      const signal = abortControllerRef.current.signal
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
       
       // Tracking für gesendete Nachricht
       LunaryClient.track({
@@ -142,9 +173,10 @@ export function useChat({
           botId 
         },
         metadata: { sessionId: sessionIdRef.current }
-      })
+      });
       
       // Sende Anfrage an API
+      console.log('DEBUG-007: Sende API-Anfrage', content);
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -156,35 +188,35 @@ export function useChat({
           botId: botId,
         }),
         signal,
-      })
+      });
       
       if (!response.ok) {
         throw new Error(
           `Fehler beim Senden der Nachricht: ${response.status} ${response.statusText}`
-        )
+        );
       }
       
-      const data = await response.json()
+      const data = await response.json();
       
       // Füge Bot-Antwort hinzu
-      let botContent = ''
+      let botContent = '';
       
       if (data.text) {
-        botContent = data.text
+        botContent = data.text;
       } else if (data.response) {
-        botContent = data.response
+        botContent = data.response;
       } else if (data.content) {
-        botContent = data.content
+        botContent = data.content;
       } else if (data.assistant) {
-        botContent = data.assistant
+        botContent = data.assistant;
       } else if (data.message) {
-        botContent = data.message
+        botContent = data.message;
       } else {
-        botContent = 'Entschuldigung, ich konnte keine Antwort generieren.'
+        botContent = 'Entschuldigung, ich konnte keine Antwort generieren.';
       }
       
-      const botMessage: Message = { role: 'assistant', content: botContent }
-      addMessage(botMessage)
+      const botMessage: Message = { role: 'assistant', content: botContent };
+      addMessage(botMessage);
 
       // Tracking für empfangene Antwort
       LunaryClient.track({
@@ -195,17 +227,17 @@ export function useChat({
           responseTime: Date.now() - performance.now() // Ungefähre Antwortzeit
         },
         metadata: { sessionId: sessionIdRef.current }
-      })
+      });
 
     } catch (err) {
       // Prüfe, ob es sich um einen Abbruch handelt
       if ((err as Error).name === 'AbortError') {
-        console.log('Anfrage wurde abgebrochen')
-        return
+        console.log('DEBUG-007: Anfrage wurde abgebrochen');
+        return;
       }
       
-      console.error('Fehler beim Senden der Nachricht:', err)
-      setError('Beim Senden der Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.')
+      console.error('Fehler beim Senden der Nachricht:', err);
+      setError('Beim Senden der Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.');
       
       // Tracking für Fehler
       LunaryClient.track({
@@ -215,23 +247,29 @@ export function useChat({
           botId 
         },
         metadata: { sessionId: sessionIdRef.current }
-      })
+      });
       
     } finally {
-      setIsLoading(false)
-      abortControllerRef.current = null
-      setInput('')
+      setIsLoading(false);
+      abortControllerRef.current = null;
+      setInput('');
     }
-  }, [messages, addMessage, botId])
+  }, 500);
+
+  // Wrapper-Funktion für sendMessage, die den debounced-Aufruf triggert
+  const sendMessage = useCallback((content: string) => {
+    console.log('DEBUG-007: sendMessage aufgerufen mit:', content);
+    debouncedSendMessage(content);
+  }, [debouncedSendMessage]);
 
   // Laufende Anfrage abbrechen
   const cancelMessage = useCallback(() => {
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
-      setIsLoading(false)
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   // Bot-Einstellungen beim ersten Laden abrufen
   useEffect(() => {
@@ -241,7 +279,7 @@ export function useChat({
           const res = await fetch(`/api/bots/${botId}`);
           if (res.ok) {
             const botData = await res.json();
-            console.log("CHAT-DEBUG-006: Geladene Bot-Daten:", {
+            console.log("CHAT-DEBUG-007: Geladene Bot-Daten:", {
               id: botData.id,
               name: botData.name,
               welcomeMessage: botData.welcomeMessage
@@ -281,7 +319,7 @@ export function useChat({
               
               // Willkommensnachricht, falls keine Nachrichten vorhanden sind
               if (messages.length === 0 && botData.welcomeMessage) {
-                console.log("CHAT-DEBUG-006: Verwende Bot-spezifische Willkommensnachricht:", botData.welcomeMessage);
+                console.log("CHAT-DEBUG-007: Verwende Bot-spezifische Willkommensnachricht:", botData.welcomeMessage);
                 setMessages([{
                   role: "assistant",
                   content: botData.welcomeMessage
@@ -289,10 +327,10 @@ export function useChat({
               }
             }
           } else {
-            console.error("CHAT-DEBUG-006: Fehler beim Laden der Bot-Daten:", res.status);
+            console.error("CHAT-DEBUG-007: Fehler beim Laden der Bot-Daten:", res.status);
           }
         } catch (error) {
-          console.error("CHAT-DEBUG-006: Fehler beim Laden der Bot-Einstellungen:", error);
+          console.error("CHAT-DEBUG-007: Fehler beim Laden der Bot-Einstellungen:", error);
           // Hier könnten wir einen Fallback für die Farben setzen
           document.documentElement.style.setProperty('--bot-bg-color', 'rgba(248, 250, 252, 0.8)');
           document.documentElement.style.setProperty('--bot-text-color', '#000000');
@@ -305,7 +343,7 @@ export function useChat({
       fetchBotSettings();
     } else {
       // Standard-Farben für den Fall, dass kein Bot angegeben ist
-      console.log("CHAT-DEBUG-006: Kein Bot-ID angegeben, verwende Standard-Farben");
+      console.log("CHAT-DEBUG-007: Kein Bot-ID angegeben, verwende Standard-Farben");
       document.documentElement.style.setProperty('--bot-bg-color', 'rgba(248, 250, 252, 0.8)');
       document.documentElement.style.setProperty('--bot-text-color', '#000000');
       document.documentElement.style.setProperty('--bot-accent-color', 'hsl(var(--primary))');
