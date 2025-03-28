@@ -137,6 +137,17 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
       console.log("MESSAGE-DEBUG-011: Ungültiger Inhalt:", content);
       return <div className="text-red-500">Ungültige Nachricht</div>;
     }
+
+    // Prüfen, ob der Inhalt HTML ist (beginnt mit <)
+    if (content.trim().startsWith('<') && (content.includes('</div>') || content.includes('</p>'))) {
+      return (
+        <div 
+          ref={contentRef}
+          className="prose prose-sm break-words pointer-events-auto message-content"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      );
+    }
     
     // Spezielle Vorverarbeitung für Key Facts
     let processedContent = content;
