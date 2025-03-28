@@ -14,31 +14,66 @@ console.log("useChat.ts geladen - Debug-Version 008");
 // VERSION-MARKER: Eindeutiger Debug-Code - Version 009
 console.log("useChat.ts geladen - Debug-Version 009");
 
-// Tracking für bereits geladene Bots und Willkommensnachrichten
+// VERSION-MARKER: Chat-Hook Debug-Code - Version 010
+console.log("useChat.ts geladen - Debug-Version 010");
+
+// Globaler Tracking-Mechanismus für Willkommensnachrichten
 const processedWelcomeMessages = new Set<string>();
 
-// Hilfsfunktion für Debounce
-const useDebouncedCallback = (fn: Function, delay: number) => {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastCalledRef = useRef<number>(0);
+// VERSION-MARKER: Chat-Hook Debug-Code - Version 011
+console.log("useChat.ts geladen - Debug-Version 011");
 
-  return useCallback((...args: any[]) => {
-    const now = Date.now();
-    
-    // Wenn bereits ein Timeout läuft oder der letzte Aufruf zu nah dran ist, abbrechen
-    if (timeoutRef.current || (now - lastCalledRef.current) < delay) {
-      console.log("DEBUG-007: Debounce - Verhindere mehrfachen Aufruf");
-      return;
+// Globaler Tracking-Mechanismus für Willkommensnachrichten
+// Dies ist nun eine Kombination aus sessionStorage und einem in-memory Set
+const getProcessedWelcomeMessages = (): Set<string> => {
+  try {
+    // Versuche, bereits verarbeitete Willkommensnachrichten aus dem sessionStorage zu laden
+    const stored = sessionStorage.getItem('processedWelcomeMessages');
+    if (stored) {
+      return new Set<string>(JSON.parse(stored));
+    }
+  } catch (e) {
+    console.error("Fehler beim Laden der verarbeiteten Willkommensnachrichten:", e);
+  }
+  return new Set<string>();
+};
+
+// Speichere verarbeitete Willkommensnachrichten im sessionStorage
+const addProcessedWelcomeMessage = (key: string): void => {
+  try {
+    const current = getProcessedWelcomeMessages();
+    current.add(key);
+    sessionStorage.setItem('processedWelcomeMessages', JSON.stringify([...current]));
+    console.log(`CHAT-DEBUG-011: Willkommensnachricht ${key} als verarbeitet markiert und in sessionStorage gespeichert`);
+  } catch (e) {
+    console.error("Fehler beim Speichern der verarbeiteten Willkommensnachrichten:", e);
+  }
+};
+
+const hasProcessedWelcomeMessage = (key: string): boolean => {
+  try {
+    // Prüfe sowohl lokales Set als auch sessionStorage
+    if (processedWelcomeMessages.has(key)) {
+      return true;
     }
     
-    // Setze den Timeout für die aktuelle Funktion
-    timeoutRef.current = setTimeout(() => {
-      fn(...args);
-      timeoutRef.current = null;
-      lastCalledRef.current = Date.now();
-    }, delay);
-  }, [fn, delay]);
+    const stored = getProcessedWelcomeMessages();
+    return stored.has(key);
+  } catch (e) {
+    console.error("Fehler beim Überprüfen der verarbeiteten Willkommensnachrichten:", e);
+    return false;
+  }
 };
+
+// Hilfsfunktion für Debounce
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null;
+  
+  return function(...args: Parameters<T>): void {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
 
 interface UseChatProps {
   initialMessages?: Message[]
@@ -73,6 +108,8 @@ export function useChat({
   const [botSettings, setBotSettings] = useState<any>(null)
   const lastMessageTimestampRef = useRef<number>(0) // Zeitstempel der letzten gesendeten Nachricht
   const chatInitializedRef = useRef<boolean>(false) // Tracking für die Chat-Initialisierung
+  const cancelRef = useRef<boolean>(false) // Ref zum Abbrechen von Operationen
+  const cancelFetchRef = useRef<boolean>(false) // Ref zum Abbrechen von Fetch-Operationen
 
   // Toggle Chat öffnen/schließen
   const toggleChat = useCallback(() => {
@@ -136,8 +173,25 @@ export function useChat({
     });
   }, []);
 
+  // Bei Unmount Ressourcen freigeben
+  useEffect(() => {
+    return () => {
+      // Abbrechen laufender Anfragen
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Refs für Abbruch setzen
+      cancelRef.current = true;
+      cancelFetchRef.current = true;
+      
+      // Chat-Initialisierungsstatus zurücksetzen
+      chatInitializedRef.current = false;
+    };
+  }, []);
+
   // Debounced sendMessage Funktion, verhindert mehrfache Aufrufe innerhalb von 500ms
-  const debouncedSendMessage = useDebouncedCallback(async (content: string) => {
+  const debouncedSendMessage = useCallback((content: string) => {
     // Die normale sendMessage-Logik hier
     if (!content || content.trim() === '') {
       return;
@@ -264,7 +318,7 @@ export function useChat({
       abortControllerRef.current = null;
       setInput('');
     }
-  }, 500);
+  }, [isLoading, messages, addMessage]);
 
   // Wrapper-Funktion für sendMessage, die den debounced-Aufruf triggert
   const sendMessage = useCallback((content: string) => {
@@ -283,36 +337,44 @@ export function useChat({
 
   // Bot-Einstellungen beim ersten Laden abrufen
   useEffect(() => {
-    if (botId) {
-      // Eindeutiger Schlüssel für diesen Bot und diese Chat-Instanz
-      const welcomeKey = `welcome-${botId}-${sessionIdRef.current}`;
-      const hasProcessedWelcomeMessage = processedWelcomeMessages.has(welcomeKey);
-      
-      console.log(`CHAT-DEBUG-010: Chat-Hook für Bot ${botId}`, { 
-        hasProcessedWelcomeMessage, 
-        messagesLength: messages.length,
-        chatInitialized: chatInitializedRef.current
-      });
-      
-      // Nur einmal pro Chat-Instanz die Willkommensnachricht anzeigen
-      if (hasProcessedWelcomeMessage) {
-        console.log(`CHAT-DEBUG-010: Willkommensnachricht für ${welcomeKey} bereits verarbeitet`);
-        return;
-      }
-      
-      // Als verarbeitet markieren (unabhängig davon, ob eine Nachricht existiert)
-      processedWelcomeMessages.add(welcomeKey);
-      console.log(`CHAT-DEBUG-010: Bot ${botId} wird als verarbeitet markiert`);
-      
-      // Chat als initialisiert markieren
-      chatInitializedRef.current = true;
-      
+    if (!botId) {
+      return; // Frühes Beenden, wenn keine Bot-ID vorhanden ist
+    }
+    
+    // Eindeutiger Schlüssel für diesen Bot und diese Chat-Instanz
+    const welcomeKey = `welcome-${botId}-${sessionIdRef.current}`;
+    
+    // Prüfe, ob für diesen Bot bereits eine Willkommensnachricht gesetzt wurde
+    if (hasProcessedWelcomeMessage(welcomeKey)) {
+      console.log(`CHAT-DEBUG-011: Willkommensnachricht für ${welcomeKey} bereits verarbeitet`);
+      return;
+    }
+    
+    console.log(`CHAT-DEBUG-011: Chat-Hook für Bot ${botId} - Willkommensnachricht wird geprüft`, { 
+      messagesLength: messages.length,
+      chatInitialized: chatInitializedRef.current
+    });
+    
+    // Markiere diese Willkommensnachricht als verarbeitet
+    processedWelcomeMessages.add(welcomeKey);
+    addProcessedWelcomeMessage(welcomeKey);
+    
+    // Chat als initialisiert markieren
+    chatInitializedRef.current = true;
+    
+    // Eine Verzögerung hinzufügen, um sicherzustellen, dass die Komponente vollständig gemounted ist
+    const timeoutId = setTimeout(() => {
       const fetchBotSettings = async () => {
         try {
+          if (cancelFetchRef.current) {
+            console.log("CHAT-DEBUG-011: Fetching abgebrochen, da der Chat entfernt wurde");
+            return;
+          }
+          
           const res = await fetch(`/api/bots/${botId}`);
           if (res.ok) {
             const botData = await res.json();
-            console.log("CHAT-DEBUG-010: Geladene Bot-Daten:", {
+            console.log("CHAT-DEBUG-011: Geladene Bot-Daten:", {
               id: botData.id,
               name: botData.name,
               welcomeMessage: botData.welcomeMessage ? 'vorhanden' : 'nicht vorhanden'
@@ -352,12 +414,18 @@ export function useChat({
               const userTextColor = botData.settings.userTextColor || '#ffffff';
               document.documentElement.style.setProperty('--user-text-color', userTextColor);
               document.documentElement.style.setProperty('--user-text-color-override', userTextColor + ' !important');
-              console.log(`CHAT-DEBUG-010: Setze Benutzer-Textfarbe auf ${userTextColor}`);
+              console.log(`CHAT-DEBUG-011: Setze Benutzer-Textfarbe auf ${userTextColor}`);
               
               // Willkommensnachricht nur setzen, wenn noch keine Nachrichten vorhanden sind
               if (messages.length === 0 && botData.welcomeMessage) {
-                console.log("CHAT-DEBUG-010: Setze Willkommensnachricht für Bot:", 
+                console.log("CHAT-DEBUG-011: Setze Willkommensnachricht für Bot:", 
                   botData.welcomeMessage.substring(0, 50) + "...");
+                
+                // Sicherstellen, dass der State nicht bereits andere Nachrichten enthält
+                if (cancelRef.current) {
+                  console.log("CHAT-DEBUG-011: Abbruch beim Setzen der Willkommensnachricht - Chat wurde entfernt");
+                  return;
+                }
                 
                 // Nur eine Nachricht hinzufügen, wenn der State noch leer ist
                 setMessages([{
@@ -367,10 +435,10 @@ export function useChat({
               }
             }
           } else {
-            console.error("CHAT-DEBUG-010: Fehler beim Laden der Bot-Daten:", res.status);
+            console.error("CHAT-DEBUG-011: Fehler beim Laden der Bot-Daten:", res.status);
           }
         } catch (error) {
-          console.error("CHAT-DEBUG-010: Fehler beim Laden der Bot-Einstellungen:", error);
+          console.error("CHAT-DEBUG-011: Fehler beim Laden der Bot-Einstellungen:", error);
           // Fallback für die Farben
           document.documentElement.style.setProperty('--bot-bg-color', 'rgba(248, 250, 252, 0.8)');
           document.documentElement.style.setProperty('--bot-text-color', '#000000');
@@ -381,29 +449,12 @@ export function useChat({
       };
       
       fetchBotSettings();
-    } else {
-      // Standard-Farben für den Fall, dass kein Bot angegeben ist
-      console.log("CHAT-DEBUG-010: Kein Bot-ID angegeben, verwende Standard-Farben");
-      document.documentElement.style.setProperty('--bot-bg-color', 'rgba(248, 250, 252, 0.8)');
-      document.documentElement.style.setProperty('--bot-text-color', '#000000');
-      document.documentElement.style.setProperty('--bot-accent-color', 'hsl(var(--primary))');
-      document.documentElement.style.setProperty('--user-bg-color', 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.85))');
-      document.documentElement.style.setProperty('--user-text-color', '#ffffff');
-    }
-  }, [botId]); // Wichtig: messages.length entfernt, verhindert wiederholten Aufruf
-
-  // Bei Unmount Ressourcen freigeben
-  useEffect(() => {
+    }, 100); // Kurze Verzögerung, um Race Conditions zu vermeiden
+    
     return () => {
-      // Abbrechen laufender Anfragen
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      
-      // Chat-Initialisierungsstatus zurücksetzen
-      chatInitializedRef.current = false;
+      clearTimeout(timeoutId); // Timeout löschen beim Unmount
     };
-  }, []);
+  }, [botId, messages]); // Abhängigkeit zu messages hinzugefügt
 
   return {
     messages,
