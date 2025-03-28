@@ -40,6 +40,7 @@ export function Message({
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null)
   const isBot = message.role === 'assistant'
   const preRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   
   // Zeit nur client-seitig festlegen, um Hydration-Fehler zu vermeiden
   useEffect(() => {
@@ -967,6 +968,78 @@ export function Message({
     
     console.log("MESSAGE-DEBUG-011: Verarbeiteter Inhalt:", processedContent.substring(0, 200) + "...");
     
+    // Füge diese Funktion hinzu, um nach dem Rendern die Key Facts zu verbessern
+    useEffect(() => {
+      if (message.role === 'assistant' && contentRef.current) {
+        // Verbessere die Key Facts, wenn vorhanden
+        enhanceKeyFacts();
+      }
+    }, [message.content]);
+
+    // Verarbeitung der Key Facts mit Icons und besserer Struktur
+    const enhanceKeyFacts = () => {
+      if (!contentRef.current) return;
+      
+      const keyFactsDiv = contentRef.current.querySelector('.keyfacts');
+      if (!keyFactsDiv) return;
+      
+      // Finde alle Listenelemente in den Key Facts
+      const listItems = keyFactsDiv.querySelectorAll('li');
+      
+      listItems.forEach(item => {
+        const text = item.textContent || '';
+        
+        // Bestimme das passende Icon basierend auf dem Text-Inhalt
+        let iconContent = '📌'; // Standard-Icon
+        
+        if (text.includes('Veranstalter')) iconContent = '🎭';
+        else if (text.includes('Kartenreservierung')) iconContent = '🎟️';
+        else if (text.includes('Telefon') || text.includes('Tel')) iconContent = '📞';
+        else if (text.includes('E-Mail')) iconContent = '📧';
+        else if (text.includes('Website') || text.includes('Link')) iconContent = '🔗';
+        else if (text.includes('Adresse') || text.includes('Standort')) iconContent = '📍';
+        else if (text.includes('Programm')) iconContent = '📋';
+        else if (text.includes('Hauptspielstätten')) iconContent = '🏛️';
+        else if (text.includes('Uhrzeit') || text.includes('Öffnungszeiten')) iconContent = '🕒';
+        else if (text.includes('Preis') || text.includes('Kosten')) iconContent = '💰';
+        
+        // Erstelle das Icon-Element
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'fact-icon';
+        iconDiv.textContent = iconContent;
+        
+        // Erstelle das Content-Div für den Text
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'fact-content';
+        
+        // Verschiebe den Inhalt in das Content-Div
+        contentDiv.innerHTML = item.innerHTML;
+        
+        // Leere das ursprüngliche Element und füge Icon + Inhalt hinzu
+        item.innerHTML = '';
+        item.appendChild(iconDiv);
+        item.appendChild(contentDiv);
+        
+        // Füge bei Links einen kleinen Hover-Effekt hinzu
+        const links = contentDiv.querySelectorAll('a');
+        links.forEach(link => {
+          link.addEventListener('mouseover', () => {
+            link.style.transform = 'translateY(-1px)';
+          });
+          link.addEventListener('mouseout', () => {
+            link.style.transform = 'translateY(0)';
+          });
+        });
+      });
+      
+      // Füge einen Titel hinzu, falls nicht vorhanden
+      if (!keyFactsDiv.querySelector('h3')) {
+        const title = document.createElement('h3');
+        title.textContent = 'Key Facts';
+        keyFactsDiv.insertBefore(title, keyFactsDiv.firstChild);
+      }
+    };
+
     return (
       <div className="prose prose-sm break-words pointer-events-auto message-content">
         <ReactMarkdown
@@ -1141,7 +1214,9 @@ export function Message({
           >
             {isBot ? botName : 'Du'}
           </div>
-          {renderContent()}
+          <div ref={contentRef}>
+            {renderContent()}
+          </div>
           
           <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
             {isBot && (
