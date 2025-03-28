@@ -209,8 +209,9 @@ export function MessageList({
               {botName}
             </motion.h3>
             
+            {/* Chatwolke für die Willkommensnachricht */}
             <motion.div 
-              className="p-6 rounded-lg backdrop-blur-sm bg-card/90 border shadow-lg overflow-hidden relative"
+              className="relative mx-auto overflow-hidden p-6"
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
@@ -219,7 +220,38 @@ export function MessageList({
                 scale: 1.01,
                 transition: { duration: 0.2 }
               }}
+              style={{
+                maxWidth: "450px",
+                background: "var(--bot-bg-color, rgba(248, 250, 252, 0.9))",
+                color: "var(--bot-text-color, #000000)",
+                border: "1px solid rgba(var(--primary-rgb), 0.15)",
+                borderRadius: "1.5rem 1.5rem 1.5rem 0",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(var(--primary-rgb), 0.05)"
+              }}
             >
+              {/* Chatwolken-Spitze und -Blase */}
+              <div 
+                className="absolute left-0 bottom-0 w-6 h-6"
+                style={{ 
+                  transform: "translate(-30%, 30%)",
+                  background: "var(--bot-bg-color, rgba(248, 250, 252, 0.9))",
+                  border: "1px solid rgba(var(--primary-rgb), 0.15)",
+                  borderTop: "none",
+                  borderRight: "none",
+                  borderRadius: "0 0 0 100%"
+                }}
+              />
+              <div 
+                className="absolute left-0 bottom-0 w-3 h-3 rounded-full" 
+                style={{ 
+                  transform: "translate(-150%, 80%)",
+                  background: "var(--bot-bg-color, rgba(248, 250, 252, 0.9))",
+                  border: "1px solid rgba(var(--primary-rgb), 0.15)",
+                  borderTop: "none",
+                  borderRight: "none"
+                }}
+              />
+              
               {/* Hintergrund-Animation */}
               <motion.div 
                 className="absolute top-0 left-0 w-full h-full opacity-20"
