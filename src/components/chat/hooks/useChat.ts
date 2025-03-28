@@ -385,11 +385,11 @@ export function useChat({
       
       // Wenn Willkommensnachricht vorhanden ist und noch keine Nachrichten angezeigt werden
       if (messages.length === 0 && initialSettings.welcomeMessage) {
-        // Willkommensnachricht hinzufügen
-        setMessages([{
-          role: "assistant",
-          content: initialSettings.welcomeMessage
-        }]);
+        // Willkommensnachricht nicht mehr zu messages hinzufügen, sondern nur als separate Variable
+        // setMessages([{
+        //   role: "assistant",
+        //   content: initialSettings.welcomeMessage
+        // }]);
       }
       
       // Markiere diese Willkommensnachricht als verarbeitet
@@ -487,11 +487,11 @@ export function useChat({
                   return;
                 }
                 
-                // Nur eine Nachricht hinzufügen, wenn der State noch leer ist
-                setMessages([{
-                  role: "assistant",
-                  content: botData.welcomeMessage
-                }]);
+                // Willkommensnachricht nicht mehr zu messages hinzufügen, sondern nur als separate Variable
+                // setMessages([{
+                //   role: "assistant",
+                //   content: botData.welcomeMessage
+                // }]);
               }
 
               // Willkommensnachricht als separate Variable speichern
