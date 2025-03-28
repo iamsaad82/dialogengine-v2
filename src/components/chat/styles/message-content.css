@@ -1,0 +1,167 @@
+/* Allgemeine Markdown-Formatierung */
+.message-content a {
+  color: #5D5FEF;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(93, 95, 239, 0.2);
+}
+
+.message-content a:hover {
+  border-bottom-color: #5D5FEF;
+  transform: translateY(-1px);
+}
+
+/* Spezielle Link-Stile */
+.message-content a.phone-link {
+  color: #4CAF50;
+  border-bottom-color: rgba(76, 175, 80, 0.2);
+}
+
+.message-content a.phone-link:hover {
+  border-bottom-color: #4CAF50;
+}
+
+.message-content a.email-link {
+  color: #2196F3;
+  border-bottom-color: rgba(33, 150, 243, 0.2);
+}
+
+.message-content a.email-link:hover {
+  border-bottom-color: #2196F3;
+}
+
+.message-content a.web-link {
+  color: #5D5FEF;
+  border-bottom-color: rgba(93, 95, 239, 0.2);
+}
+
+.message-content a.web-link:hover {
+  border-bottom-color: #5D5FEF;
+}
+
+/* Überschriften */
+.message-content h2 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.message-content h3 {
+  font-size: 1.125rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #444;
+}
+
+/* Listen */
+.message-content ul {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.message-content li {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.message-content li.numbered-item {
+  font-weight: 500;
+}
+
+/* Key Facts Formatierung */
+.message-content .keyfacts {
+  background-color: rgba(245, 247, 250, 0.8);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-left: 4px solid #5D5FEF;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.message-content .keyfacts h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: #5D5FEF;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.message-content .keyfacts ul {
+  padding-left: 0;
+  list-style-type: none;
+}
+
+.message-content .key-fact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.message-content .key-fact-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.message-content .fact-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background-color: rgba(93, 95, 239, 0.1);
+  border-radius: 50%;
+}
+
+.message-content .fact-content {
+  flex: 1;
+}
+
+/* Tipps formatieren */
+.message-content .tipp-paragraph {
+  background-color: rgba(255, 243, 224, 0.8);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-left: 4px solid #FF9800;
+  position: relative;
+}
+
+.message-content .tipp-paragraph::before {
+  content: "💡";
+  display: inline-block;
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
+  vertical-align: middle;
+}
+
+/* Kontaktinformationen */
+.message-content .contact-label {
+  font-weight: 600;
+  color: #333;
+  margin-right: 0.5rem;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 640px) {
+  .message-content .keyfacts {
+    padding: 0.75rem;
+  }
+  
+  .message-content .fact-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 1rem;
+  }
+} 
