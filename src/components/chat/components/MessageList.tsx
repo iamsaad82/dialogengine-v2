@@ -181,16 +181,101 @@ export function MessageList({
       {/* Willkommensnachricht nur anzeigen, wenn keine Nachrichten vorhanden sind */}
       {messages.length === 0 && (
         <div className="flex items-center justify-center h-full">
-          <div className="max-w-[80%] p-6 text-center">
-            <h3 className="text-lg font-medium mb-2 text-primary">{botName}</h3>
-            <div className="p-4 rounded-lg bg-card border shadow-sm">
+          <motion.div 
+            className="max-w-[85%] p-6 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <motion.h3 
+              className="text-xl font-medium mb-4 text-primary relative inline-block"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+            >
+              <motion.span
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent"
+                initial={{ x: -200, opacity: 0 }}
+                animate={{ x: 200, opacity: 1 }}
+                transition={{ 
+                  delay: 0.8, 
+                  duration: 1.5, 
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatDelay: 3
+                }}
+                style={{ height: '100%', width: '100%' }}
+              />
+              {botName}
+            </motion.h3>
+            
+            <motion.div 
+              className="p-6 rounded-lg backdrop-blur-sm bg-card/90 border shadow-lg overflow-hidden relative"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              whileHover={{ 
+                boxShadow: `0 10px 30px -10px rgba(var(--primary-rgb), 0.3)`,
+                scale: 1.01,
+                transition: { duration: 0.2 }
+              }}
+            >
+              {/* Hintergrund-Animation */}
+              <motion.div 
+                className="absolute top-0 left-0 w-full h-full opacity-20"
+                style={{
+                  background: `radial-gradient(circle at 50% 50%, rgba(var(--primary-rgb), 0.2) 0%, transparent 70%)`,
+                }}
+                animate={{
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+              />
+              
               {welcomeMessage ? (
-                <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: welcomeMessage.replace(/\n/g, '<br/>') }} />
+                <div className="relative z-10">
+                  {/* Split by paragraphs and animate each separately */}
+                  {welcomeMessage.split('\n\n').map((paragraph, i) => (
+                    <motion.div 
+                      key={i}
+                      className="prose prose-sm max-w-none mb-3 last:mb-0"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 + (i * 0.15), duration: 0.5 }}
+                      dangerouslySetInnerHTML={{ __html: paragraph.replace(/\n/g, '<br/>') }}
+                    />
+                  ))}
+                </div>
               ) : (
-                <p className="text-muted-foreground">Wie kann ich Ihnen helfen?</p>
+                <motion.p 
+                  className="text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7, duration: 0.5 }}
+                >
+                  Wie kann ich Ihnen helfen?
+                </motion.p>
               )}
-            </div>
-          </div>
+              
+              {/* Pulsierender Punkt am Ende */}
+              <motion.div 
+                className="absolute bottom-3 right-3 w-2 h-2 rounded-full bg-primary"
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  opacity: [0.7, 1, 0.7]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </motion.div>
+          </motion.div>
         </div>
       )}
 
