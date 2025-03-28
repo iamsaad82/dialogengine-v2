@@ -281,6 +281,11 @@ export default function BotTestClient({ id }: { id: string }) {
                   embedded={true} 
                   botId={id}
                   className=""
+                  key={`chat-instance-${id}-${chatMode}`}
+                  initialSettings={{
+                    ...bot.settings,
+                    welcomeMessage: bot.welcomeMessage
+                  }}
                 />
               </div>
             </div>
