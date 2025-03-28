@@ -12,8 +12,8 @@ import '../styles/message-content.css'
 import Image from 'next/image'
 import MessageContent from './MessageContent/MessageContent'
 
-// VERSION-MARKER: Message-Debug-Code - Version 009
-console.log("Message.tsx geladen - Debug-Version 009");
+// VERSION-MARKER: Message-Debug-Code - Version 010
+console.log("Message.tsx geladen - Debug-Version 010");
 
 interface MessageProps {
   content: string;
@@ -22,6 +22,7 @@ interface MessageProps {
   isLastMessage?: boolean;
   showCopyButton?: boolean;
   enableFeedback?: boolean;
+  botName?: string;
 }
 
 // Als normale Funktion definieren statt React.FC<MessageProps>
@@ -31,7 +32,8 @@ const Message = ({
   botId, 
   isLastMessage = false,
   showCopyButton = true,
-  enableFeedback = true
+  enableFeedback = true,
+  botName = 'Brandenburg-Dialog'
 }: MessageProps) => {
   const isBot = role === 'assistant';
   
@@ -45,9 +47,21 @@ const Message = ({
     }
   };
 
+  // Debug-Ausgabe für Props
+  console.log("MESSAGE-DEBUG-010: Nachricht wird gerendert:", {
+    role,
+    isBot,
+    botId,
+    isLastMessage,
+    showCopyButton,
+    enableFeedback,
+    contentLength: content?.length || 0,
+    botName
+  });
+
   return (
     <motion.div 
-      className={`relative flex ${isBot ? 'justify-start' : 'justify-end'}`}
+      className={`relative flex ${isBot ? 'justify-start' : 'justify-end'} group`}
       initial="hidden"
       animate="visible"
       variants={messageVariants}
@@ -68,7 +82,7 @@ const Message = ({
               alt="Brandenburg Logo" 
               className="inline mr-1"
             />
-            <span>Brandenburg-Dialog</span>
+            <span>{botName}</span>
           </div>
         )}
         

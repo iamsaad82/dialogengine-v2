@@ -395,6 +395,7 @@ export function MessageList({
             isLastMessage={message === messages[messages.length - 1]}
             showCopyButton={showCopyButton}
             enableFeedback={enableFeedback}
+            botName={botName}
           />
         ))}
         
