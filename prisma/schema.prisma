@@ -61,6 +61,7 @@ model BotSettings {
   enableAnalytics   Boolean @default(true)
   showSuggestions   Boolean @default(true)
   showCopyButton    Boolean @default(true)
+  avatarUrl         String?
   botId            String   @unique
   bot              Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
 }

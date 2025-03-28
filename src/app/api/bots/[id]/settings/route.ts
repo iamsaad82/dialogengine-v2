@@ -97,11 +97,12 @@ export async function PUT(
       enableFeedback = true,
       enableAnalytics = true,
       showSuggestions = true,
-      showCopyButton = true
+      showCopyButton = true,
+      avatarUrl
     } = settingsData
 
     // Erstelle ein Objekt mit allen Werten für den Upsert
-    const settingsToSave = {
+    const settingsToSave: any = {
       botId,
       primaryColor,
       botBgColor,
@@ -113,6 +114,11 @@ export async function PUT(
       enableAnalytics,
       showSuggestions,
       showCopyButton
+    }
+    
+    // Wenn ein Avatar-URL angegeben wurde, füge es hinzu
+    if (avatarUrl !== undefined) {
+      settingsToSave.avatarUrl = avatarUrl;
     }
     
     console.log('Zu speichernde Einstellungen:', settingsToSave)

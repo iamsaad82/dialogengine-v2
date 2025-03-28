@@ -66,7 +66,7 @@ export async function PUT(
   try {
     const body = await req.json()
 
-    const { name, description, welcomeMessage, flowiseId, active, settings } = body
+    const { name, description, welcomeMessage, flowiseId, active, settings, avatarUrl } = body
 
     // Aktualisieren des Bots in der Datenbank
     const updatedBot = await prisma.bot.update({
@@ -79,6 +79,7 @@ export async function PUT(
         welcomeMessage,
         flowiseId,
         active,
+        avatarUrl,
         settings: settings
           ? {
               upsert: {
