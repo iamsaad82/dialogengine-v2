@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
+import { existsSync } from 'fs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,21 +26,29 @@ export async function POST(req: NextRequest) {
     // Eindeutigen Dateinamen generieren
     const fileExtension = file.name.split('.').pop() || 'jpg';
     const fileName = `${randomUUID()}.${fileExtension}`;
-    const filePath = join(process.cwd(), 'public', 'uploads', 'avatar', fileName);
+    const uploadDir = join(process.cwd(), 'public', 'uploads', 'avatar');
+    const filePath = join(uploadDir, fileName);
     
     // Dateipfad, den wir in der Datenbank speichern werden
     const fileUrl = `/uploads/avatar/${fileName}`;
 
+    // Stellen sicher, dass das Verzeichnis existiert
+    if (!existsSync(uploadDir)) {
+      console.log(`Erstelle Verzeichnis: ${uploadDir}`);
+      await mkdir(uploadDir, { recursive: true });
+    }
+    
     // Datei als ArrayBuffer lesen
     const buffer = await file.arrayBuffer();
     
     // Datei speichern
     await writeFile(filePath, Buffer.from(buffer));
+    console.log(`Datei erfolgreich gespeichert unter: ${filePath}`);
 
     // URL zurückgeben
     return NextResponse.json({ url: fileUrl });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Fehler beim Upload:', error);
-    return NextResponse.json({ error: 'Interner Serverfehler' }, { status: 500 });
+    return NextResponse.json({ error: `Interner Serverfehler: ${error.message}` }, { status: 500 });
   }
 } 
