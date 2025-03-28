@@ -116,7 +116,7 @@ export function BotSettingsTabs({
               <label className="block text-sm font-medium">Bot-Logo</label>
               <div className="flex items-center gap-4">
                 {settings.avatarUrl && (
-                  <div className="w-16 h-16 rounded-lg border overflow-hidden flex items-center justify-center bg-background">
+                  <div className="w-32 h-24 rounded-lg border overflow-hidden flex items-center justify-center bg-background">
                     <img 
                       src={settings.avatarUrl} 
                       alt="Bot-Logo" 

@@ -23,6 +23,7 @@ interface MessageProps {
   showCopyButton?: boolean;
   enableFeedback?: boolean;
   botName?: string;
+  botAvatarUrl?: string;
 }
 
 // Als normale Funktion definieren statt React.FC<MessageProps>
@@ -33,7 +34,8 @@ const Message = ({
   isLastMessage = false,
   showCopyButton = true,
   enableFeedback = true,
-  botName = 'Brandenburg-Dialog'
+  botName = 'Brandenburg-Dialog',
+  botAvatarUrl
 }: MessageProps) => {
   const isBot = role === 'assistant';
   
@@ -75,14 +77,24 @@ const Message = ({
       >
         {isBot && (
           <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2">
-            <Image 
-              src="/brandenburg-logo.svg" 
-              width={20} 
-              height={20} 
-              alt="Brandenburg Logo" 
-              className="inline mr-1"
-            />
-            <span className="text-sm font-bold">{botName}</span>
+            {botAvatarUrl ? (
+              <Image 
+                src={botAvatarUrl} 
+                width={28} 
+                height={28} 
+                alt={`${botName} Logo`} 
+                className="inline mr-1 object-contain"
+              />
+            ) : (
+              <Image 
+                src="/brandenburg-logo.svg" 
+                width={28} 
+                height={28} 
+                alt="Brandenburg Logo" 
+                className="inline mr-1"
+              />
+            )}
+            <span className="text-sm font-semibold">{botName}</span>
           </div>
         )}
         

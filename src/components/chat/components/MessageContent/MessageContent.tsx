@@ -10,6 +10,20 @@ interface MessageContentProps {
 export const MessageContent: React.FC<MessageContentProps> = ({ content, role }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   
+  // Verbesserte Verarbeitung aller speziellen Sektionen
+  const enhanceSpecialSections = () => {
+    if (!contentRef.current) return;
+    
+    // 1. Key Facts verbessern
+    enhanceKeyFacts();
+    
+    // 2. Schnellüberblick verbessern
+    enhanceQuickOverview();
+    
+    // 3. Tipps verbessern
+    enhanceTips();
+  };
+  
   // Verarbeitung der Key Facts mit Icons und besserer Struktur
   const enhanceKeyFacts = () => {
     if (!contentRef.current) return;
@@ -17,67 +31,102 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
     const keyFactsDiv = contentRef.current.querySelector('.keyfacts');
     if (!keyFactsDiv) return;
     
+    // Aktualisiere die Überschrift, falls vorhanden oder erstelle eine
+    let headingElement = keyFactsDiv.querySelector('h3, h4');
+    if (!headingElement) {
+      headingElement = document.createElement('h4');
+      headingElement.textContent = 'Key Facts:';
+      keyFactsDiv.insertBefore(headingElement, keyFactsDiv.firstChild);
+    } else if (headingElement.tagName.toLowerCase() === 'h3') {
+      // Konvertiere h3 zu h4 für bessere Konsistenz
+      const newHeading = document.createElement('h4');
+      newHeading.innerHTML = headingElement.innerHTML;
+      newHeading.className = headingElement.className;
+      keyFactsDiv.replaceChild(newHeading, headingElement);
+      headingElement = newHeading;
+    }
+    
+    // Stelle sicher, dass die Liste die richtige Klasse hat
+    const list = keyFactsDiv.querySelector('ul');
+    if (list) {
+      list.classList.add('keyfacts-list');
+    }
+    
     // Finde alle Listenelemente in den Key Facts
     const listItems = keyFactsDiv.querySelectorAll('li');
     
     listItems.forEach(item => {
       const text = item.textContent || '';
       
-      // Bestimme das passende Icon basierend auf dem Text-Inhalt
-      let iconContent = '📌'; // Standard-Icon
-      
-      if (text.includes('Veranstalter')) iconContent = '🎭';
-      else if (text.includes('Kartenreservierung')) iconContent = '🎟️';
-      else if (text.includes('Telefon') || text.includes('Tel')) iconContent = '📞';
-      else if (text.includes('E-Mail')) iconContent = '📧';
-      else if (text.includes('Website') || text.includes('Link')) iconContent = '🔗';
-      else if (text.includes('Adresse') || text.includes('Standort')) iconContent = '📍';
-      else if (text.includes('Programm')) iconContent = '📋';
-      else if (text.includes('Hauptspielstätten')) iconContent = '🏛️';
-      else if (text.includes('Uhrzeit') || text.includes('Öffnungszeiten')) iconContent = '🕒';
-      else if (text.includes('Preis') || text.includes('Kosten')) iconContent = '💰';
-      
-      // Erstelle das Icon-Element
-      const iconDiv = document.createElement('div');
-      iconDiv.className = 'fact-icon';
-      iconDiv.textContent = iconContent;
-      
-      // Erstelle das Content-Div für den Text
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'fact-content';
-      
-      // Verschiebe den Inhalt in das Content-Div
-      contentDiv.innerHTML = item.innerHTML;
-      
-      // Leere das ursprüngliche Element und füge Icon + Inhalt hinzu
-      item.innerHTML = '';
-      item.appendChild(iconDiv);
-      item.appendChild(contentDiv);
-      
-      // Füge bei Links einen kleinen Hover-Effekt hinzu
-      const links = contentDiv.querySelectorAll('a');
-      links.forEach(link => {
-        link.addEventListener('mouseover', () => {
-          link.style.transform = 'translateY(-1px)';
-        });
-        link.addEventListener('mouseout', () => {
-          link.style.transform = 'translateY(0)';
-        });
-      });
+      // Wenn kein Strong-Element vorhanden ist, versuche automatisch ein Icon hinzuzufügen
+      if (!item.querySelector('strong')) {
+        // Bestimme das passende Icon basierend auf dem Text-Inhalt
+        let iconContent = '📌'; // Standard-Icon
+        
+        if (text.toLowerCase().includes('veranstalt')) iconContent = '🎭';
+        else if (text.toLowerCase().includes('karten') || text.toLowerCase().includes('reservier')) iconContent = '🎟️';
+        else if (text.toLowerCase().includes('telefon') || text.toLowerCase().includes('tel') || text.toLowerCase().includes('kontakt')) iconContent = '📞';
+        else if (text.toLowerCase().includes('e-mail') || text.toLowerCase().includes('mail')) iconContent = '📧';
+        else if (text.toLowerCase().includes('website') || text.toLowerCase().includes('link') || text.toLowerCase().includes('online')) iconContent = '🔗';
+        else if (text.toLowerCase().includes('adresse') || text.toLowerCase().includes('standort') || text.toLowerCase().includes('ort')) iconContent = '📍';
+        else if (text.toLowerCase().includes('programm') || text.toLowerCase().includes('angebot')) iconContent = '📋';
+        else if (text.toLowerCase().includes('spielstätt')) iconContent = '🏛️';
+        else if (text.toLowerCase().includes('uhrzeit') || text.toLowerCase().includes('öffnungszeit') || text.toLowerCase().includes('termin')) iconContent = '🕒';
+        else if (text.toLowerCase().includes('preis') || text.toLowerCase().includes('kosten') || text.toLowerCase().includes('gebühr')) iconContent = '💰';
+        
+        // Erstelle das Strong-Element mit Icon
+        const strongElement = document.createElement('strong');
+        strongElement.textContent = `${iconContent} `;
+        
+        // Füge den Rest des Textes hinzu
+        const textNode = document.createTextNode(text);
+        
+        // Leere das Element und füge die neuen Inhalte hinzu
+        item.innerHTML = '';
+        item.appendChild(strongElement);
+        item.appendChild(textNode);
+      }
     });
+  };
+  
+  // Verbessere den Schnellüberblick Bereich
+  const enhanceQuickOverview = () => {
+    if (!contentRef.current) return;
     
-    // Füge einen Titel hinzu, falls nicht vorhanden
-    if (!keyFactsDiv.querySelector('h3')) {
-      const title = document.createElement('h3');
-      title.textContent = 'Key Facts';
-      keyFactsDiv.insertBefore(title, keyFactsDiv.firstChild);
+    const overviewDiv = contentRef.current.querySelector('.schnellueberblick');
+    if (!overviewDiv) return;
+    
+    // Stelle sicher, dass ein Titel vorhanden ist
+    if (!overviewDiv.querySelector('h3, h4')) {
+      const title = document.createElement('h4');
+      title.textContent = 'Auf einen Blick:';
+      title.className = 'overview-title';
+      overviewDiv.insertBefore(title, overviewDiv.firstChild);
     }
   };
+  
+  // Verbessere den Tipp-Bereich
+  const enhanceTips = () => {
+    if (!contentRef.current) return;
+    
+    const tippDiv = contentRef.current.querySelector('.tipp');
+    if (!tippDiv) return;
+    
+    // Stelle sicher, dass die Formatierung stimmt
+    const paragraphs = tippDiv.querySelectorAll('p');
+    paragraphs.forEach(p => {
+      if (!p.textContent?.startsWith('💡')) {
+        // Wenn das Emoji nicht bereits vorhanden ist, lass es dem CSS überlassen
+        // Wir entfernen unnötige Emoji oder Präfixe
+        p.innerHTML = p.innerHTML.replace(/^(💡|Tipp:|Hinweis:)\s*/i, '');
+      }
+    });
+  };
 
-  // Verbessere Key Facts nach dem Rendern
+  // Verbessere spezielle Sektionen nach dem Rendern
   useEffect(() => {
     if (role === 'assistant' && contentRef.current) {
-      enhanceKeyFacts();
+      enhanceSpecialSections();
     }
   }, [content, role]);
 
@@ -224,6 +273,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
             },
             h2: ({node, ...props}) => <h2 {...props} />,
             h3: ({node, ...props}) => <h3 {...props} />,
+            h4: ({node, ...props}) => <h4 {...props} />,
             p: ({node, children, ...props}) => {
               // Prüfen auf Kontaktinformationen oder Key Facts
               const content = String(children);
@@ -263,7 +313,8 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
               }
               
               return <p {...props}>{children}</p>;
-            }
+            },
+            div: ({node, ...props}) => <div {...props} />
           }}
         >
           {processedContent}
