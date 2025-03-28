@@ -82,7 +82,7 @@ const Message = ({
               alt="Brandenburg Logo" 
               className="inline mr-1"
             />
-            <span>{botName}</span>
+            <span className="text-sm font-bold">{botName}</span>
           </div>
         )}
         

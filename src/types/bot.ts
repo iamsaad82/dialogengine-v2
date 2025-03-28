@@ -9,6 +9,7 @@ export interface BotSettings {
   enableAnalytics: boolean
   showSuggestions: boolean
   showCopyButton: boolean
+  avatarUrl?: string
   
   // Prompt-Konfiguration
   botPersonality: string
@@ -25,6 +26,7 @@ export interface Bot {
   welcomeMessage: string
   flowiseId: string
   active: boolean
+  avatarUrl?: string
   settings: BotSettings
   createdAt: string
   updatedAt: string

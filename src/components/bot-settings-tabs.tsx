@@ -113,6 +113,52 @@ export function BotSettingsTabs({
             </div>
             
             <div className="space-y-2">
+              <label className="block text-sm font-medium">Bot-Logo</label>
+              <div className="flex items-center gap-4">
+                {settings.avatarUrl && (
+                  <div className="w-16 h-16 rounded-lg border overflow-hidden flex items-center justify-center bg-background">
+                    <img 
+                      src={settings.avatarUrl} 
+                      alt="Bot-Logo" 
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          if (event.target?.result) {
+                            onSettingsChange({
+                              ...settings, 
+                              avatarUrl: event.target.result as string
+                            });
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="block w-full text-sm text-slate-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-medium
+                      file:bg-primary/10 file:text-primary
+                      hover:file:bg-primary/20
+                      cursor-pointer"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Empfohlene Größe: 128x128 Pixel. Max. 1MB.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
               <label className="block text-sm font-medium">Flowise Chatflow ID</label>
               <input
                 type="text"
