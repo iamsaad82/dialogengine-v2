@@ -42,7 +42,8 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
     cycleMode,
     setMode, 
     messagesEndRef,
-    botSettings 
+    botSettings,
+    welcomeMessage
   } = useChat({
     initialMessages: [],
     initialMode,
@@ -221,6 +222,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
               enableFeedback={enableFeedback}
               botId={botId}
               botPrimaryColor={botPrimaryColor}
+              welcomeMessage={welcomeMessage}
             />
           </div>
         </div>
@@ -294,6 +296,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                 enableFeedback={enableFeedback}
                 botId={botId}
                 botPrimaryColor={botPrimaryColor}
+                welcomeMessage={welcomeMessage}
               />
             </div>
             
@@ -421,6 +424,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                 enableFeedback={enableFeedback}
                 botId={botId}
                 botPrimaryColor={botPrimaryColor}
+                welcomeMessage={welcomeMessage}
               />
             </div>
             

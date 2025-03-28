@@ -18,6 +18,7 @@ interface MessageListProps {
   enableFeedback?: boolean
   botId?: string
   botPrimaryColor?: string
+  welcomeMessage?: string | null
 }
 
 // Ladeindikator-Komponente
@@ -107,7 +108,8 @@ export function MessageList({
   showCopyButton = true,
   enableFeedback = false,
   botId,
-  botPrimaryColor
+  botPrimaryColor,
+  welcomeMessage
 }: MessageListProps) {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -179,8 +181,15 @@ export function MessageList({
       {/* Willkommensnachricht nur anzeigen, wenn keine Nachrichten vorhanden sind */}
       {messages.length === 0 && (
         <div className="flex items-center justify-center h-full">
-          <div className="p-3 text-center text-muted-foreground">
-            <p>Wie kann ich Ihnen helfen?</p>
+          <div className="max-w-[80%] p-6 text-center">
+            <h3 className="text-lg font-medium mb-2 text-primary">{botName}</h3>
+            <div className="p-4 rounded-lg bg-card border shadow-sm">
+              {welcomeMessage ? (
+                <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: welcomeMessage.replace(/\n/g, '<br/>') }} />
+              ) : (
+                <p className="text-muted-foreground">Wie kann ich Ihnen helfen?</p>
+              )}
+            </div>
           </div>
         </div>
       )}

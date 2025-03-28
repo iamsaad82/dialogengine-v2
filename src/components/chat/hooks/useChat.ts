@@ -104,6 +104,7 @@ export function useChat({
   const [isOpen, setIsOpen] = useState(initialOpen)
   const [mode, setMode] = useState<ChatMode>(initialMode)
   const [input, setInput] = useState('')
+  const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const sessionIdRef = useRef<string>(uuidv4()) // Eindeutige Sitzungs-ID für Tracking
@@ -399,6 +400,12 @@ export function useChat({
       // Chat als initialisiert markieren
       chatInitializedRef.current = true;
       
+      // Wenn Willkommensnachricht vorhanden ist
+      if (initialSettings.welcomeMessage) {
+        // Willkommensnachricht als separate Variable speichern
+        setWelcomeMessage(initialSettings.welcomeMessage);
+      }
+      
       return;
     }
     
@@ -486,6 +493,21 @@ export function useChat({
                   content: botData.welcomeMessage
                 }]);
               }
+
+              // Willkommensnachricht als separate Variable speichern
+              if (botData.welcomeMessage) {
+                console.log("CHAT-DEBUG-011: Setze Willkommensnachricht für Bot:", 
+                  botData.welcomeMessage.substring(0, 50) + "...");
+                
+                // Sicherstellen, dass der State nicht bereits andere Nachrichten enthält
+                if (cancelRef.current) {
+                  console.log("CHAT-DEBUG-011: Abbruch beim Setzen der Willkommensnachricht - Chat wurde entfernt");
+                  return;
+                }
+                
+                // Willkommensnachricht als separate Variable speichern
+                setWelcomeMessage(botData.welcomeMessage);
+              }
             }
           } else {
             console.error("CHAT-DEBUG-011: Fehler beim Laden der Bot-Daten:", res.status);
@@ -524,5 +546,6 @@ export function useChat({
     setMode: setCurrentMode,
     messagesEndRef,
     botSettings,
+    welcomeMessage,
   }
 } 
