@@ -232,7 +232,7 @@ export async function POST(request: Request) {
       
       // Setze ein Timeout für die Anfrage
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // Auf 15 Sekunden erhöht, da Flowise manchmal länger braucht
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // Auf 30 Sekunden erhöht, da Flowise manchmal länger braucht
       
       const headers = {
         'Content-Type': 'application/json',

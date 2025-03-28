@@ -379,9 +379,17 @@ export function useChat({
       
       // Benutzertextfarbe festlegen - mit höherer Spezifität
       const userTextColor = initialSettings.userTextColor || '#ffffff';
-      document.documentElement.style.setProperty('--user-text-color', userTextColor);
-      document.documentElement.style.setProperty('--user-text-color-override', userTextColor + ' !important');
-      console.log(`CHAT-DEBUG-011: Setze Benutzer-Textfarbe auf ${userTextColor}`);
+      document.documentElement.style.setProperty('--user-text-color', `${userTextColor} !important`);
+      
+      // Explizit eine extra-Stile hinzufügen für höhere Spezifität
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .glassmorphism-user { color: ${userTextColor} !important; }
+        .glassmorphism-user * { color: ${userTextColor} !important; }
+      `;
+      document.head.appendChild(style);
+      
+      console.log(`CHAT-DEBUG-011: Setze Benutzer-Textfarbe auf ${userTextColor} mit !important`);
       
       // Wenn Willkommensnachricht vorhanden ist und noch keine Nachrichten angezeigt werden
       if (messages.length === 0 && initialSettings.welcomeMessage) {
@@ -472,9 +480,17 @@ export function useChat({
               
               // Benutzertextfarbe festlegen - mit höherer Spezifität
               const userTextColor = botData.settings.userTextColor || '#ffffff';
-              document.documentElement.style.setProperty('--user-text-color', userTextColor);
-              document.documentElement.style.setProperty('--user-text-color-override', userTextColor + ' !important');
-              console.log(`CHAT-DEBUG-011: Setze Benutzer-Textfarbe auf ${userTextColor}`);
+              document.documentElement.style.setProperty('--user-text-color', `${userTextColor} !important`);
+              
+              // Explizit eine extra-Stile hinzufügen für höhere Spezifität
+              const style = document.createElement('style');
+              style.innerHTML = `
+                .glassmorphism-user { color: ${userTextColor} !important; }
+                .glassmorphism-user * { color: ${userTextColor} !important; }
+              `;
+              document.head.appendChild(style);
+              
+              console.log(`CHAT-DEBUG-011: Setze Benutzer-Textfarbe auf ${userTextColor} mit !important`);
               
               // Willkommensnachricht nur setzen, wenn noch keine Nachrichten vorhanden sind
               if (messages.length === 0 && botData.welcomeMessage) {
