@@ -322,21 +322,57 @@ export function Message({
         font-size: 0.8em;
       }
       
+      /* Key Facts spezifische Formatierung */
+      .message-content p.key-facts-heading {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-top: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #374151;
+      }
+      
+      .message-content p.key-facts-heading + ul {
+        background-color: rgba(248, 250, 252, 0.6);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        margin: 0.75rem 0 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      
+      /* Key Facts Listenelemente */
+      .message-content li.key-fact-item {
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: flex-start;
+      }
+      
+      /* Emojis in Key Facts Listenelementen */
+      .message-content li.key-fact-item p {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      
+      /* Emoji vor dem Text */
+      .message-content li.key-fact-item strong:first-child {
+        margin-right: 0.5rem;
+        min-width: 1.5rem;
+        display: inline-block;
+      }
+      
+      /* Formatierung für Empfehlungen und Standort-Info */
+      .message-content li p strong:has(span:contains("Empfehlung")),
+      .message-content li p strong:has(span:contains("Standort")),
+      .message-content li p strong:has(span:contains("Infos")),
+      .message-content li p strong:has(span:contains("Beratung")) {
+        display: inline-flex;
+        min-width: 120px;
+        margin-right: 0.5rem;
+      }
+      
       /* Nummerierte Listen */
       .message-content ol {
         counter-reset: item;
-      }
-      
-      .message-content ol > li {
-        counter-increment: item;
-      }
-      
-      .message-content ol > li::before {
-        content: counter(item) ".";
-        position: absolute;
-        left: -1.5rem;
-        color: #6b7280;
-        font-weight: 500;
       }
       
       /* Schnellüberblick-Sektion */
@@ -351,12 +387,32 @@ export function Message({
       
       /* Key Facts-Formatierung */
       .message-content p:has(strong:contains("Key Facts")) + ul,
-      .message-content p strong:contains("Key Facts") + ul {
+      .message-content p strong:contains("Key Facts") + ul,
+      .message-content p:contains("Key Facts:") + ul {
         background-color: rgba(248, 250, 252, 0.6);
         border-radius: 0.5rem;
         padding: 0.75rem 1.5rem;
         margin: 1.5rem 0;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      
+      /* Sicherstellen, dass Listenpunkte in Key Facts immer sichtbar sind */
+      .message-content p:contains("Key Facts:") + ul > li::before,
+      .message-content p strong:contains("Key Facts") + ul > li::before {
+        content: "•";
+        position: absolute;
+        left: -1rem;
+        color: #6b7280;
+      }
+      
+      /* Tipps und Hinweise mit besonderer Formatierung */
+      .message-content p:has(span:contains("Tipp:")),
+      .message-content p:contains("Tipp:") {
+        margin-top: 1rem;
+        font-style: italic;
+        color: #4b5563;
+        padding-left: 1rem;
+        border-left: 2px solid rgba(37, 99, 235, 0.3);
       }
       
       /* Kontaktinformationen */
@@ -586,6 +642,19 @@ export function Message({
       return `[${match}](mailto:${match})`;
     });
     
+    // Korrektur für falsch dargestellte Markdown-Links
+    // Erkennt fehlerhaftes Markup wie "Text](link)" und korrigiert es zu "[Text](link)"
+    processedContent = processedContent.replace(/([^[])(\w+[^)\s]*)]\(([^)]+)\)/g, (match, prefix, text, url) => {
+      return `${prefix}[${text}](${url})`;
+    });
+    
+    // Korrektur für spezielle Formate wie "Tipp: Nutzen Sie die Online-Unterkunftssuche](link)"
+    processedContent = processedContent.replace(/([\w\säÄöÖüÜß-]+)]\(([^)]+)\)/g, (match, text, url) => {
+      // Überspringe, wenn bereits korrekt formatiert
+      if (match.startsWith('[')) return match;
+      return `[${text}](${url})`;
+    });
+    
     return (
       <div className="prose prose-sm break-words pointer-events-auto message-content">
         <ReactMarkdown
@@ -619,9 +688,15 @@ export function Message({
               // Prüfe, ob es mit einer Zahl mit Punkt beginnt (z.B. "1. Kita")
               const isNumbered = /^\d+\./.test(content);
               
+              // Prüfe, ob es sich um ein Key Facts Element handelt
+              const isKeyFactItem = content.includes('📝 Empfehlung:') || 
+                                   content.includes('📍 Standort:') || 
+                                   content.includes('🔗 Weitere Infos:') ||
+                                   content.includes('📞 Touristische Beratung:');
+              
               return (
                 <li 
-                  className={isNumbered ? 'numbered-item' : ''}
+                  className={`${isNumbered ? 'numbered-item' : ''} ${isKeyFactItem ? 'key-fact-item' : ''}`}
                   {...props}
                 >
                   {children}
@@ -634,6 +709,15 @@ export function Message({
               // Prüfen auf Kontaktinformationen
               const content = String(children);
               const isContactInfo = /^(Adresse|Telefon|E-Mail|Standort|Öffnungszeiten|Angebote|Schulform|Schulleitung|Ganztagsschule|Kontakt|Website)/.test(content);
+              const isKeyFact = content === 'Key Facts:' || content.includes('Key Facts');
+              
+              if (isKeyFact) {
+                return (
+                  <p {...props} className="key-facts-heading">
+                    {children}
+                  </p>
+                );
+              }
               
               if (isContactInfo) {
                 // Extrahiere Labeltext (bis zum Doppelpunkt)
