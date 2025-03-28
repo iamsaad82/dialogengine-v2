@@ -81,6 +81,7 @@ interface UseChatProps {
   initialOpen?: boolean
   botId?: string
   onError?: (error: Error) => void
+  initialSettings?: any // Bot-Einstellungen direkt übergeben
 }
 
 export interface UseChatOptions {
@@ -94,7 +95,8 @@ export function useChat({
   initialMode = 'bubble', 
   initialOpen = false,
   botId,
-  onError
+  onError,
+  initialSettings
 }: UseChatProps = {}) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [isLoading, setIsLoading] = useState(false)
@@ -338,15 +340,65 @@ export function useChat({
   // Bot-Einstellungen beim ersten Laden abrufen
   useEffect(() => {
     if (!botId) {
-      return; // Frühes Beenden, wenn keine Bot-ID vorhanden ist
+      return;
     }
     
-    // Eindeutiger Schlüssel für diesen Bot und diese Chat-Instanz
-    const welcomeKey = `welcome-${botId}-${sessionIdRef.current}`;
-    
-    // Prüfe, ob für diesen Bot bereits eine Willkommensnachricht gesetzt wurde
-    if (hasProcessedWelcomeMessage(welcomeKey)) {
-      console.log(`CHAT-DEBUG-011: Willkommensnachricht für ${welcomeKey} bereits verarbeitet`);
+    // Wenn initialSettings vorhanden sind, verwende diese direkt
+    if (initialSettings) {
+      console.log("CHAT-DEBUG-011: Verwende übergebene Bot-Einstellungen", initialSettings);
+      
+      // Bot-Einstellungen im state speichern
+      setBotSettings(initialSettings);
+      
+      // RGB-Werte für Primärfarbe berechnen für Schatten etc.
+      const primaryColor = initialSettings.primaryColor || '#3b82f6';
+      const r = parseInt(primaryColor.slice(1, 3), 16);
+      const g = parseInt(primaryColor.slice(3, 5), 16);
+      const b = parseInt(primaryColor.slice(5, 7), 16);
+      document.documentElement.style.setProperty('--primary-rgb', `${r}, ${g}, ${b}`);
+      
+      // Primärfarbe als CSS-Variable setzen
+      document.documentElement.style.setProperty('--primary', primaryColor);
+      
+      // CSS-Variablen im :root setzen für Chat-Styling
+      document.documentElement.style.setProperty('--bot-bg-color', initialSettings.botBgColor || 'rgba(248, 250, 252, 0.8)');
+      document.documentElement.style.setProperty('--bot-text-color', initialSettings.botTextColor || '#000000');
+      document.documentElement.style.setProperty('--bot-accent-color', initialSettings.botAccentColor || initialSettings.primaryColor || '#3b82f6');
+      
+      // User-Nachrichtenfarben
+      if (initialSettings.userBgColor) {
+        document.documentElement.style.setProperty('--user-bg-color', initialSettings.userBgColor);
+      } else {
+        // Fallback: Primärfarbe mit Gradient
+        document.documentElement.style.setProperty(
+          '--user-bg-color', 
+          `linear-gradient(135deg, ${initialSettings.primaryColor || '#3b82f6'}, ${initialSettings.primaryColor || '#3b82f6'}cc)`
+        );
+      }
+      
+      // Benutzertextfarbe festlegen - mit höherer Spezifität
+      const userTextColor = initialSettings.userTextColor || '#ffffff';
+      document.documentElement.style.setProperty('--user-text-color', userTextColor);
+      document.documentElement.style.setProperty('--user-text-color-override', userTextColor + ' !important');
+      console.log(`CHAT-DEBUG-011: Setze Benutzer-Textfarbe auf ${userTextColor}`);
+      
+      // Wenn Willkommensnachricht vorhanden ist und noch keine Nachrichten angezeigt werden
+      if (messages.length === 0 && initialSettings.welcomeMessage) {
+        // Willkommensnachricht hinzufügen
+        setMessages([{
+          role: "assistant",
+          content: initialSettings.welcomeMessage
+        }]);
+      }
+      
+      // Markiere diese Willkommensnachricht als verarbeitet
+      const welcomeKey = `welcome-${botId}`;
+      processedWelcomeMessages.add(welcomeKey);
+      addProcessedWelcomeMessage(welcomeKey);
+      
+      // Chat als initialisiert markieren
+      chatInitializedRef.current = true;
+      
       return;
     }
     
@@ -356,6 +408,7 @@ export function useChat({
     });
     
     // Markiere diese Willkommensnachricht als verarbeitet
+    const welcomeKey = `welcome-${botId}`;
     processedWelcomeMessages.add(welcomeKey);
     addProcessedWelcomeMessage(welcomeKey);
     

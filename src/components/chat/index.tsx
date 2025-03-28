@@ -20,9 +20,10 @@ interface ChatProps {
   embedded?: boolean;
   botId?: string; // Neue Eigenschaft für die Bot-ID
   className?: string; // Neue Eigenschaft für CSS-Klassen
+  initialSettings?: any; // Bot-Einstellungen direkt übergeben
 }
 
-export function Chat({ initialMode = 'bubble', embedded = false, botId, className }: ChatProps) {
+export function Chat({ initialMode = 'bubble', embedded = false, botId, className, initialSettings }: ChatProps) {
   const [botName, setBotName] = useState<string>('Dialog Engine')
   const [botPrimaryColor, setBotPrimaryColor] = useState<string | undefined>(undefined)
   const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
@@ -46,7 +47,8 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
     initialMessages: [],
     initialMode,
     initialOpen: embedded, // Wenn eingebettet, dann direkt öffnen
-    botId // Bot-ID an useChat übergeben
+    botId, // Bot-ID an useChat übergeben
+    initialSettings // Bot-Einstellungen direkt übergeben
   })
 
   // Wenn der Modus von außen geändert wird, aktualisiere den internen Modus
