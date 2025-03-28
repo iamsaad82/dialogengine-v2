@@ -74,9 +74,10 @@ const Message = ({
             ? 'glassmorphism-bot' 
             : 'glassmorphism-user'
         }`}
-        style={isBot ? {} : {
-          background: 'var(--user-bg-color)',
-          color: 'var(--user-text-color)'
+        style={{
+          ...(isBot 
+            ? { backgroundColor: 'var(--bot-bg-color)', color: 'var(--bot-text-color)' } 
+            : { background: 'var(--user-bg-color)', color: 'var(--user-text-color)' })
         }}
       >
         {isBot && (
@@ -84,16 +85,16 @@ const Message = ({
             {botAvatarUrl ? (
               <Image 
                 src={botAvatarUrl} 
-                width={28} 
-                height={28} 
+                width={35} 
+                height={35} 
                 alt={`${botName} Logo`} 
                 className="inline mr-1 object-contain"
               />
             ) : (
               <Image 
                 src="/brandenburg-logo.svg" 
-                width={128} 
-                height={128} 
+                width={150} 
+                height={150} 
                 alt="Brandenburg Logo" 
                 className="inline mr-1"
               />
