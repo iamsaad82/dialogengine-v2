@@ -1,10 +1,12 @@
 'use client'
 
 import { RefObject, useEffect, useState } from 'react'
-import { Message } from './Message'
+import Message from './Message'
 import { ChevronDownIcon } from './ui/icons'
 import { Message as MessageType } from '../types'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 // VERSION-MARKER: MessageList-Debug-Code - Version 002
 console.log("MessageList.tsx geladen - Debug-Version 002");
@@ -381,12 +383,12 @@ export function MessageList({
         {messages.map((message) => (
           <Message 
             key={typeof message.id === 'string' ? message.id : `msg-${message.timestamp || Date.now()}`}
-            message={message} 
-            botName={botName}
+            content={message.content}
+            role={message.role}
+            botId={botId}
+            isLastMessage={message === messages[messages.length - 1]}
             showCopyButton={showCopyButton}
             enableFeedback={enableFeedback}
-            botId={botId}
-            botPrimaryColor={botPrimaryColor}
           />
         ))}
         

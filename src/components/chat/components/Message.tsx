@@ -24,14 +24,15 @@ interface MessageProps {
   enableFeedback?: boolean;
 }
 
-export const Message: React.FC<MessageProps> = ({ 
+// Als normale Funktion definieren statt React.FC<MessageProps>
+const Message = ({ 
   content, 
   role, 
   botId, 
   isLastMessage = false,
   showCopyButton = true,
   enableFeedback = true
-}) => {
+}: MessageProps) => {
   const isBot = role === 'assistant';
   
   // Animation für das Einblenden der Nachricht
