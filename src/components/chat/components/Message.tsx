@@ -71,9 +71,13 @@ const Message = ({
       <div 
         className={`max-w-3xl rounded-lg p-3 mb-4 ${
           isBot 
-            ? 'bg-[#F7F7FC] text-gray-800' 
-            : 'bg-[#5D5FEF] text-white'
+            ? 'glassmorphism-bot' 
+            : 'glassmorphism-user'
         }`}
+        style={isBot ? {} : {
+          background: 'var(--user-bg-color)',
+          color: 'var(--user-text-color)'
+        }}
       >
         {isBot && (
           <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2">
@@ -88,8 +92,8 @@ const Message = ({
             ) : (
               <Image 
                 src="/brandenburg-logo.svg" 
-                width={28} 
-                height={28} 
+                width={128} 
+                height={128} 
                 alt="Brandenburg Logo" 
                 className="inline mr-1"
               />
