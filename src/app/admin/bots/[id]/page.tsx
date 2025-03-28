@@ -4,20 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bot } from '@prisma/client'
 import { BotSettingsTabs } from '@/components/bot-settings-tabs'
-
-interface BotSettings {
-  id?: string
-  primaryColor: string
-  botBgColor: string
-  botTextColor: string
-  botAccentColor: string
-  userBgColor: string
-  userTextColor: string
-  enableFeedback: boolean
-  enableAnalytics: boolean
-  showSuggestions: boolean
-  showCopyButton: boolean
-}
+import { BotSettings } from '@/types/bot'
 
 export default function BotDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -45,7 +32,16 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
     enableFeedback: true, 
     enableAnalytics: true,
     showSuggestions: true,
-    showCopyButton: true
+    showCopyButton: true,
+    botPersonality: 'Du bist der Assistent des Einkaufscenters ORO Schwabach',
+    botContext: 'Center',
+    botScope: 'das Center, die Shops und die Produkte',
+    offerTip: 'Wenn du einen Shop findest in dem es ein Aktuelles Angebot bist, bietest du das Angebot als Tipp an.',
+    closedDays: `An diesen Tagen ist das Center geschlossen:
+
+Feiertage:
+- Neujahr: Montag, 01.01.2024
+- Heilige Drei Könige: Samstag, 06.01.2024`
   })
   
   // Bot-Daten laden
@@ -82,8 +78,24 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
             enableFeedback: botData.settings.enableFeedback,
             enableAnalytics: botData.settings.enableAnalytics,
             showSuggestions: botData.settings.showSuggestions,
-            showCopyButton: botData.settings.showCopyButton
+            showCopyButton: botData.settings.showCopyButton,
+            avatarUrl: botData.settings.avatarUrl || botData.avatarUrl || undefined,
+            botPersonality: botData.settings.botPersonality || 'Du bist der Assistent des Einkaufscenters ORO Schwabach',
+            botContext: botData.settings.botContext || 'Center',
+            botScope: botData.settings.botScope || 'das Center, die Shops und die Produkte',
+            offerTip: botData.settings.offerTip || 'Wenn du einen Shop findest in dem es ein Aktuelles Angebot bist, bietest du das Angebot als Tipp an.',
+            closedDays: botData.settings.closedDays || `An diesen Tagen ist das Center geschlossen:
+
+Feiertage:
+- Neujahr: Montag, 01.01.2024
+- Heilige Drei Könige: Samstag, 06.01.2024`
           })
+        } else if (botData.avatarUrl) {
+          // Wenn es keine Settings gibt, aber ein Avatar im Bot-Objekt, füge es auch zu den Settings hinzu
+          setSettings(prevSettings => ({
+            ...prevSettings,
+            avatarUrl: botData.avatarUrl
+          }));
         }
         
         setError(null)
@@ -137,6 +149,23 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
       if (!designRes.ok) {
         const errorData = await designRes.json()
         throw new Error(errorData.error || 'Fehler beim Speichern der Bot-Einstellungen')
+      }
+      
+      // Avatar-URL auch im Hauptobjekt speichern für doppelte Sicherheit
+      if (settings.avatarUrl) {
+        const avatarRes = await fetch(`/api/bots/${botId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            avatarUrl: settings.avatarUrl
+          }),
+        })
+        
+        if (!avatarRes.ok) {
+          console.warn('Warnung: Avatar-URL konnte nicht im Bot-Objekt gespeichert werden');
+        }
       }
       
       // Bot neu laden
