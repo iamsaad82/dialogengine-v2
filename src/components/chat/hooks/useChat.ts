@@ -284,14 +284,25 @@ export function useChat({
   // Bot-Einstellungen beim ersten Laden abrufen
   useEffect(() => {
     if (botId) {
-      // Prüfen, ob für diesen Bot bereits eine Willkommensnachricht gesetzt wurde
-      const welcomeKey = `welcome-${botId}`;
-      const hasWelcomeMessage = processedWelcomeMessages.has(welcomeKey);
+      // Eindeutiger Schlüssel für diesen Bot und diese Chat-Instanz
+      const welcomeKey = `welcome-${botId}-${sessionIdRef.current}`;
+      const hasProcessedWelcomeMessage = processedWelcomeMessages.has(welcomeKey);
       
-      if (chatInitializedRef.current && hasWelcomeMessage) {
-        console.log(`CHAT-DEBUG-009: Willkommensnachricht für Bot ${botId} wurde bereits gesetzt, überspringe`);
+      console.log(`CHAT-DEBUG-010: Chat-Hook für Bot ${botId}`, { 
+        hasProcessedWelcomeMessage, 
+        messagesLength: messages.length,
+        chatInitialized: chatInitializedRef.current
+      });
+      
+      // Nur einmal pro Chat-Instanz die Willkommensnachricht anzeigen
+      if (hasProcessedWelcomeMessage) {
+        console.log(`CHAT-DEBUG-010: Willkommensnachricht für ${welcomeKey} bereits verarbeitet`);
         return;
       }
+      
+      // Als verarbeitet markieren (unabhängig davon, ob eine Nachricht existiert)
+      processedWelcomeMessages.add(welcomeKey);
+      console.log(`CHAT-DEBUG-010: Bot ${botId} wird als verarbeitet markiert`);
       
       // Chat als initialisiert markieren
       chatInitializedRef.current = true;
@@ -301,7 +312,7 @@ export function useChat({
           const res = await fetch(`/api/bots/${botId}`);
           if (res.ok) {
             const botData = await res.json();
-            console.log("CHAT-DEBUG-009: Geladene Bot-Daten:", {
+            console.log("CHAT-DEBUG-010: Geladene Bot-Daten:", {
               id: botData.id,
               name: botData.name,
               welcomeMessage: botData.welcomeMessage ? 'vorhanden' : 'nicht vorhanden'
@@ -337,15 +348,18 @@ export function useChat({
                 );
               }
               
-              document.documentElement.style.setProperty('--user-text-color', botData.settings.userTextColor || '#ffffff');
+              // Benutzertextfarbe festlegen - mit höherer Spezifität
+              const userTextColor = botData.settings.userTextColor || '#ffffff';
+              document.documentElement.style.setProperty('--user-text-color', userTextColor);
+              document.documentElement.style.setProperty('--user-text-color-override', userTextColor + ' !important');
+              console.log(`CHAT-DEBUG-010: Setze Benutzer-Textfarbe auf ${userTextColor}`);
               
-              // Willkommensnachricht, falls keine Nachrichten vorhanden sind und noch nicht gesetzt wurde
-              if (messages.length === 0 && botData.welcomeMessage && !hasWelcomeMessage) {
-                console.log("CHAT-DEBUG-009: Setze Willkommensnachricht für Bot:", botData.welcomeMessage.substring(0, 50) + "...");
-                // Als gesetzt markieren
-                processedWelcomeMessages.add(welcomeKey);
+              // Willkommensnachricht nur setzen, wenn noch keine Nachrichten vorhanden sind
+              if (messages.length === 0 && botData.welcomeMessage) {
+                console.log("CHAT-DEBUG-010: Setze Willkommensnachricht für Bot:", 
+                  botData.welcomeMessage.substring(0, 50) + "...");
                 
-                // Nur eine Nachricht hinzufügen
+                // Nur eine Nachricht hinzufügen, wenn der State noch leer ist
                 setMessages([{
                   role: "assistant",
                   content: botData.welcomeMessage
@@ -353,11 +367,11 @@ export function useChat({
               }
             }
           } else {
-            console.error("CHAT-DEBUG-009: Fehler beim Laden der Bot-Daten:", res.status);
+            console.error("CHAT-DEBUG-010: Fehler beim Laden der Bot-Daten:", res.status);
           }
         } catch (error) {
-          console.error("CHAT-DEBUG-009: Fehler beim Laden der Bot-Einstellungen:", error);
-          // Hier könnten wir einen Fallback für die Farben setzen
+          console.error("CHAT-DEBUG-010: Fehler beim Laden der Bot-Einstellungen:", error);
+          // Fallback für die Farben
           document.documentElement.style.setProperty('--bot-bg-color', 'rgba(248, 250, 252, 0.8)');
           document.documentElement.style.setProperty('--bot-text-color', '#000000');
           document.documentElement.style.setProperty('--bot-accent-color', '#3b82f6');
@@ -369,14 +383,14 @@ export function useChat({
       fetchBotSettings();
     } else {
       // Standard-Farben für den Fall, dass kein Bot angegeben ist
-      console.log("CHAT-DEBUG-009: Kein Bot-ID angegeben, verwende Standard-Farben");
+      console.log("CHAT-DEBUG-010: Kein Bot-ID angegeben, verwende Standard-Farben");
       document.documentElement.style.setProperty('--bot-bg-color', 'rgba(248, 250, 252, 0.8)');
       document.documentElement.style.setProperty('--bot-text-color', '#000000');
       document.documentElement.style.setProperty('--bot-accent-color', 'hsl(var(--primary))');
       document.documentElement.style.setProperty('--user-bg-color', 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.85))');
       document.documentElement.style.setProperty('--user-text-color', '#ffffff');
     }
-  }, [botId, messages.length]);
+  }, [botId]); // Wichtig: messages.length entfernt, verhindert wiederholten Aufruf
 
   // Bei Unmount Ressourcen freigeben
   useEffect(() => {

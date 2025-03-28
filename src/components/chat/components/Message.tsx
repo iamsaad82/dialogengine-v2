@@ -182,6 +182,228 @@ export function Message({
     }
   }, []);
   
+  // CSS-Styles für Markdown-Elemente mit verbesserten Regeln für verschachtelte Listen
+  useEffect(() => {
+    console.log("MESSAGE-DEBUG-010: useEffect für Styles aufgerufen");
+    
+    // Entferne altes Style-Element, falls vorhanden
+    const oldStyleEl = document.getElementById('message-component-styles');
+    if (oldStyleEl) {
+      oldStyleEl.remove();
+    }
+    
+    // Füge neue, verbesserte Styles hinzu
+    const styleEl = document.createElement('style');
+    styleEl.id = 'message-component-styles';
+    styleEl.innerHTML = `
+      /* Allgemeine Formatierung */
+      .message-content a {
+        color: #2563eb;
+        text-decoration: underline;
+        text-decoration-color: rgba(37, 99, 235, 0.3);
+        text-underline-offset: 2px;
+        transition: text-decoration-color 0.2s;
+      }
+      
+      .message-content a:hover {
+        text-decoration-color: rgba(37, 99, 235, 0.8);
+      }
+      
+      /* Telefonnummern, E-Mail-Links und Web-Links */
+      .message-content .phone-link, 
+      .message-content .email-link,
+      .message-content .web-link {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        margin: 2px 0;
+      }
+      
+      .message-content .phone-link {
+        background-color: rgba(37, 99, 235, 0.1);
+        color: #2563eb;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+      }
+      
+      .message-content .phone-link:hover {
+        background-color: rgba(37, 99, 235, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.1);
+      }
+      
+      .message-content .email-link {
+        background-color: rgba(14, 165, 233, 0.1);
+        color: #0ea5e9;
+        border: 1px solid rgba(14, 165, 233, 0.2);
+      }
+      
+      .message-content .email-link:hover {
+        background-color: rgba(14, 165, 233, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(14, 165, 233, 0.1);
+      }
+      
+      .message-content .web-link {
+        background-color: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+      }
+      
+      .message-content .web-link:hover {
+        background-color: rgba(79, 70, 229, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(79, 70, 229, 0.1);
+      }
+      
+      /* Überschriften */
+      .message-content h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        color: #24292f;
+        line-height: 1.3;
+      }
+      
+      .message-content h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: #24292f;
+        line-height: 1.3;
+      }
+      
+      /* Verbesserte Listen */
+      .message-content ul, .message-content ol {
+        list-style-type: none;
+        padding-left: 1.5rem;
+        margin-top: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      
+      .message-content li {
+        position: relative;
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+        padding-left: 0.5rem;
+      }
+      
+      /* Reguläre Listen mit Punkten */
+      .message-content ul > li::before {
+        content: "•";
+        position: absolute;
+        left: -1rem;
+        color: #6b7280;
+      }
+      
+      /* Verschachtelte Listen richtig einrücken */
+      .message-content li > ul, 
+      .message-content li > ol {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        padding-left: 1.5rem;
+      }
+      
+      /* Listenstile für verschachtelte Listen */
+      .message-content li > ul > li::before {
+        content: "◦";
+        left: -1rem;
+      }
+      
+      .message-content li > ul > li > ul > li::before {
+        content: "▪";
+        left: -1rem;
+        font-size: 0.8em;
+      }
+      
+      /* Nummerierte Listen */
+      .message-content ol {
+        counter-reset: item;
+      }
+      
+      .message-content ol > li {
+        counter-increment: item;
+      }
+      
+      .message-content ol > li::before {
+        content: counter(item) ".";
+        position: absolute;
+        left: -1.5rem;
+        color: #6b7280;
+        font-weight: 500;
+      }
+      
+      /* Schnellüberblick-Sektion */
+      .message-content p:has(strong:contains("Schnellüberblick")) + ul,
+      .message-content p strong:contains("Schnellüberblick") + ul {
+        background-color: rgba(248, 250, 252, 0.6);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      
+      /* Key Facts-Formatierung */
+      .message-content p:has(strong:contains("Key Facts")) + ul,
+      .message-content p strong:contains("Key Facts") + ul {
+        background-color: rgba(248, 250, 252, 0.6);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      
+      /* Kontaktinformationen */
+      .message-content .contact-label {
+        font-weight: 600;
+        color: #4b5563;
+        min-width: 120px;
+        display: inline-block;
+      }
+      
+      /* Nummerierte Abschnitte im Fließtext */
+      .message-content p strong:has(span:matches(/^\\d+\\./)),
+      .message-content p strong:matches(/^\\d+\\./) {
+        display: block;
+        font-size: 1.1rem;
+        margin-top: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #374151;
+      }
+      
+      /* Allgemeine Textformatierung in User-Nachrichten */
+      .user-message-container * {
+        color: var(--user-text-color-override, #ffffff) !important;
+      }
+      
+      /* Fett formatierter Text in Listen */
+      .message-content li strong {
+        font-weight: 600;
+      }
+      
+      /* Listenpunkte mit Emojis als Icons */
+      .message-content li p:first-child:has(strong:first-child:matches(/[📍🕒📞🔗💰📋📧🌐]/)) {
+        display: flex;
+        align-items: flex-start;
+      }
+      
+      .message-content li p:first-child:has(strong:first-child:matches(/[📍🕒📞🔗💰📋📧🌐]/)) strong:first-child {
+        min-width: 24px;
+        margin-right: 8px;
+        display: inline-block;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    
+    console.log("MESSAGE-DEBUG-010: Neue verbesserte Styles für Listen wurden hinzugefügt");
+  }, []);
+  
   // Debug-Ausgabe beim Rendern einer Nachricht
   useEffect(() => {
     console.log("MESSAGE-DEBUG-009: Nachricht gerendert:", {
@@ -474,7 +696,7 @@ export function Message({
     >
       <div 
         className={`flex max-w-[85%] items-start gap-3 rounded-lg p-3 shadow-lg ${
-          isBot ? 'glassmorphism-bot text-foreground' : 'glassmorphism-user text-white'
+          isBot ? 'glassmorphism-bot text-foreground' : 'glassmorphism-user text-white user-message-container'
         }`}
         style={{
           backgroundColor: isBot 
@@ -482,7 +704,7 @@ export function Message({
             : 'var(--user-bg-color, linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.85)))',
           color: isBot
             ? 'var(--bot-text-color, currentColor)'
-            : 'var(--user-text-color, #ffffff)',
+            : 'var(--user-text-color-override, #ffffff)',
           boxShadow: isBot 
             ? '0 8px 32px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(255, 255, 255, 0.1) inset' 
             : '0 8px 32px rgba(var(--primary-rgb), 0.25)'
@@ -507,7 +729,7 @@ export function Message({
         <div className="flex-1 space-y-2 overflow-hidden">
           <div 
             className="text-sm font-medium"
-            style={{ color: isBot ? 'var(--bot-text-color, currentColor)' : 'var(--user-text-color, #ffffff)' }}
+            style={{ color: isBot ? 'var(--bot-text-color, currentColor)' : 'var(--user-text-color-override, #ffffff)' }}
           >
             {isBot ? botName : 'Du'}
           </div>
