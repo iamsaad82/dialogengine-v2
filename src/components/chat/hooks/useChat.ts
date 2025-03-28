@@ -86,18 +86,21 @@ export function useChat({
     
     // Überprüfen, ob die Nachricht bereits existiert (um Duplikate zu vermeiden)
     setMessages((prevMessages) => {
-      const isDuplicate = prevMessages.some(
+      // Prüfe auf identische Nachricht in den letzten 3 Elementen
+      // (Für den Fall mehrerer Nachrichten in kurzer Zeit)
+      const recentMessages = prevMessages.slice(-3);
+      const isDuplicate = recentMessages.some(
         (m) => m.role === message.role && m.content === message.content
-      )
+      );
       
       if (isDuplicate) {
         console.log("DEBUG-005: Duplikat gefunden, Nachricht wird nicht hinzugefügt");
-        return prevMessages
+        return prevMessages;
       }
       
-      return [...prevMessages, message]
-    })
-  }, [])
+      return [...prevMessages, message];
+    });
+  }, []);
 
   // Nachricht senden und Antwort erhalten
   const sendMessage = useCallback(async (content: string) => {
@@ -105,6 +108,12 @@ export function useChat({
     
     if (!content || content.trim() === '') {
       return
+    }
+    
+    // Verhindere erneutes Senden, wenn gerade geladen wird
+    if (isLoading) {
+      console.log('DEBUG-005: Sendeprozess läuft bereits, ignoriere erneuten Aufruf');
+      return;
     }
     
     try {
