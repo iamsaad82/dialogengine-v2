@@ -123,16 +123,53 @@ export async function PUT(
     
     console.log('Zu speichernde Einstellungen:', settingsToSave)
 
-    // Upsert der Bot-Einstellungen (erstellen, falls nicht vorhanden, sonst aktualisieren)
-    const settings = await prisma.botSettings.upsert({
-      where: { botId },
-      create: settingsToSave,
-      update: settingsToSave
-    })
-    
-    console.log('Einstellungen erfolgreich gespeichert:', settings)
-
-    return NextResponse.json(settings)
+    try {
+      // Upsert der Bot-Einstellungen (erstellen, falls nicht vorhanden, sonst aktualisieren)
+      const settings = await prisma.botSettings.upsert({
+        where: { botId },
+        create: settingsToSave,
+        update: settingsToSave
+      })
+      
+      console.log('Einstellungen erfolgreich gespeichert:', settings)
+  
+      return NextResponse.json(settings)
+    } catch (error: any) {
+      console.error('Fehler beim Aktualisieren der Bot-Einstellungen:', error)
+      // Wenn das Feld nicht existiert, versuche es erneut ohne avatarUrl
+      if (error.message.includes('Unknown argument `avatarUrl`')) {
+        console.log('avatarUrl wird nicht unterstützt, versuche ohne...')
+        delete settingsToSave.avatarUrl;
+        
+        const settings = await prisma.botSettings.upsert({
+          where: { botId },
+          create: settingsToSave,
+          update: settingsToSave
+        })
+        
+        console.log('Einstellungen erfolgreich gespeichert (ohne avatarUrl):', settings)
+        
+        // Wenn die Datenbank das Feld noch nicht kennt, speichern wir den Avatar-URL in der Bot-Entität
+        if (avatarUrl) {
+          try {
+            await prisma.bot.update({
+              where: { id: botId },
+              data: { avatarUrl }
+            });
+            console.log('Avatar-URL im Bot-Objekt gespeichert')
+          } catch (botError) {
+            console.error('Fehler beim Aktualisieren des Bot-Avatars:', botError)
+          }
+        }
+        
+        return NextResponse.json(settings)
+      }
+      
+      return new NextResponse(JSON.stringify({ error: 'Interner Serverfehler', details: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
   } catch (error: any) {
     console.error('Fehler beim Aktualisieren der Bot-Einstellungen:', error)
     return new NextResponse(JSON.stringify({ error: 'Interner Serverfehler', details: error.message }), {
