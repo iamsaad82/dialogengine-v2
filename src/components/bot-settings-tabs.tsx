@@ -128,19 +128,34 @@ export function BotSettingsTabs({
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          if (event.target?.result) {
+                        // Statt Base64-Codierung direkt einen Form-Upload zum Server machen
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        
+                        try {
+                          const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData,
+                          });
+                          
+                          if (response.ok) {
+                            const data = await response.json();
+                            // URL des hochgeladenen Bildes speichern
                             onSettingsChange({
                               ...settings, 
-                              avatarUrl: event.target.result as string
+                              avatarUrl: data.url
                             });
+                          } else {
+                            console.error('Fehler beim Hochladen des Bildes');
+                            alert('Das Bild konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.');
                           }
-                        };
-                        reader.readAsDataURL(file);
+                        } catch (error) {
+                          console.error('Fehler beim Hochladen:', error);
+                          alert('Das Bild konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.');
+                        }
                       }
                     }}
                     className="block w-full text-sm text-slate-500
