@@ -147,12 +147,24 @@ export function useChat({
     setMode(newMode)
   }, [])
 
-  // Wenn neue Nachrichten hinzugefügt werden, scroll nach unten
+  // Nachrichtenliste aktualisieren mit neuer Nachricht
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      // Das Element mit einem Offset ins Sichtfeld scrollen, 
+      // damit der Anfang der Nachricht sichtbar ist
+      const parentElement = messagesEndRef.current.parentElement;
+      if (parentElement) {
+        // Statt zum Ende scrollen, scrollen wir zum ersten Kind-Element der letzten Nachricht
+        const lastMessage = parentElement.querySelector('.group:last-of-type');
+        if (lastMessage) {
+          lastMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          // Fallback zum alten Verhalten
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     }
-  }, [messages])
+  }, [messages]);
 
   // Nachricht zur Liste hinzufügen
   const addMessage = useCallback((message: Message) => {

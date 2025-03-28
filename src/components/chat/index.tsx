@@ -25,10 +25,12 @@ interface ChatProps {
 
 export function Chat({ initialMode = 'bubble', embedded = false, botId, className, initialSettings }: ChatProps) {
   const [botName, setBotName] = useState<string>('Dialog Engine')
-  const [botPrimaryColor, setBotPrimaryColor] = useState<string | undefined>(undefined)
+  const [botPrimaryColor, setBotPrimaryColor] = useState<string>('#3b82f6')
   const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
   const [enableFeedback, setEnableFeedback] = useState<boolean>(false)
   const [isDialogMode, setIsDialogMode] = useState<boolean>(false)
+  const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null)
+  const [botAvatarUrl, setBotAvatarUrl] = useState<string | undefined>(undefined)
   
   const { 
     messages, 
@@ -43,7 +45,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
     setMode, 
     messagesEndRef,
     botSettings,
-    welcomeMessage
+    welcomeMessage: useChatWelcomeMessage
   } = useChat({
     initialMessages: [],
     initialMode,
@@ -125,6 +127,12 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                 setEnableFeedback(typeof botData.settings.enableFeedback === 'boolean' 
                   ? botData.settings.enableFeedback
                   : false)
+                  
+                // Avatar-URL setzen, zuerst aus den Settings, dann aus dem Bot-Objekt
+                setBotAvatarUrl(botData.settings.avatarUrl || botData.avatarUrl || undefined)
+              } else if (botData.avatarUrl) {
+                // Fallback: Avatar-URL direkt aus dem Bot-Objekt
+                setBotAvatarUrl(botData.avatarUrl)
               }
               
               // Nur wenn Willkommensnachricht noch nicht gesetzt wurde UND wenn es eine gibt
@@ -223,6 +231,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
               botId={botId}
               botPrimaryColor={botPrimaryColor}
               welcomeMessage={welcomeMessage}
+              botAvatarUrl={botAvatarUrl}
             />
           </div>
         </div>
@@ -297,6 +306,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                 botId={botId}
                 botPrimaryColor={botPrimaryColor}
                 welcomeMessage={welcomeMessage}
+                botAvatarUrl={botAvatarUrl}
               />
             </div>
             
@@ -425,6 +435,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                 botId={botId}
                 botPrimaryColor={botPrimaryColor}
                 welcomeMessage={welcomeMessage}
+                botAvatarUrl={botAvatarUrl}
               />
             </div>
             

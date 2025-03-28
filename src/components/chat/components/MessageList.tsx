@@ -21,6 +21,7 @@ interface MessageListProps {
   botId?: string
   botPrimaryColor?: string
   welcomeMessage?: string | null
+  botAvatarUrl?: string
 }
 
 // Ladeindikator-Komponente
@@ -117,7 +118,8 @@ export function MessageList({
   enableFeedback = false,
   botId,
   botPrimaryColor,
-  welcomeMessage
+  welcomeMessage,
+  botAvatarUrl
 }: MessageListProps) {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -396,6 +398,7 @@ export function MessageList({
             showCopyButton={showCopyButton}
             enableFeedback={enableFeedback}
             botName={botName}
+            botAvatarUrl={botAvatarUrl}
           />
         ))}
         

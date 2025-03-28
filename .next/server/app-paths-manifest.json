@@ -1,6 +1,4 @@
 {
   "/bot-test/[id]/page": "app/bot-test/[id]/page.js",
-  "/embed/chat/page": "app/embed/chat/page.js",
-  "/admin/embed/page": "app/admin/embed/page.js",
   "/admin/bots/page": "app/admin/bots/page.js"
 }

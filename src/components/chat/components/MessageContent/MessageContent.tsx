@@ -236,7 +236,8 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
         <ReactMarkdown
           components={{
             a: ({node, ...props}) => {
-              let className = '';
+              // Link-Klasse basierend auf dem Typ bestimmen
+              let className = 'default-link';
               
               // Linktyp basierend auf href bestimmen
               if (props.href?.startsWith('tel:')) {
@@ -247,12 +248,21 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
                 className = 'web-link';
               }
               
+              // Link-Handler für externe Links
+              const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                if (props.href?.startsWith('http')) {
+                  e.preventDefault();
+                  window.open(props.href, '_blank', 'noopener,noreferrer');
+                }
+              };
+              
               return (
                 <a 
                   {...props} 
                   className={className}
-                  target={props.href?.startsWith('http') ? '_blank' : undefined}
-                  rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleClick}
                 />
               );
             },
