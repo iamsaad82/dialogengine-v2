@@ -11,8 +11,11 @@ console.log("useChat.ts geladen - Debug-Version 007");
 // VERSION-MARKER: Eindeutiger Debug-Code - Version 008
 console.log("useChat.ts geladen - Debug-Version 008");
 
+// VERSION-MARKER: Eindeutiger Debug-Code - Version 009
+console.log("useChat.ts geladen - Debug-Version 009");
+
 // Tracking für bereits geladene Bots und Willkommensnachrichten
-const loadedBotsWelcomeMessages = new Set<string>();
+const processedWelcomeMessages = new Set<string>();
 
 // Hilfsfunktion für Debounce
 const useDebouncedCallback = (fn: Function, delay: number) => {
@@ -283,10 +286,10 @@ export function useChat({
     if (botId) {
       // Prüfen, ob für diesen Bot bereits eine Willkommensnachricht gesetzt wurde
       const welcomeKey = `welcome-${botId}`;
-      const hasWelcomeMessage = loadedBotsWelcomeMessages.has(welcomeKey);
+      const hasWelcomeMessage = processedWelcomeMessages.has(welcomeKey);
       
       if (chatInitializedRef.current && hasWelcomeMessage) {
-        console.log(`CHAT-DEBUG-008: Willkommensnachricht für Bot ${botId} wurde bereits gesetzt, überspringe`);
+        console.log(`CHAT-DEBUG-009: Willkommensnachricht für Bot ${botId} wurde bereits gesetzt, überspringe`);
         return;
       }
       
@@ -298,7 +301,7 @@ export function useChat({
           const res = await fetch(`/api/bots/${botId}`);
           if (res.ok) {
             const botData = await res.json();
-            console.log("CHAT-DEBUG-008: Geladene Bot-Daten:", {
+            console.log("CHAT-DEBUG-009: Geladene Bot-Daten:", {
               id: botData.id,
               name: botData.name,
               welcomeMessage: botData.welcomeMessage ? 'vorhanden' : 'nicht vorhanden'
@@ -338,10 +341,11 @@ export function useChat({
               
               // Willkommensnachricht, falls keine Nachrichten vorhanden sind und noch nicht gesetzt wurde
               if (messages.length === 0 && botData.welcomeMessage && !hasWelcomeMessage) {
-                console.log("CHAT-DEBUG-008: Setze Willkommensnachricht für Bot:", botData.welcomeMessage.substring(0, 50) + "...");
+                console.log("CHAT-DEBUG-009: Setze Willkommensnachricht für Bot:", botData.welcomeMessage.substring(0, 50) + "...");
                 // Als gesetzt markieren
-                loadedBotsWelcomeMessages.add(welcomeKey);
+                processedWelcomeMessages.add(welcomeKey);
                 
+                // Nur eine Nachricht hinzufügen
                 setMessages([{
                   role: "assistant",
                   content: botData.welcomeMessage
@@ -349,10 +353,10 @@ export function useChat({
               }
             }
           } else {
-            console.error("CHAT-DEBUG-008: Fehler beim Laden der Bot-Daten:", res.status);
+            console.error("CHAT-DEBUG-009: Fehler beim Laden der Bot-Daten:", res.status);
           }
         } catch (error) {
-          console.error("CHAT-DEBUG-008: Fehler beim Laden der Bot-Einstellungen:", error);
+          console.error("CHAT-DEBUG-009: Fehler beim Laden der Bot-Einstellungen:", error);
           // Hier könnten wir einen Fallback für die Farben setzen
           document.documentElement.style.setProperty('--bot-bg-color', 'rgba(248, 250, 252, 0.8)');
           document.documentElement.style.setProperty('--bot-text-color', '#000000');
@@ -365,7 +369,7 @@ export function useChat({
       fetchBotSettings();
     } else {
       // Standard-Farben für den Fall, dass kein Bot angegeben ist
-      console.log("CHAT-DEBUG-008: Kein Bot-ID angegeben, verwende Standard-Farben");
+      console.log("CHAT-DEBUG-009: Kein Bot-ID angegeben, verwende Standard-Farben");
       document.documentElement.style.setProperty('--bot-bg-color', 'rgba(248, 250, 252, 0.8)');
       document.documentElement.style.setProperty('--bot-text-color', '#000000');
       document.documentElement.style.setProperty('--bot-accent-color', 'hsl(var(--primary))');

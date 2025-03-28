@@ -185,10 +185,10 @@ export async function POST(request: Request) {
         // Wenn Bot-Einstellungen verfügbar sind, füge overrideConfig hinzu
         if (botSettings) {
           requestBody.overrideConfig = {
-            botPersonality: botSettings.botPersonality || "Du bist der Assistent des Einkaufscenters ORO Schwabach",
-            botContext: botSettings.botContext || "Center",
-            botScope: botSettings.botScope || "das Center, die Shops und die Produkte",
-            offerTip: botSettings.offerTip || "Wenn du einen Shop findest in dem es ein Aktuelles Angebot bist, bietest du das Angebot als Tipp an.",
+            botPersonality: botSettings.botPersonality || "",
+            botContext: botSettings.botContext || "",
+            botScope: botSettings.botScope || "",
+            offerTip: botSettings.offerTip || "",
             closedDays: botSettings.closedDays || ""
           };
           
@@ -212,10 +212,10 @@ export async function POST(request: Request) {
       // Wenn Bot-Einstellungen verfügbar sind, füge overrideConfig hinzu
       if (botSettings) {
         requestBody.overrideConfig = {
-          botPersonality: botSettings.botPersonality || "Du bist der Assistent des Einkaufscenters ORO Schwabach",
-          botContext: botSettings.botContext || "Center",
-          botScope: botSettings.botScope || "das Center, die Shops und die Produkte",
-          offerTip: botSettings.offerTip || "Wenn du einen Shop findest in dem es ein Aktuelles Angebot bist, bietest du das Angebot als Tipp an.",
+          botPersonality: botSettings.botPersonality || "",
+          botContext: botSettings.botContext || "",
+          botScope: botSettings.botScope || "",
+          offerTip: botSettings.offerTip || "",
           closedDays: botSettings.closedDays || ""
         };
         

@@ -8,8 +8,12 @@ import { ChatInput } from './components/ChatInput'
 import { MessageList } from './components/MessageList'
 import { ChatMode } from './types'
 
-// VERSION-MARKER: Chat-Debug-Code - Version 002
-console.log("Chat.tsx geladen - Debug-Version 002");
+// VERSION-MARKER: Chat-Debug-Code - Version 004
+console.log("Chat.tsx geladen - Debug-Version 004");
+
+// Tracking-Mechanismus für Bot-Informationsabrufe und Willkommensnachrichten
+const loadedBots = new Set<string>();
+const loadedWelcomeMessages = new Set<string>();
 
 interface ChatProps {
   initialMode?: ChatMode;
@@ -72,20 +76,36 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
   // Bot-Informationen laden
   useEffect(() => {
     if (botId) {
+      // Prüfen, ob dieser Bot bereits geladen wurde
+      const botKey = `bot-${botId}`;
+      const welcomeKey = `welcome-${botId}`;
+      
+      if (loadedBots.has(botKey)) {
+        console.log(`CHAT-DEBUG-004: Bot ${botId} wurde bereits geladen, überspringe Abruf`);
+        return;
+      }
+      
+      // Prüfen, ob die Willkommensnachricht bereits angezeigt wurde
+      const hasWelcomeMessageShown = loadedWelcomeMessages.has(welcomeKey);
+      
+      // Bot als geladen markieren
+      loadedBots.add(botKey);
+      
       const fetchBotInfo = async () => {
         try {
+          console.log(`CHAT-DEBUG-004: Lade Bot-Informationen für ${botId}`);
           const response = await fetch(`/api/bots/${botId}`)
           if (response.ok) {
             const botData = await response.json()
-            console.log("CHAT-DEBUG-002: Bot-Informationen geladen:", {
+            console.log("CHAT-DEBUG-004: Bot-Informationen geladen:", {
               id: botData.id,
               name: botData.name,
-              welcomeMessage: botData.welcomeMessage
+              welcomeMessage: botData.welcomeMessage ? 'vorhanden' : 'nicht vorhanden'
             });
             
             if (botData) {
               // Bot-Name setzen
-              setBotName(botData.name || 'SMG Dialog Engine')
+              setBotName(botData.name || 'Dialog Engine')
               
               // Bot-Einstellungen setzen, wenn vorhanden
               if (botData.settings) {
@@ -103,10 +123,21 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                   ? botData.settings.enableFeedback
                   : false)
               }
+              
+              // Nur wenn Willkommensnachricht noch nicht gesetzt wurde UND wenn es eine gibt
+              if (!hasWelcomeMessageShown && botData.welcomeMessage) {
+                console.log("CHAT-DEBUG-004: Setze Willkommensnachricht", welcomeKey);
+                loadedWelcomeMessages.add(welcomeKey);
+                
+                // Sicherstellen, dass useChat die Willkommensnachricht erhält
+                // aber keine doppelten Messages erzeugt
+              }
             }
           }
         } catch (error) {
           console.error("Fehler beim Laden der Bot-Informationen:", error)
+          // Bei Fehler den Bot aus dem Tracking entfernen, damit ein erneuter Versuch möglich ist
+          loadedBots.delete(botKey);
         }
       }
       
@@ -116,14 +147,14 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
 
   // Debug-Ausgabe für die Chat-Komponente
   useEffect(() => {
-    console.log("CHAT-DEBUG-002: Chat-Komponente gerendert");
-    console.log("CHAT-DEBUG-002: messages:", messages);
-    console.log("CHAT-DEBUG-002: isLoading:", isLoading);
-    console.log("CHAT-DEBUG-002: botId:", botId || "Standard-Bot");
-    console.log("CHAT-DEBUG-002: botName:", botName);
-    console.log("CHAT-DEBUG-002: botPrimaryColor:", botPrimaryColor);
-    console.log("CHAT-DEBUG-002: showCopyButton:", showCopyButton);
-    console.log("CHAT-DEBUG-002: enableFeedback:", enableFeedback);
+    console.log("CHAT-DEBUG-004: Chat-Komponente gerendert");
+    console.log("CHAT-DEBUG-004: messages:", messages);
+    console.log("CHAT-DEBUG-004: isLoading:", isLoading);
+    console.log("CHAT-DEBUG-004: botId:", botId || "Standard-Bot");
+    console.log("CHAT-DEBUG-004: botName:", botName);
+    console.log("CHAT-DEBUG-004: botPrimaryColor:", botPrimaryColor);
+    console.log("CHAT-DEBUG-004: showCopyButton:", showCopyButton);
+    console.log("CHAT-DEBUG-004: enableFeedback:", enableFeedback);
   }, [messages, isLoading, botId, botName, botPrimaryColor, showCopyButton, enableFeedback]);
 
   // Beim Unmount Dialog-Modus zurücksetzen
