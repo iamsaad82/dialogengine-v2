@@ -88,7 +88,7 @@ export default function EmbedGenerator() {
       scriptUrl.searchParams.append('botId', selectedBotId);
     }
     scriptUrl.searchParams.append('mode', initialMode);
-    scriptUrl.searchParams.append('color', encodeURIComponent(primaryColor));
+    scriptUrl.searchParams.append('color', primaryColor.replace('#', '%23')); // Einfache URL-Kodierung für #
     
     if (initialMode === 'bubble') {
       scriptUrl.searchParams.append('position', position);

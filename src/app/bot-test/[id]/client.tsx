@@ -357,7 +357,7 @@ export default function BotTestClient({ id }: { id: string }) {
   data-position="bottom-right"
   data-bot-id="${id}">
 </div>
-<script src="${origin}/api/embed"></script>`}
+<script src="${origin}/api/embed?botId=${id}&mode=${chatMode}&color=${(bot.settings?.primaryColor || '#3b82f6').replace('#', '%23')}" defer></script>`}
               </div>
             </div>
           </div>
