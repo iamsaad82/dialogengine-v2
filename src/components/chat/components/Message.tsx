@@ -460,6 +460,290 @@ export function Message({
     console.log("MESSAGE-DEBUG-010: Neue verbesserte Styles für Listen wurden hinzugefügt");
   }, []);
   
+  // CSS-Styles für Markdown-Elemente mit verbesserten Regeln für verschachtelte Listen und Key Facts
+  useEffect(() => {
+    console.log("MESSAGE-DEBUG-011: useEffect für verbesserte Styles aufgerufen");
+    
+    // Entferne altes Style-Element, falls vorhanden
+    const oldStyleEl = document.getElementById('message-component-styles');
+    if (oldStyleEl) {
+      oldStyleEl.remove();
+    }
+    
+    // Füge neue, verbesserte Styles hinzu
+    const styleEl = document.createElement('style');
+    styleEl.id = 'message-component-styles';
+    styleEl.innerHTML = `
+      /* Allgemeine Formatierung */
+      .message-content a {
+        color: #2563eb;
+        text-decoration: underline;
+        text-decoration-color: rgba(37, 99, 235, 0.3);
+        text-underline-offset: 2px;
+        transition: text-decoration-color 0.2s;
+      }
+      
+      .message-content a:hover {
+        text-decoration-color: rgba(37, 99, 235, 0.8);
+      }
+      
+      /* Telefonnummern, E-Mail-Links und Web-Links */
+      .message-content .phone-link, 
+      .message-content .email-link,
+      .message-content .web-link {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        margin: 2px 0;
+      }
+      
+      .message-content .phone-link {
+        background-color: rgba(37, 99, 235, 0.1);
+        color: #2563eb;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+      }
+      
+      .message-content .phone-link:hover {
+        background-color: rgba(37, 99, 235, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.1);
+      }
+      
+      .message-content .email-link {
+        background-color: rgba(14, 165, 233, 0.1);
+        color: #0ea5e9;
+        border: 1px solid rgba(14, 165, 233, 0.2);
+      }
+      
+      .message-content .email-link:hover {
+        background-color: rgba(14, 165, 233, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(14, 165, 233, 0.1);
+      }
+      
+      .message-content .web-link {
+        background-color: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+      }
+      
+      .message-content .web-link:hover {
+        background-color: rgba(79, 70, 229, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(79, 70, 229, 0.1);
+      }
+      
+      /* Überschriften */
+      .message-content h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        color: #24292f;
+        line-height: 1.3;
+      }
+      
+      .message-content h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: #24292f;
+        line-height: 1.3;
+      }
+      
+      /* Verbesserte Listen */
+      .message-content ul, .message-content ol {
+        list-style-type: none;
+        padding-left: 1.5rem;
+        margin-top: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      
+      .message-content li {
+        position: relative;
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+        padding-left: 0.5rem;
+      }
+      
+      /* Reguläre Listen mit Punkten */
+      .message-content ul > li::before {
+        content: "•";
+        position: absolute;
+        left: -1rem;
+        color: #6b7280;
+      }
+      
+      /* Verschachtelte Listen richtig einrücken */
+      .message-content li > ul, 
+      .message-content li > ol {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        padding-left: 1.5rem;
+      }
+      
+      /* Listenstile für verschachtelte Listen */
+      .message-content li > ul > li::before {
+        content: "◦";
+        left: -1rem;
+      }
+      
+      .message-content li > ul > li > ul > li::before {
+        content: "▪";
+        left: -1rem;
+        font-size: 0.8em;
+      }
+      
+      /* Key Facts spezifische Formatierung */
+      .message-content p.key-facts-heading {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-top: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #374151;
+      }
+      
+      .message-content p.key-facts-heading + ul {
+        background-color: rgba(248, 250, 252, 0.6);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        margin: 0.75rem 0 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      
+      /* Key Facts Listenelemente */
+      .message-content li.key-fact-item {
+        margin-bottom: 1rem !important;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      
+      .message-content li.key-fact-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0.25rem !important;
+      }
+      
+      /* Emojis in Key Facts Listenelementen */
+      .message-content li.key-fact-item p {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      
+      /* Emoji vor dem Text */
+      .message-content li.key-fact-item p strong:first-child {
+        display: inline-block;
+        min-width: 1.75rem;
+        margin-right: 0.5rem;
+        font-size: 1rem;
+      }
+      
+      /* Text nach dem Emoji */
+      .message-content li.key-fact-item p strong:contains("Unterkunftssuche:"),
+      .message-content li.key-fact-item p strong:contains("Touristinformation:"),
+      .message-content li.key-fact-item p strong:contains("E-Mail:"),
+      .message-content li.key-fact-item p strong:contains("Standort:"),
+      .message-content li.key-fact-item p strong:contains("Empfehlung:") {
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        min-width: 9rem;
+      }
+      
+      /* Spezielle Links in Key Facts */
+      .message-content li.key-fact-item a {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 0.25rem;
+      }
+      
+      /* Tipps am Ende von Nachrichtenblöcken */
+      .message-content p.tipp-paragraph {
+        margin-top: 1.25rem;
+        font-style: italic;
+        color: #4b5563;
+        padding: 0.75rem 1rem;
+        border-left: 2px solid rgba(37, 99, 235, 0.3);
+        background-color: rgba(248, 250, 252, 0.5);
+        border-radius: 0 0.5rem 0.5rem 0;
+      }
+      
+      /* Tipps mit Links */
+      .message-content p.tipp-paragraph a {
+        color: #4f46e5;
+        font-weight: 500;
+      }
+      
+      /* Key Facts-Hauptformatierung */
+      .message-content p:contains("Key Facts:"),
+      .message-content p.key-facts-heading {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #374151;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding-bottom: 0.5rem;
+      }
+      
+      /* Key Facts-Listen */
+      .message-content p:contains("Key Facts:") + ul,
+      .message-content p.key-facts-heading + ul {
+        background-color: rgba(248, 250, 252, 0.6);
+        border-radius: 0.5rem;
+        padding: 1rem 1.5rem;
+        margin: 0.75rem 0 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      
+      /* Sicherstellen, dass Listenpunkte in Key Facts nicht angezeigt werden */
+      .message-content p:contains("Key Facts:") + ul > li::before,
+      .message-content p.key-facts-heading + ul > li::before {
+        content: none !important;
+      }
+      
+      /* Nummerierte Abschnitte im Fließtext */
+      .message-content p strong:matches(/^\\d+\\./) {
+        display: block;
+        font-size: 1.1rem;
+        margin-top: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #374151;
+      }
+      
+      /* Allgemeine Textformatierung in User-Nachrichten */
+      .user-message-container * {
+        color: var(--user-text-color-override, #ffffff) !important;
+      }
+      
+      /* Fett formatierter Text in Listen */
+      .message-content li strong {
+        font-weight: 600;
+      }
+      
+      /* Listenpunkte mit Emojis als Icons */
+      .message-content li p:first-child:has(strong:first-child:matches(/[📍🕒📞🔗💰📋📧🌐📝]/)) {
+        display: flex;
+        align-items: flex-start;
+      }
+      
+      .message-content li p:first-child:has(strong:first-child:matches(/[📍🕒📞🔗💰📋📧🌐📝]/)) strong:first-child {
+        min-width: 24px;
+        margin-right: 8px;
+        display: inline-block;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    
+    console.log("MESSAGE-DEBUG-011: Neue verbesserte Styles für Key Facts und Links wurden hinzugefügt");
+  }, []);
+  
   // Debug-Ausgabe beim Rendern einer Nachricht
   useEffect(() => {
     console.log("MESSAGE-DEBUG-009: Nachricht gerendert:", {
@@ -591,33 +875,80 @@ export function Message({
 
   // VERBESSERTE FORMATIERUNGSFUNKTION mit Markdown
   const renderContent = () => {
-    console.log("MESSAGE-DEBUG-009: renderContent aufgerufen");
+    console.log("MESSAGE-DEBUG-011: renderContent aufgerufen");
     
     // Sicherheitsprüfung für leeren Inhalt
     if (!message.content || typeof message.content !== 'string') {
-      console.log("MESSAGE-DEBUG-009: Ungültiger Inhalt:", message.content);
+      console.log("MESSAGE-DEBUG-011: Ungültiger Inhalt:", message.content);
       return <div className="text-red-500">Ungültige Nachricht</div>;
     }
     
-    // Vorverarbeitung
+    // Spezielle Vorverarbeitung für Key Facts
     let processedContent = message.content;
     
-    // Entferne automatische Leerzeichen-Einfügung nach Doppelpunkten
-    // processedContent = processedContent.replace(/(Telefon|E-Mail|Website|Kontakt|Adresse|Schulform|Schulleitung|Standort|Fax|Öffnungszeiten|Angebote):([\S])/g, '$1: $2');
+    // 1. Spezielle Ersetzung für bekannte Key Facts-Strukturen
     
-    // Konvertiere Telefonnummern in Links (wenn nicht bereits Links)
-    // Erweitertes Muster für verschiedene Telefonnummernformate
+    // [Erlebnis Brandenburg [Unterkünfte](https://erlebnis-brandenburg.de/uebernachten)) zu korrigieren
+    // -> Erlebnis Brandenburg: [Unterkünfte](https://erlebnis-brandenburg.de/uebernachten)
+    processedContent = processedContent.replace(/\[([^[\]]+) \[([^[\]]+)]\(([^()]+)\)]/g, (match, prefix, text, url) => {
+      return `${prefix}: [${text}](${url})`;
+    });
+    
+    // Spezielle Ersetzung für Telefonnummern im Format [[012345] 67 89 [00]](tel:+....)
+    processedContent = processedContent.replace(/\[\[([^[\]]+)] ([^[\]]+) \[([^[\]]+)]]\(([^()]+)\)/g, (match, part1, part2, part3, url) => {
+      return `[${part1} ${part2} ${part3}](${url})`;
+    });
+    
+    // Allgemeinere Ersetzung für verschachtelte eckige Klammern (z.B. bei E-Mail-Adressen)
+    processedContent = processedContent.replace(/\[\[([^[\]]+)](\.[^[\]]+)]/g, (match, email, domain) => {
+      return `[${email}${domain}]`;
+    });
+    
+    // Allgemeine Korrektur für falsch formatierte Linkstruktur mit fehlenden eckigen Klammern
+    processedContent = processedContent.replace(/(\w+)]\(([^()]+)\)/g, (match, text, url) => {
+      // Nur ersetzen, wenn nicht bereits korrekt formatiert
+      if (!/\[.*\]/.test(match)) {
+        return `[${text}](${url})`;
+      }
+      return match;
+    });
+    
+    // 2. Spezielle Behandlung für bestimmte Schlüsselwörter in Key Facts
+    
+    // a. 🔗 Unterkunftssuche: (https://erlebnis-brandenburg.de/uebernachten)
+    processedContent = processedContent.replace(/(🔗\s*Unterkunftssuche:)\s*\(([^()]+)\)/g, 
+      (match, label, url) => `${label} [zur Unterkunftssuche](${url})`);
+    
+    // b. 📞 Touristinformation: [(03381) 58 80 [00]](tel:+4933815800)
+    processedContent = processedContent.replace(/(📞\s*Touristinformation:)\s*\[\[([^[\]]+)] ([^[\]]+) \[([^[\]]+)]]\(([^()]+)\)/g, 
+      (match, label, part1, part2, part3, url) => `${label} [${part1} ${part2} ${part3}](${url})`);
+      
+    // c. 📧 E-Mail: [[tourismus@stadt-brandenburg.de]](mailto:tourismus@stadt-brandenburg.de)
+    processedContent = processedContent.replace(/(📧\s*E-Mail:)\s*\[\[([^[\]]+)]]\(([^()]+)\)/g, 
+      (match, label, email, url) => `${label} [${email}](${url})`);
+    
+    // 3. Allgemeine Linkformatierungen
+    
+    // Konvertiere Telefonnummern, wenn nicht bereits Links
     processedContent = processedContent.replace(/(\(?\d{3,5}\)?\s*[-\s]?\d+[\s\d-]*\d+)/g, (match) => {
       // Überspringe, wenn bereits ein Link
-      if (match.includes('[') || match.includes('](')) return match;
+      if (match.includes('[') || match.includes('](') || match.startsWith('tel:')) return match;
       
       // Telefonnummer bereinigen: Nur Zahlen behalten
       const cleanNumber = match.replace(/\D/g, '');
-      return `[${match}](tel:${cleanNumber})`;
+      return `[${match}](tel:+${cleanNumber})`;
     });
     
-    // Konvertiere Web-URLs in Links (wenn nicht bereits Links)
-    processedContent = processedContent.replace(/(https?:\/\/[^\s]+|www\.[^\s]+\.[a-z]{2,}[^\s]*)/g, (match) => {
+    // Konvertiere E-Mail-Adressen in Links
+    processedContent = processedContent.replace(/\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g, (match) => {
+      // Überspringe, wenn bereits ein Link
+      if (match.includes('[') || match.includes('](') || match.startsWith('mailto:')) return match;
+      
+      return `[${match}](mailto:${match})`;
+    });
+    
+    // Konvertiere Web-URLs in Links
+    processedContent = processedContent.replace(/\b(https?:\/\/[^\s]+|www\.[^\s]+\.[a-z]{2,}[^\s]*)\b/g, (match) => {
       // Überspringe, wenn bereits ein Link
       if (match.includes('[') || match.includes('](')) return match;
       
@@ -626,34 +957,15 @@ export function Message({
       return `[${match}](${url})`;
     });
     
-    // Erkenne Domänen ohne Protokoll (z.B. example.com)
-    processedContent = processedContent.replace(/\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,}(\/[^\s]*)?/g, (match) => {
-      // Überspringe, wenn bereits ein Link oder Teil einer E-Mail
-      if (match.includes('[') || match.includes('](') || 
-          processedContent.includes(`mailto:${match}`) || 
-          processedContent.includes(`@${match}`)) return match;
-      
-      return `[${match}](https://${match})`;
+    // Korrektur für Tipps und abschließende Formatierung
+    processedContent = processedContent.replace(/Tipp: (.+?)]\(([^)]+)\)/g, (match, text, url) => {
+      if (!text.includes('[')) {
+        return `Tipp: [${text}](${url})`;
+      }
+      return match;
     });
     
-    // Konvertiere E-Mail-Adressen in Links (wenn nicht bereits Links)
-    processedContent = processedContent.replace(/\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g, (match) => {
-      if (match.includes('[') || match.includes('](')) return match; // Bereits ein Link
-      return `[${match}](mailto:${match})`;
-    });
-    
-    // Korrektur für falsch dargestellte Markdown-Links
-    // Erkennt fehlerhaftes Markup wie "Text](link)" und korrigiert es zu "[Text](link)"
-    processedContent = processedContent.replace(/([^[])(\w+[^)\s]*)]\(([^)]+)\)/g, (match, prefix, text, url) => {
-      return `${prefix}[${text}](${url})`;
-    });
-    
-    // Korrektur für spezielle Formate wie "Tipp: Nutzen Sie die Online-Unterkunftssuche](link)"
-    processedContent = processedContent.replace(/([\w\säÄöÖüÜß-]+)]\(([^)]+)\)/g, (match, text, url) => {
-      // Überspringe, wenn bereits korrekt formatiert
-      if (match.startsWith('[')) return match;
-      return `[${text}](${url})`;
-    });
+    console.log("MESSAGE-DEBUG-011: Verarbeiteter Inhalt:", processedContent.substring(0, 200) + "...");
     
     return (
       <div className="prose prose-sm break-words pointer-events-auto message-content">
@@ -691,7 +1003,10 @@ export function Message({
               // Prüfe, ob es sich um ein Key Facts Element handelt
               const isKeyFactItem = content.includes('📝 Empfehlung:') || 
                                    content.includes('📍 Standort:') || 
+                                   content.includes('🔗 Unterkunftssuche:') ||
                                    content.includes('🔗 Weitere Infos:') ||
+                                   content.includes('📞 Touristinformation:') ||
+                                   content.includes('📧 E-Mail:') ||
                                    content.includes('📞 Touristische Beratung:');
               
               return (
@@ -706,14 +1021,23 @@ export function Message({
             h2: ({node, ...props}) => <h2 {...props} />,
             h3: ({node, ...props}) => <h3 {...props} />,
             p: ({node, children, ...props}) => {
-              // Prüfen auf Kontaktinformationen
+              // Prüfen auf Kontaktinformationen oder Key Facts
               const content = String(children);
               const isContactInfo = /^(Adresse|Telefon|E-Mail|Standort|Öffnungszeiten|Angebote|Schulform|Schulleitung|Ganztagsschule|Kontakt|Website)/.test(content);
               const isKeyFact = content === 'Key Facts:' || content.includes('Key Facts');
+              const isTipp = content.startsWith('Tipp:') || content.includes('Tipp:');
               
               if (isKeyFact) {
                 return (
                   <p {...props} className="key-facts-heading">
+                    {children}
+                  </p>
+                );
+              }
+              
+              if (isTipp) {
+                return (
+                  <p {...props} className="tipp-paragraph">
                     {children}
                   </p>
                 );
