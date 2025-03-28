@@ -188,7 +188,7 @@ export function MessageList({
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
             <motion.h3 
-              className="text-xl font-medium mb-4 text-primary relative inline-block"
+              className="text-xl font-medium mb-4 text-primary relative inline-flex items-center gap-2"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, duration: 0.4 }}
@@ -208,7 +208,44 @@ export function MessageList({
               />
               {botName}
             </motion.h3>
-            
+
+            {/* Status-Indikator neben dem Bot-Namen */}
+            <motion.div 
+              className="relative flex items-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+            >
+              <motion.div 
+                className="w-3 h-3 rounded-full"
+                style={{
+                  background: `var(--primary, rgba(var(--primary-rgb), 1))`,
+                  boxShadow: `0 0 0 rgba(var(--primary-rgb), 0.4)`
+                }}
+                animate={{ 
+                  scale: [1, 1.4, 1],
+                  opacity: [0.8, 1, 0.8],
+                  boxShadow: [
+                    `0 0 0 rgba(var(--primary-rgb), 0)`,
+                    `0 0 12px rgba(var(--primary-rgb), 0.6)`,
+                    `0 0 0 rgba(var(--primary-rgb), 0)`
+                  ]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              <motion.span 
+                className="text-xs ml-2 text-primary/80"
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                Online
+              </motion.span>
+            </motion.div>
+
             {/* Chatwolke für die Willkommensnachricht */}
             <motion.div 
               className="relative mx-auto overflow-hidden p-6"
@@ -346,29 +383,6 @@ export function MessageList({
                   Wie kann ich Ihnen helfen?
                 </motion.p>
               )}
-              
-              {/* Pulsierender Punkt am Ende - auffälliger */}
-              <motion.div 
-                className="absolute bottom-3 right-3 w-3 h-3 rounded-full"
-                style={{
-                  background: `var(--primary, rgba(var(--primary-rgb), 1))`,
-                  boxShadow: `0 0 0 rgba(var(--primary-rgb), 0.4)`
-                }}
-                animate={{ 
-                  scale: [1, 1.4, 1],
-                  opacity: [0.8, 1, 0.8],
-                  boxShadow: [
-                    `0 0 0 rgba(var(--primary-rgb), 0)`,
-                    `0 0 12px rgba(var(--primary-rgb), 0.6)`,
-                    `0 0 0 rgba(var(--primary-rgb), 0)`
-                  ]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
             </motion.div>
           </motion.div>
         </div>
