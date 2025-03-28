@@ -22,14 +22,15 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
     }
   }, [])
 
-  // Auto-resize Funktion für Textarea
+  // Auto-resize Funktion für Textarea - begrenzt auf max 64px Höhe um Layout-Konsistenz zu gewährleisten
   useEffect(() => {
     const textarea = inputRef.current
     if (!textarea) return
 
     const adjustHeight = () => {
       textarea.style.height = 'auto'
-      const newHeight = Math.min(textarea.scrollHeight, 150)
+      // Begrenzt die maximale Höhe für konsistentes Layout
+      const newHeight = Math.min(textarea.scrollHeight, 64)
       textarea.style.height = `${newHeight}px`
     }
 
@@ -46,6 +47,11 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
     if (input.trim() && !isLoading) {
       onSend(input)
       setInput('')
+      
+      // Nach dem Senden die Höhe zurücksetzen
+      if (inputRef.current) {
+        inputRef.current.style.height = 'auto'
+      }
     }
   }
 
@@ -56,91 +62,86 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
       if (input.trim() && !isLoading) {
         onSend(input)
         setInput('')
+        
+        // Nach dem Senden die Höhe zurücksetzen
+        if (inputRef.current) {
+          inputRef.current.style.height = 'auto'
+        }
       }
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="relative flex w-full items-center p-4 md:px-5 md:py-4"
-      style={{ 
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '90px',
-        maxHeight: '90px',
-        background: 'white',
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderTop: '1px solid rgba(0,0,0,0.05)',
-        borderRadius: '0 0 12px 12px',
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
-        overflow: 'hidden'
-      }}
-    >
-      <div className="relative flex w-full items-center">
-        <textarea
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Schreiben Sie eine Nachricht..."
-          className="flex h-12 w-full resize-none rounded-full border border-input/30 bg-white/70 backdrop-blur-md px-5 py-3 pr-24 text-sm ring-offset-background placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-primary/40 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm transition-all flex items-center justify-center chat-input-field"
-          style={{ paddingTop: "16px", lineHeight: "normal" }}
-          aria-label="Chat Nachricht eingeben"
-          aria-multiline="true"
-          aria-required="true"
-          aria-invalid={false}
-          aria-disabled={isLoading}
-          disabled={isLoading}
-        />
-        <div className="absolute right-3 flex items-center space-x-1.5 pr-1">
-          {isLoading && (
-            <motion.button
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => {
-                e.preventDefault()
-                onCancel()
-              }}
-              className="mr-1 flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-              aria-label="Nachricht abbrechen"
-              title="Nachricht abbrechen"
+    <div className="h-full w-full flex items-center justify-center bg-white border-t border-gray-100/30 shadow-sm" style={{ 
+      borderRadius: '0 0 12px 12px',
+      maxHeight: '90px',
+      minHeight: '70px',
+      flexShrink: 0
+    }}>
+      <form
+        onSubmit={handleSubmit}
+        className="w-full flex items-center px-4 py-3 md:px-5"
+      >
+        <div className="relative flex w-full items-center">
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Schreiben Sie eine Nachricht..."
+            className="flex h-12 w-full resize-none rounded-full border border-input/30 bg-white/70 backdrop-blur-md px-5 py-3 pr-24 text-sm ring-offset-background placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-primary/40 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm transition-all flex items-center justify-center chat-input-field"
+            style={{ paddingTop: "13px", lineHeight: "normal" }}
+            aria-label="Chat Nachricht eingeben"
+            aria-multiline="true"
+            aria-required="true"
+            aria-invalid={false}
+            aria-disabled={isLoading}
+            disabled={isLoading}
+          />
+          <div className="absolute right-3 flex items-center space-x-1.5 pr-1">
+            {isLoading && (
+              <motion.button
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  onCancel()
+                }}
+                className="mr-1 flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                aria-label="Nachricht abbrechen"
+                title="Nachricht abbrechen"
+              >
+                <XCircleIcon className="h-5 w-5" />
+              </motion.button>
+            )}
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-muted-foreground hover:bg-gray-100 disabled:hover:bg-white/80 disabled:hover:text-muted-foreground shadow-sm"
+              disabled
+              aria-label="Sprachnachricht aufnehmen (nicht verfügbar)"
+              title="Sprachnachricht aufnehmen (nicht verfügbar)"
             >
-              <XCircleIcon className="h-5 w-5" />
+              <MicrophoneIcon className="h-5 w-5" />
+            </button>
+            <motion.button
+              type="submit"
+              className={`flex h-10 w-10 items-center justify-center rounded-full text-white hover:opacity-90 shadow-md ${
+                (!input.trim() || isLoading) ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              style={{ 
+                backgroundColor: botPrimaryColor || 'hsl(var(--primary))'
+              }}
+              disabled={!input.trim() || isLoading}
+              aria-label="Nachricht senden"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <SendIcon className="h-5 w-5" />
             </motion.button>
-          )}
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-muted-foreground hover:bg-gray-100 disabled:hover:bg-white/80 disabled:hover:text-muted-foreground shadow-sm"
-            disabled
-            aria-label="Sprachnachricht aufnehmen (nicht verfügbar)"
-            title="Sprachnachricht aufnehmen (nicht verfügbar)"
-          >
-            <MicrophoneIcon className="h-5 w-5" />
-          </button>
-          <motion.button
-            type="submit"
-            className={`flex h-10 w-10 items-center justify-center rounded-full text-white hover:opacity-90 shadow-md ${
-              (!input.trim() || isLoading) ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            style={{ 
-              backgroundColor: botPrimaryColor || 'hsl(var(--primary))'
-            }}
-            disabled={!input.trim() || isLoading}
-            aria-label="Nachricht senden"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <SendIcon className="h-5 w-5" />
-          </motion.button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   )
 } 

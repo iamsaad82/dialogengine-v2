@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { ChevronDownIcon } from '@heroicons/react/24/outline'
 
 interface Bot {
   id: string
@@ -35,6 +36,7 @@ export default function EmbedGenerator() {
   const [error, setError] = useState<string | null>(null)
   const [selectedBotId, setSelectedBotId] = useState<string>('')
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false)
+  const [zIndex, setZIndex] = useState('')
 
   // Lade verfügbare Bots
   useEffect(() => {
@@ -99,12 +101,16 @@ export default function EmbedGenerator() {
       if (chatHeight !== '700') scriptUrl.searchParams.append('chatHeight', chatHeight);
     }
     
+    // Z-Index hinzufügen, wenn angegeben
+    if (zIndex) scriptUrl.searchParams.append('zIndex', zIndex);
+    
     return `<!-- Dialog Engine Chat Widget -->
 <div id="dialog-container" 
   data-mode="${initialMode}" 
   data-color="${primaryColor}" 
   data-position="${position}"
   data-bot-id="${selectedBotId}"
+  ${zIndex ? `data-z-index="${zIndex}"` : ''}
   ${initialMode === 'bubble' ? '' : `style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : '100%'}; position: relative; border-radius: 12px; overflow: hidden;"`}
 ></div>
 <script src="${scriptUrl.toString()}" defer></script>
@@ -115,7 +121,7 @@ export default function EmbedGenerator() {
   useEffect(() => {
     setEmbedCode(generateEmbedCode())
   }, [initialMode, primaryColor, position, height, width, selectedBotId, 
-      bubbleSize, offsetX, offsetY, chatWidth, chatHeight])
+      bubbleSize, offsetX, offsetY, chatWidth, chatHeight, zIndex])
 
   return (
     <div className="p-6">
@@ -430,6 +436,39 @@ export default function EmbedGenerator() {
           <p className="text-yellow-700">
             <strong>Anpassung:</strong> Im container-div können Sie über <code>style="width: 500px; height: 700px;"</code> die Größe des Bots anpassen.
           </p>
+        </div>
+
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Erweiterte Optionen</h3>
+            <button 
+              type="button"
+              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              className="text-sm text-primary hover:underline flex items-center"
+            >
+              {showAdvancedOptions ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+              <ChevronDownIcon className={`ml-1 h-4 w-4 transition-transform ${showAdvancedOptions ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+          
+          {showAdvancedOptions && (
+            <div className="space-y-6 rounded-md p-4 bg-muted/20">
+              {/* Z-Index Option */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Z-Index (optional)</label>
+                <input 
+                  type="number" 
+                  value={zIndex}
+                  onChange={(e) => setZIndex(e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="z-index Wert (leer = Standard)"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Z-Index für Chat-Elemente, falls es Überlagerungsprobleme mit anderen Elementen gibt.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

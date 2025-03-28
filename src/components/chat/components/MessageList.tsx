@@ -20,6 +20,85 @@ interface MessageListProps {
   botPrimaryColor?: string
 }
 
+// Ladeindikator-Komponente
+function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { botName?: string, botPrimaryColor?: string }) {
+  return (
+    <motion.div
+      className="group relative mb-4 flex items-start justify-start max-w-full"
+      initial={{ opacity: 0, y: 10, x: -10 }}
+      animate={{ opacity: 1, y: 0, x: 0 }}
+      transition={{ duration: 0.3 }}
+      role="status" 
+      aria-label="Nachricht wird geladen"
+    >
+      <div 
+        className="flex max-w-[85%] items-start gap-3 rounded-lg p-3 shadow-lg glassmorphism-light"
+        style={{
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
+        }}
+      >
+        <motion.div 
+          className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-background/80 backdrop-blur-sm shadow-inner"
+          animate={{ 
+            rotate: [0, 5, 0, -5, 0],
+            scale: [1, 1.05, 1, 1.05, 1]
+          }}
+          transition={{ 
+            repeat: Infinity, 
+            duration: 2.5,
+            ease: "easeInOut"
+          }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="h-5 w-5">
+            <rect width="18" height="10" x="3" y="11" rx="2" stroke="currentColor" strokeWidth="2" />
+            <circle cx="12" cy="5" r="2" stroke="currentColor" strokeWidth="2" />
+            <path d="M12 7v4" stroke="currentColor" strokeWidth="2" />
+            <motion.line 
+              x1="8" x2="8" y1="16" y2="16" 
+              stroke="currentColor" strokeWidth="2"
+              animate={{ y1: [16, 14, 16], y2: [16, 18, 16] }}
+              transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+            />
+            <motion.line 
+              x1="16" x2="16" y1="16" y2="16" 
+              stroke="currentColor" strokeWidth="2"
+              animate={{ y1: [16, 14, 16], y2: [16, 18, 16] }}
+              transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut", delay: 0.3 }}
+            />
+          </svg>
+        </motion.div>
+        
+        <div className="flex-1 space-y-2 overflow-hidden">
+          <div className="text-sm font-medium">
+            {botName}
+          </div>
+          <div className="flex flex-col space-y-2">
+            {/* Elegantere Typing-Animation */}
+            <div className="flex h-6 items-center">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0s' }}></div>
+                <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+            </div>
+            
+            {/* Hinweis zum Vorbereiten der Antwort */}
+            <div className="text-xs text-muted-foreground/90 italic">
+              Ich bereite eine Antwort vor...
+            </div>
+          </div>
+          
+          <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
+            <span>
+              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export function MessageList({ 
   messages, 
   isLoading = false, 
@@ -96,115 +175,38 @@ export function MessageList({
   }
 
   return (
-    <div 
-      className="p-4 pb-4" 
-      aria-live="polite" 
-      aria-atomic="false"
-      style={{
-        backgroundImage: 'radial-gradient(circle at center, rgba(var(--background-start-rgb), 0.03) 0, rgba(var(--background-end-rgb), 0.03) 100%)',
-        backgroundSize: '8px 8px',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        paddingBottom: '24px',
-        borderRadius: '0'
-      }}
-    >
-      {/* Nachrichtenliste mit separater Animation für jede Nachricht */}
-      <div className="space-y-4 pb-4">
-        {messages.map((message, index) => (
+    <div className="h-full w-full overflow-y-auto scroll-smooth pt-2 pb-4 px-3 relative">
+      {/* Willkommensnachricht nur anzeigen, wenn keine Nachrichten vorhanden sind */}
+      {messages.length === 0 && (
+        <div className="flex items-center justify-center h-full">
+          <div className="p-3 text-center text-muted-foreground">
+            <p>Wie kann ich Ihnen helfen?</p>
+          </div>
+        </div>
+      )}
+
+      {/* Nachrichten-Liste */}
+      <div className="space-y-3 min-h-0 flex flex-col justify-start">
+        {messages.map((message) => (
           <Message 
-            key={index} 
+            key={typeof message.id === 'string' ? message.id : `msg-${message.timestamp || Date.now()}`}
             message={message} 
-            isLastMessage={index === messages.length - 1 && message.role === 'user'} 
             botName={botName}
             showCopyButton={showCopyButton}
             enableFeedback={enableFeedback}
             botId={botId}
+            botPrimaryColor={botPrimaryColor}
           />
         ))}
+        
+        {/* Ladeindikator */}
+        {isLoading && (
+          <LoadingMessage botName={botName} botPrimaryColor={botPrimaryColor} />
+        )}
+        
+        {/* Verstecktes Element für Auto-Scroll zum Ende der Nachrichtenliste */}
+        <div ref={messagesEndRef} className="h-2" />
       </div>
-      
-      {/* Lade-Indikator für Antwort */}
-      {isLoading && (
-        <motion.div
-          className="group relative mb-4 flex items-start justify-start max-w-full"
-          initial={{ opacity: 0, y: 10, x: -10 }}
-          animate={{ opacity: 1, y: 0, x: 0 }}
-          transition={{ duration: 0.3 }}
-          role="status" 
-          aria-label="Nachricht wird geladen"
-        >
-          <div 
-            className="flex max-w-[85%] items-start gap-3 rounded-lg p-3 shadow-lg glassmorphism-light"
-            style={{
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-            }}
-          >
-            <motion.div 
-              className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-background/80 backdrop-blur-sm shadow-inner"
-              animate={{ 
-                rotate: [0, 5, 0, -5, 0],
-                scale: [1, 1.05, 1, 1.05, 1]
-              }}
-              transition={{ 
-                repeat: Infinity, 
-                duration: 2.5,
-                ease: "easeInOut"
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="h-5 w-5">
-                <rect width="18" height="10" x="3" y="11" rx="2" stroke="currentColor" strokeWidth="2" />
-                <circle cx="12" cy="5" r="2" stroke="currentColor" strokeWidth="2" />
-                <path d="M12 7v4" stroke="currentColor" strokeWidth="2" />
-                <motion.line 
-                  x1="8" x2="8" y1="16" y2="16" 
-                  stroke="currentColor" strokeWidth="2"
-                  animate={{ y1: [16, 14, 16], y2: [16, 18, 16] }}
-                  transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-                />
-                <motion.line 
-                  x1="16" x2="16" y1="16" y2="16" 
-                  stroke="currentColor" strokeWidth="2"
-                  animate={{ y1: [16, 14, 16], y2: [16, 18, 16] }}
-                  transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut", delay: 0.3 }}
-                />
-              </svg>
-            </motion.div>
-            
-            <div className="flex-1 space-y-2 overflow-hidden">
-              <div className="text-sm font-medium">
-                {botName}
-              </div>
-              <div className="flex flex-col space-y-2">
-                {/* Elegantere Typing-Animation */}
-                <div className="flex h-6 items-center">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0s' }}></div>
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0.4s' }}></div>
-                  </div>
-                </div>
-                
-                {/* Hinweis zum Vorbereiten der Antwort */}
-                <div className="text-xs text-muted-foreground/90 italic">
-                  Ich bereite eine Antwort vor...
-                </div>
-              </div>
-              
-              <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
-                <span>
-                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
       
       {/* Scroll-Down-Button */}
       <AnimatePresence>
@@ -213,7 +215,7 @@ export function MessageList({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed bottom-24 right-8 flex items-center gap-1 text-primary-foreground rounded-full px-3 py-2 shadow-lg z-10"
+            className="fixed bottom-24 right-4 sm:right-6 flex items-center gap-1 text-primary-foreground rounded-full px-3 py-2 shadow-lg z-10"
             onClick={scrollToBottom}
             aria-label="Zum Ende der Nachrichten scrollen"
             title="Zum Ende scrollen"
@@ -240,8 +242,6 @@ export function MessageList({
           </motion.button>
         )}
       </AnimatePresence>
-      
-      <div ref={messagesEndRef} />
     </div>
   )
 } 

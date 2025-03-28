@@ -133,29 +133,24 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
     };
   }, []);
 
-  // Wenn nicht eingebettet und nicht im Vollbild-Modus, Chat-Logik unverändert lassen
-  if (!embedded && mode !== 'fullscreen') {
-    // Zeige nur die Bubble, wenn nicht geöffnet
-    if (!isOpen) {
-      return <ChatBubble onClick={toggleChat} />
-    }
-
-    // Normaler Chat für Bubble/Inline-Modi
+  // Für embedded bubble/inline ohne Switcher
+  if (embedded && mode !== 'fullscreen') {
     return (
-      <>
-        {mode === 'bubble' && <ChatBubble onClick={toggleChat} />}
-        
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="chat-dialog-title"
-          className={`
-            z-50 flex flex-col overflow-hidden shadow-lg bg-background
-            ${mode === 'bubble' ? 'fixed bottom-5 right-5 w-[480px] h-[850px] rounded-xl border' : ''}
-            ${mode === 'inline' ? 'w-full h-[500px] rounded-xl border' : ''}
-            ${className || ''}
-          `}
-        >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chat-dialog-title"
+        className={`
+          absolute inset-0 w-full h-full flex flex-col
+          ${mode === 'bubble' ? 'embedded-chat bubble-mode' : ''}
+          ${mode === 'inline' ? 'embedded-chat inline-mode' : ''}
+          ${className || ''}
+        `}
+        style={{
+          overflow: 'hidden'
+        }}
+      >
+        <div className="flex-shrink-0">
           <ChatHeader 
             mode={mode} 
             onClose={toggleChat} 
@@ -164,18 +159,26 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
             botName={botName}
             botPrimaryColor={botPrimaryColor}
           />
+        </div>
+        
+        <div 
+          className="flex-1 overflow-hidden bg-white flex flex-col min-h-0"
+          style={{
+            borderRadius: mode === 'bubble' ? '0' : undefined,
+            boxShadow: mode === 'bubble' ? '0 6px 30px rgba(0, 0, 0, 0.2)' : 'none',
+          }}
+        >
+          {error && (
+            <div 
+              className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
+              role="alert"
+              aria-live="assertive"
+            >
+              {error}
+            </div>
+          )}
           
-          <div className="flex flex-col flex-1 overflow-hidden">
-            {error && (
-              <div 
-                className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md" 
-                role="alert"
-                aria-live="assertive"
-              >
-                {error}
-              </div>
-            )}
-            
+          <div className="flex-1 overflow-y-auto min-h-0">
             <MessageList 
               messages={messages} 
               isLoading={isLoading} 
@@ -186,15 +189,82 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
               botId={botId}
               botPrimaryColor={botPrimaryColor}
             />
+          </div>
+        </div>
+        
+        <div className="flex-shrink-0 h-[90px]">
+          <ChatInput 
+            isLoading={isLoading} 
+            onSend={sendMessage} 
+            onCancel={cancelMessage} 
+            botPrimaryColor={botPrimaryColor}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Normaler Chat für Bubble/Inline-Modi
+  if (!embedded && mode !== 'fullscreen') {
+    // Zeige nur die Bubble, wenn nicht geöffnet
+    if (!isOpen) {
+      return <ChatBubble onClick={toggleChat} />
+    }
+
+    return (
+      <>
+        {mode === 'bubble' && <ChatBubble onClick={toggleChat} />}
+        
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="chat-dialog-title"
+          className={`
+            flex flex-col overflow-hidden shadow-lg bg-background
+            ${mode === 'bubble' ? 'fixed bottom-5 right-5 w-[90vw] max-w-[480px] h-[90vh] max-h-[850px] rounded-xl border' : ''}
+            ${mode === 'inline' ? 'w-full h-[500px] min-h-[400px] rounded-xl border' : ''}
+            ${className || ''}
+          `}
+          style={{ 
+            zIndex: 'var(--chat-z-index, 50)'
+          }}
+        >
+          <div className="flex-shrink-0">
+            <ChatHeader 
+              mode={mode} 
+              onClose={toggleChat} 
+              onModeChange={cycleMode}
+              setMode={setMode}
+              botName={botName}
+              botPrimaryColor={botPrimaryColor}
+            />
+          </div>
+          
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            {error && (
+              <div 
+                className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
+                role="alert"
+                aria-live="assertive"
+              >
+                {error}
+              </div>
+            )}
             
-            <div style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: '90px',
-              zIndex: 20
-            }}>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <MessageList 
+                messages={messages} 
+                isLoading={isLoading} 
+                messagesEndRef={messagesEndRef}
+                botName={botName}
+                showCopyButton={showCopyButton}
+                enableFeedback={enableFeedback}
+                botId={botId}
+                botPrimaryColor={botPrimaryColor}
+              />
+            </div>
+            
+            <div className="flex-shrink-0 h-[90px]">
               <ChatInput 
                 isLoading={isLoading} 
                 onSend={sendMessage} 
@@ -208,97 +278,10 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
     );
   }
 
-  // Für embedded bubble/inline ohne Switcher
-  if (embedded && mode !== 'fullscreen') {
-    return (
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="chat-dialog-title"
-        className={`
-          z-50 absolute inset-0 w-full h-full
-          ${mode === 'bubble' ? 'bubble-mode' : ''}
-          ${mode === 'inline' ? 'inline-mode' : ''}
-          ${className || ''}
-        `}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          width: '100%',
-          height: '100%',
-          overflow: 'hidden'
-        }}
-      >
-        <ChatHeader 
-          mode={mode} 
-          onClose={toggleChat} 
-          onModeChange={cycleMode}
-          setMode={setMode}
-          botName={botName}
-          botPrimaryColor={botPrimaryColor}
-        />
-        
-        <div 
-          style={{
-            position: 'absolute',
-            top: '48px', 
-            left: 0, 
-            right: 0, 
-            bottom: '90px',
-            background: 'white',
-            borderRadius: mode === 'bubble' ? '0' : undefined,
-            boxShadow: mode === 'bubble' ? '0 6px 30px rgba(0, 0, 0, 0.2)' : 'none',
-            overflow: 'hidden',
-            zIndex: 10
-          }}
-        >
-          {error && (
-            <div 
-              className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md" 
-              role="alert"
-              aria-live="assertive"
-            >
-              {error}
-            </div>
-          )}
-          
-          <MessageList 
-            messages={messages} 
-            isLoading={isLoading} 
-            messagesEndRef={messagesEndRef}
-            botName={botName}
-            showCopyButton={showCopyButton}
-            enableFeedback={enableFeedback}
-            botId={botId}
-            botPrimaryColor={botPrimaryColor}
-          />
-        </div>
-        
-        <div style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '90px',
-          zIndex: 20
-        }}>
-          <ChatInput 
-            isLoading={isLoading} 
-            onSend={sendMessage} 
-            onCancel={cancelMessage} 
-            botPrimaryColor={botPrimaryColor}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Für Fullscreen-Modus, neue Toggle-Logik anwenden
+  // Für Fullscreen-Modus, bessere Layout-Struktur anwenden
   return (
-    <div className="transparent-container">
-      {/* Segment-Control Toggle für Dialog/Klassisch im verbesserten Neumorphic-Stil */}
+    <div className={`transparent-container ${embedded ? 'embedded-chat fullscreen-mode' : ''}`}>
+      {/* Segment-Control Toggle für Dialog/Klassisch */}
       <div
         className="fixed z-60 overflow-hidden font-medium neumorphic"
         style={{
@@ -308,7 +291,7 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
           padding: '3px',
           display: 'flex',
           position: 'relative',
-          width: '180px', // Feste Breite statt auto/100%
+          width: '180px',
           pointerEvents: 'auto',
         }}
       >
@@ -384,10 +367,10 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
           className="z-40 fixed inset-0 flex flex-col overflow-hidden pointer-events-auto"
           style={{ paddingTop: '70px' }}
         >
-          <div className="flex flex-col flex-1 overflow-hidden glassmorphism-chat">
+          <div className="flex flex-col flex-1 overflow-hidden min-h-0 glassmorphism-chat">
             {error && (
               <div 
-                className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md" 
+                className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
                 role="alert"
                 aria-live="assertive"
               >
@@ -395,23 +378,27 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
               </div>
             )}
             
-            <MessageList 
-              messages={messages} 
-              isLoading={isLoading} 
-              messagesEndRef={messagesEndRef}
-              botName={botName}
-              showCopyButton={showCopyButton}
-              enableFeedback={enableFeedback}
-              botId={botId}
-              botPrimaryColor={botPrimaryColor}
-            />
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <MessageList 
+                messages={messages} 
+                isLoading={isLoading} 
+                messagesEndRef={messagesEndRef}
+                botName={botName}
+                showCopyButton={showCopyButton}
+                enableFeedback={enableFeedback}
+                botId={botId}
+                botPrimaryColor={botPrimaryColor}
+              />
+            </div>
             
-            <ChatInput 
-              isLoading={isLoading} 
-              onSend={sendMessage} 
-              onCancel={cancelMessage} 
-              botPrimaryColor={botPrimaryColor}
-            />
+            <div className="flex-shrink-0 h-[90px]">
+              <ChatInput 
+                isLoading={isLoading} 
+                onSend={sendMessage} 
+                onCancel={cancelMessage} 
+                botPrimaryColor={botPrimaryColor}
+              />
+            </div>
           </div>
         </div>
       )}

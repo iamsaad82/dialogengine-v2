@@ -11,9 +11,10 @@ export default function EmbeddedChat() {
   const containerRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
-    // Setze Hintergrund transparent
+    // Setze Hintergrund transparent und füge embedded-body Klasse hinzu
     document.documentElement.style.background = 'transparent';
     document.body.style.background = 'transparent';
+    document.body.classList.add('embedded-body');
     
     // Kurze Ladezeit für Client-Hydration
     const timer = setTimeout(() => {
@@ -107,10 +108,19 @@ export default function EmbeddedChat() {
     // Initial die Größe melden, nachdem der Inhalt geladen wurde
     setTimeout(reportSize, 500);
     
+    // Z-Index konfigurieren basierend auf Host-Seiten-Parameter
+    const zIndexParam = searchParams.get('zIndex');
+    if (zIndexParam && !isNaN(parseInt(zIndexParam))) {
+      // Custom CSS Variable für z-index setzen
+      document.documentElement.style.setProperty('--chat-z-index', zIndexParam);
+    }
+    
+    // Cleanup-Funktion
     return () => {
       window.removeEventListener('message', handleMessage)
       clearTimeout(timer)
       sizeObserver.disconnect();
+      document.body.classList.remove('embedded-body');
     }
   }, [mode])
 
@@ -134,7 +144,10 @@ export default function EmbeddedChat() {
         left: 0,
         right: 0,
         bottom: 0,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%'
       }}
     >
       <Chat initialMode={mode} embedded={true} botId={botId} />

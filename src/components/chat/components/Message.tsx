@@ -15,12 +15,15 @@ interface MessageProps {
   message: {
     role: 'user' | 'assistant'
     content: string
+    id?: string
+    timestamp?: number
   }
   isLastMessage?: boolean
   botName?: string
   showCopyButton?: boolean
   enableFeedback?: boolean
   botId?: string
+  botPrimaryColor?: string
 }
 
 export function Message({ 
@@ -29,7 +32,8 @@ export function Message({
   botName = 'SMG Dialog Engine',
   showCopyButton = true,
   enableFeedback = false,
-  botId = 'default'
+  botId = 'default',
+  botPrimaryColor = 'var(--primary)'
 }: MessageProps) {
   const [copySuccess, setCopySuccess] = useState(false)
   const [currentTime, setCurrentTime] = useState<string>("")

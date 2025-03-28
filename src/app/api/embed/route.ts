@@ -14,6 +14,8 @@ export async function GET(request: Request) {
   const offsetY = searchParams.get('offsetY') || '20' // Vertikaler Abstand in px
   const chatWidth = searchParams.get('chatWidth') || '480' // Standardbreite - etwas größer als typische Bots
   const chatHeight = searchParams.get('chatHeight') || '700' // Standardhöhe - etwas größer als typische Bots
+  // Neue Parameter für verbesserte Anpassbarkeit
+  const zIndex = searchParams.get('zIndex') || '' // Konfigurierbarer Z-Index
 
   if (!botId) {
     return new Response('Bot ID erforderlich', { status: 400 })
@@ -50,6 +52,7 @@ export async function GET(request: Request) {
     const configPosition = targetContainer.getAttribute('data-position') || "${position}";
     const configColor = targetContainer.getAttribute('data-color') || "${botColor}";
     const configBotId = targetContainer.getAttribute('data-bot-id') || "${botId}";
+    const configZIndex = targetContainer.getAttribute('data-z-index') || "${zIndex}";
     
     // Erweiterte Einstellungen aus Datenattributen oder Standardwerten
     const configBubbleSize = parseInt(targetContainer.getAttribute('data-bubble-size') || "${bubbleSize}");
@@ -193,8 +196,13 @@ export async function GET(request: Request) {
       const widgetUrl = new URL(chatPath, baseUrl);
       
       widgetUrl.searchParams.append('mode', mode);
-      widgetUrl.searchParams.append('color', encodeURIComponent(color));  // Hier übergeben wir die Farbe direkt an den Chat
+      widgetUrl.searchParams.append('color', encodeURIComponent(color));
       widgetUrl.searchParams.append('botId', botId);
+      
+      // Z-Index Parameter hinzufügen, wenn gesetzt
+      if (configZIndex) {
+        widgetUrl.searchParams.append('zIndex', configZIndex);
+      }
       
       if (mode === 'bubble') {
         // Erstelle einen neuen Container für die Bubble

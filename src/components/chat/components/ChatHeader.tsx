@@ -20,26 +20,22 @@ export function ChatHeader({
   botName = 'SMG Dialog Engine', 
   botPrimaryColor 
 }: ChatHeaderProps) {
-  // Bestimme Stil basierend auf Modus
+  // Vereinfachte Stile ohne absolute Positionierung
   const headerStyle = {
     backgroundColor: botPrimaryColor || 'hsl(var(--primary))',
     color: 'white',
     borderRadius: mode === 'bubble' ? '12px 12px 0 0' : undefined,
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-    position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    right: 0,
     height: '48px',
-    zIndex: 10,
     display: 'flex' as const,
     alignItems: 'center' as const,
-    justifyContent: 'space-between' as const
+    justifyContent: 'space-between' as const,
+    flexShrink: 0 as const
   };
 
   return (
     <motion.header
-      className="flex items-center justify-between px-4 py-3"
+      className="flex items-center justify-between px-4 py-3 w-full"
       style={headerStyle}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
