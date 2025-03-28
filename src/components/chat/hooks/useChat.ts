@@ -191,7 +191,7 @@ export function useChat({
   }, []);
 
   // Debounced sendMessage Funktion, verhindert mehrfache Aufrufe innerhalb von 500ms
-  const debouncedSendMessage = useCallback((content: string) => {
+  const debouncedSendMessage = useCallback(async (content: string) => {
     // Die normale sendMessage-Logik hier
     if (!content || content.trim() === '') {
       return;
@@ -318,7 +318,7 @@ export function useChat({
       abortControllerRef.current = null;
       setInput('');
     }
-  }, [isLoading, messages, addMessage]);
+  }, [isLoading, messages, addMessage, botId]);
 
   // Wrapper-Funktion für sendMessage, die den debounced-Aufruf triggert
   const sendMessage = useCallback((content: string) => {
@@ -454,7 +454,7 @@ export function useChat({
     return () => {
       clearTimeout(timeoutId); // Timeout löschen beim Unmount
     };
-  }, [botId, messages]); // Abhängigkeit zu messages hinzugefügt
+  }, [botId]); // Nur von botId abhängig machen, messages entfernt
 
   return {
     messages,
