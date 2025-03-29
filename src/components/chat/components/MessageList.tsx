@@ -70,27 +70,20 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor, botAva
         }}
       >
         <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2">
-          <div className="inline-flex items-center justify-center overflow-hidden" style={{ width: '20px', height: '20px' }}>
+          <div className="inline-flex items-center justify-center overflow-hidden" style={{ width: '200px', height: '200px' }}>
             {botAvatarUrl ? (
               <img 
                 src={botAvatarUrl} 
                 alt={`${displayName} Logo`} 
-                className="object-contain"
-                style={{ 
-                  width: '100%', 
-                  height: '100%',
-                  maxWidth: 'none', 
-                  maxHeight: 'none',
-                  objectFit: 'contain'
-                }}
+                className="w-full h-full object-contain"
                 width="200"
                 height="200"
               />
             ) : (
               <svg 
                 viewBox="0 0 24 24" 
-                width="20" 
-                height="20"
+                width="200" 
+                height="200"
                 fill="none" 
                 stroke="currentColor" 
                 strokeWidth="2" 
