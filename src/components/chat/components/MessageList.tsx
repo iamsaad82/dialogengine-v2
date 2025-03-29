@@ -69,12 +69,12 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor, botAva
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
         }}
       >
-        <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2">
+        <div className="pb-1 flex flex-col items-center gap-1 text-xs text-gray-500 border-b border-gray-200 mb-2">
           <div className="inline-flex items-center justify-center overflow-hidden" style={{ width: '200px', height: '40px' }}>
             {botAvatarUrl ? (
               <img 
                 src={botAvatarUrl} 
-                alt={`${displayName} Logo`} 
+                alt={`${botName} Logo`} 
                 className="h-auto max-h-full w-full object-contain"
                 width="200"
                 height="40"
@@ -98,7 +98,7 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor, botAva
               </svg>
             )}
           </div>
-          <span className="text-sm font-semibold leading-none">{displayName}</span>
+          <span className="text-sm font-semibold text-center leading-none">{botName}</span>
         </div>
         
         <div className="py-1">
