@@ -693,6 +693,17 @@ body.dialog-mode .chat-input-field {
   height: 100%;
   position: relative;
   z-index: 60;
+  pointer-events: none; /* Allow clicks to pass through */
+}
+
+/* Only make the toggle button clickable in Web mode */
+.transparent-container > div:first-child {
+  pointer-events: auto;
+}
+
+/* Make sure dialog mode is visible and clickable */
+.transparent-container .glassmorphism-chat {
+  pointer-events: auto;
 }
 
 /* Verbesserte Listen-Formatierung, besonders für Kontaktdaten */

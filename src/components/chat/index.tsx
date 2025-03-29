@@ -326,7 +326,11 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
 
   // Für Fullscreen-Modus, bessere Layout-Struktur anwenden
   return (
-    <div className={`transparent-container ${embedded ? 'embedded-chat fullscreen-mode' : ''}`}>
+    <div className={`transparent-container ${embedded ? 'embedded-chat fullscreen-mode' : ''}`}
+         style={{ 
+           background: 'transparent', 
+           pointerEvents: isDialogMode ? 'auto' : 'none' 
+         }}>
       {/* Segment-Control Toggle für Dialog/Klassisch */}
       <div
         className="fixed z-60 overflow-hidden font-medium neumorphic"
