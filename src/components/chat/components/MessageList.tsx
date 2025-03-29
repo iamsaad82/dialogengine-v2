@@ -7,6 +7,7 @@ import { Message as MessageType } from '../types'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 // VERSION-MARKER: MessageList-Debug-Code - Version 002
 console.log("MessageList.tsx geladen - Debug-Version 002");
@@ -69,13 +70,21 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor, botAva
         }}
       >
         <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2">
-          <div className="inline-flex items-center justify-center" style={{ width: '20px', height: '20px' }}>
+          <div className="inline-flex items-center justify-center overflow-hidden" style={{ width: '20px', height: '20px' }}>
             {botAvatarUrl ? (
               <img 
                 src={botAvatarUrl} 
                 alt={`${displayName} Logo`} 
-                className="w-full h-full object-contain"
-                style={{ aspectRatio: '1' }}
+                className="object-contain"
+                style={{ 
+                  width: '100%', 
+                  height: '100%',
+                  maxWidth: 'none', 
+                  maxHeight: 'none',
+                  objectFit: 'contain'
+                }}
+                width="200"
+                height="200"
               />
             ) : (
               <svg 
