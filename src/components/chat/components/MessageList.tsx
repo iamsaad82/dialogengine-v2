@@ -46,56 +46,29 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { bo
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
         }}
       >
-        <motion.div 
-          className="flex-shrink-0 flex items-center justify-center border rounded-md bg-background/80 backdrop-blur-sm shadow-inner"
-          style={{ width: '20px', height: '20px' }}
-          animate={{ 
-            rotate: [0, 5, 0, -5, 0],
-            scale: [1, 1.05, 1, 1.05, 1]
-          }}
-          transition={{ 
-            repeat: Infinity, 
-            duration: 2.5,
-            ease: "easeInOut"
-          }}
-        >
-          <svg 
-            viewBox="0 0 24 24" 
-            width="16" 
-            height="16"
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg" 
-            aria-hidden="true"
-            style={{ aspectRatio: '1/1' }}
-          >
-            <rect width="18" height="10" x="3" y="11" rx="2" stroke="currentColor" strokeWidth="2" />
-            <circle cx="12" cy="5" r="2" stroke="currentColor" strokeWidth="2" />
-            <path d="M12 7v4" stroke="currentColor" strokeWidth="2" />
-            <motion.line 
-              x1="8" x2="8" y1="16" y2="16" 
-              stroke="currentColor" strokeWidth="2"
-              animate={{ 
-                y1: ["16px", "14px", "16px"], 
-                y2: ["16px", "18px", "16px"] 
-              }}
-              transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-            />
-            <motion.line 
-              x1="16" x2="16" y1="16" y2="16" 
-              stroke="currentColor" strokeWidth="2"
-              animate={{ 
-                y1: ["16px", "14px", "16px"], 
-                y2: ["16px", "18px", "16px"] 
-              }}
-              transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut", delay: 0.3 }}
-            />
-          </svg>
-        </motion.div>
-        
-        <div className="flex-1 space-y-2 overflow-hidden">
-          <div className="text-sm font-medium leading-none">
-            {displayName}
+        <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2 w-full">
+          <div className="inline-flex items-center justify-center" style={{ width: '20px', height: '20px' }}>
+            <svg 
+              viewBox="0 0 24 24" 
+              width="20" 
+              height="20"
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              className="text-primary"
+              style={{ aspectRatio: '1' }}
+            >
+              <rect width="18" height="10" x="3" y="11" rx="2" />
+              <circle cx="12" cy="5" r="2" />
+              <path d="M12 7v4" />
+              <line x1="8" x2="8" y1="16" y2="16" />
+              <line x1="16" x2="16" y1="16" y2="16" />
+            </svg>
           </div>
+          <span className="text-sm font-semibold leading-none">{displayName}</span>
+        </div>
+        
+        <div className="flex-1 space-y-2 overflow-hidden pl-2">
           <div className="flex flex-col space-y-2">
             {/* Elegantere Typing-Animation */}
             <div className="flex h-6 items-center">
