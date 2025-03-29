@@ -635,592 +635,185 @@ body.dialog-mode .mode-toggle-button {
 
 /* Neue Glassmorphism-Klasse für den Chat im Dialog-Modus */
 .glassmorphism-chat {
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(16px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.dark .glassmorphism-chat {
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
-
-/* Message-Bubbles im Dialog-Modus */
-body.dialog-mode .glassmorphism-user {
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.9), rgba(var(--primary-rgb), 0.7));
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(var(--primary-rgb), 0.2);
-}
-
-body.dialog-mode .glassmorphism-bot {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* Input-Feld im Dialog-Modus für bessere Sichtbarkeit */
-body.dialog-mode .chat-input-field {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 0px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  z-index: 50;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-/* Stile für den Dialog-Modus im iframe */
-:root.dialog-mode {
-  --background: transparent !important;
-  background: transparent !important;
+/* Klasse für User-Nachrichten im Glassmorphism-Stil */
+.glassmorphism-user {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9));
+  color: white !important;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: 1rem;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
 }
 
-/* Embedded Chat Styling - Web und Dialog Modus */
-.embedded-chat,
-.embedded-body,
-.embedded-body:before,
-.embedded-body:after {
-  background: transparent;
+.dialog-mode {
+  overflow: hidden !important;
+  background: linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95)) !important;
 }
 
-/* Verbesserte Einstellungen für embedded-chat */
-.embedded-chat {
-  box-shadow: none;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* Bubble-Modus-spezifische Einstellungen - Optimiert */
-.embedded-chat.bubble-mode {
-  background: transparent;
-  box-shadow: none;
-  border: none;
-  overflow: hidden;
-  height: 100%;
-  min-height: min(600px, 90vh);
-  max-height: 850px;
-}
-
-/* Z-50 Container im Bubble-Modus mit verbesserten Selektoren */
-.embedded-chat.bubble-mode .z-50 {
-  border: none;
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
-  /* Konfigurierbarer z-index */
-  --chat-z-index: 50;
-  z-index: var(--chat-z-index);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* Inline-Modus-spezifische Einstellungen */
-.embedded-chat.inline-mode {
-  background: transparent;
-  overflow: hidden;
-  border-radius: 12px;
-  height: 100%;
-  min-height: 400px;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Fullscreen-Modus-spezifische Einstellungen */
-.embedded-chat.fullscreen-mode {
+.fullscreen-chat {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  /* Konfigurierbarer z-index */
-  --chat-z-index: 999;
-  z-index: var(--chat-z-index);
-  display: flex;
-  flex-direction: column;
-  /* Standardmäßig transparent (für klassischen Modus) */
-  background-color: transparent !important;
+  z-index: 50;
 }
 
-/* Dialog-Modus mit weißem Hintergrund */
-body.dialog-mode .embedded-chat.fullscreen-mode {
-  background-color: white !important;
-}
-
-/* Grundsätzlich transparent für klassischen Modus */
-.embedded-body.fullscreen-mode {
-  background-color: transparent !important;
-}
-
-/* Dialog-Modus mit weißem Hintergrund */
-body.dialog-mode .embedded-body.fullscreen-mode {
-  background-color: white !important;
-}
-
-/* Fix für Hover-Effekte, um die Layout-Verschiebung zu minimieren */
-.glassmorphism-bot:hover,
-.glassmorphism-user:hover {
-  transform: scale(1.01) !important; /* Scale statt translateY für weniger Layout-Shifts */
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-}
-
-/* Anpassung für Dialog-Modus im iframe */
-html.embedded-body,
-body.embedded-body {
-  /* Standard transparent für klassischen Modus */
-  background-color: transparent !important;
-}
-
-/* Dialog-Modus im iframe hat transparenten Hintergrund */
-body.dialog-mode.embedded-body,
-html.dialog-mode.embedded-body {
-  background-color: transparent !important;
-}
-
-/* Dialog-Modus im iframe mit weißem Hintergrund, Dialog-Modus mit weißem Hintergrund */
-.dialog-mode-iframe,
-.embedded-body:root.dialog-mode {
-  --background: transparent;
-  background-color: transparent !important;
-}
-
-/* Für klassischen Modus immer transparent */
-.embedded-body:root {
-  --background: transparent;
-  background-color: transparent !important;
-}
-
-/* Speziell für den Fullscreen-Modus - klassischer Modus transparent, Dialog-Modus weiß */
-.embedded-chat.fullscreen-mode,
-.embedded-chat.fullscreen-mode html {
-  background-color: transparent !important;
-  height: 100vh !important;
-  width: 100vw !important;
-}
-
-/* Dialog-Modus mit transparentem Hintergrund, damit der Verlauf sichtbar ist */
-body.dialog-mode .embedded-chat.fullscreen-mode,
-body.dialog-mode .embedded-chat.fullscreen-mode html {
-  background-color: transparent !important;
-}
-
-/* Data-Mode Fullscreen transparent für klassischen Modus */
-div[data-mode="fullscreen"] {
-  background-color: transparent !important;
-}
-
-/* Dialog-Modus mit transparentem Hintergrund */
-body.dialog-mode div[data-mode="fullscreen"] {
-  background-color: transparent !important;
-}
-
-/* Responsive Anpassungen für mobile Geräte */
-@media (max-width: 768px) {
-  .embedded-chat.bubble-mode {
-    min-height: min(500px, 95vh);
-    max-height: 95vh;
-  }
-  
-  .embedded-chat.inline-mode {
-    min-height: 350px;
-  }
-}
-
-/* Bessere Einbettung auf kleinen Bildschirmen */
-@media (max-width: 480px) {
-  .embedded-chat.bubble-mode {
-    min-height: min(450px, 90vh);
-  }
-}
-
-.embedded-body html,
-.embedded-body body {
-  background: transparent;
-}
-
-.transparent-container {
-  background: transparent;
-  width: 100%;
-  height: 100%;
+/* Streaming-Nachrichten-Animationen */
+.streaming-message {
   position: relative;
-  z-index: 60;
-  pointer-events: none; /* Allow clicks to pass through */
 }
 
-/* Only make the toggle button clickable in Web mode */
-.transparent-container > div:first-child {
-  pointer-events: auto;
+.pulse-subtle {
+  animation: pulse-animation 2s infinite;
 }
 
-/* Make sure dialog mode is visible and clickable */
-.transparent-container .glassmorphism-chat {
-  pointer-events: auto;
-}
-
-/* Verbesserte Listen-Formatierung, besonders für Kontaktdaten */
-.prose .list-item:has(strong:last-child:after(":")) strong:after,
-.prose li strong:last-child:after(":") {
-  content: ": ";  /* Doppelpunkt mit Leerzeichen */
-  margin-right: 0.25rem;
-}
-
-/* Optimierte Listen-Abstände */
-.prose ul li {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-  line-height: 1.5 !important;
-}
-
-/* Verbesserte Darstellung für Kontaktdaten wie Telefon, E-Mail, Website */
-.prose a.phone-number,
-.prose a.email-address,
-.prose a.url-address {
-  display: inline-block;
-  padding-left: 0.25rem;
-}
-
-/* Bessere Abstände in verschachtelten Listen */
-.prose ul ul,
-.prose ol ol,
-.prose ul ol,
-.prose ol ul {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-  margin-left: 1.25rem !important;
-}
-
-/* Verbesserte Darstellung für Beschriftungen mit Doppelpunkten */
-.prose .contact-label:after {
-  content: " ";  /* Leerzeichen nach dem Doppelpunkt */
-  display: inline;
-}
-
-.prose li .contact-label {
-  font-weight: 600;
-  color: hsl(var(--foreground));
-  min-width: 100px;
-  display: inline-block;
-}
-
-/* Verbesserte Listen-Darstellung für Kontaktinfos */
-.prose ul li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  margin-bottom: 0.35rem !important;
-}
-
-.prose .list-item strong,
-.prose .list-item b {
-  margin-right: 0.5rem;
-}
-
-/* Für mobile Darstellung */
-@media (max-width: 640px) {
-  .prose li .contact-label {
-    min-width: auto;
-    margin-right: 0.25rem;
+@keyframes pulse-animation {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3);
   }
-  
-  .prose ul li {
-    flex-direction: column;
+  70% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
   }
 }
 
-/* Key Facts Styling - Modernes, interaktives Design */
-.keyfacts {
-  margin: 1.5rem 0;
-  padding: 1.25rem;
-  border-radius: 0.75rem;
-  background: linear-gradient(to bottom right, rgba(var(--primary-rgb), 0.05), rgba(var(--primary-rgb), 0.02));
-  border: 1px solid rgba(var(--primary-rgb), 0.1);
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
-  transition: all 0.25s ease;
-}
-
-.keyfacts:hover {
-  box-shadow: 0 8px 30px -5px rgba(var(--primary-rgb), 0.15);
-  transform: translateY(-2px);
-}
-
-.keyfacts h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid rgba(var(--primary-rgb), 0.15);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.keyfacts h3::before {
-  content: "🔑";
+.typing-dot {
   display: inline-block;
-  margin-right: 0.5rem;
-  font-size: 1.4rem;
-}
-
-.keyfacts ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.75rem;
-}
-
-.keyfacts li {
-  background-color: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(10px);
-  border-radius: 0.5rem;
-  padding: 0.875rem;
-  border: 1px solid rgba(var(--primary-rgb), 0.07);
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
-}
-
-.keyfacts li:hover {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-color: rgba(var(--primary-rgb), 0.2);
-  box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.1);
-  transform: translateY(-1px);
-}
-
-.keyfacts .fact-icon {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(var(--primary-rgb), 0.1);
-  color: rgba(var(--primary-rgb), 1);
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  padding: 5px;
-  font-size: 1rem;
+  background-color: var(--bot-accent-color, #3b82f6);
+  margin: 0 1px;
+  opacity: 0.7;
 }
 
-.keyfacts .fact-content {
-  flex: 1;
+.typing-dot:nth-child(1) {
+  animation: typing-dot 1.4s infinite;
+  animation-delay: 0s;
 }
 
-.keyfacts strong {
-  color: hsl(var(--foreground));
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
+.typing-dot:nth-child(2) {
+  animation: typing-dot 1.4s infinite;
+  animation-delay: 0.2s;
 }
 
-.keyfacts a {
-  color: rgba(var(--primary-rgb), 1);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
+.typing-dot:nth-child(3) {
+  animation: typing-dot 1.4s infinite;
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-dot {
+  0% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+}
+
+/* Streaming-Nachricht Styling */
+.streaming-message {
   position: relative;
+  overflow: hidden;
 }
 
-.keyfacts a:hover {
-  text-decoration: none;
-  color: rgba(var(--primary-rgb), 0.8);
-}
-
-.keyfacts a::after {
+.streaming-message::after {
   content: "";
   position: absolute;
-  bottom: -2px;
+  top: 0;
   left: 0;
-  width: 0;
-  height: 2px;
-  background-color: rgba(var(--primary-rgb), 0.5);
-  transition: width 0.3s ease;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    rgba(59, 130, 246, 0) 0%, 
+    rgba(59, 130, 246, 0.1) 50%, 
+    rgba(59, 130, 246, 0) 100%);
+  z-index: 1;
+  animation: shimmer 2s infinite;
+  pointer-events: none;
+  border-radius: inherit;
 }
 
-.keyfacts a:hover::after {
-  width: 100%;
-}
-
-/* Responsive Anpassungen */
-@media (max-width: 640px) {
-  .keyfacts ul {
-    grid-template-columns: 1fr;
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
   }
-  
-  .keyfacts {
-    padding: 1rem;
-    margin: 1rem 0;
-  }
-}
-
-/* Verberge Scrollbalken, behalte aber Scrollfunktion bei */
-.message-list-container::-webkit-scrollbar,
-.chat-container::-webkit-scrollbar,
-.glassmorphism-chat::-webkit-scrollbar,
-.message-list::-webkit-scrollbar,
-.overflow-y-auto::-webkit-scrollbar {
-  width: 4px; /* Schmale Breite für subtile Anzeige */
-  background: transparent;
-}
-
-.message-list-container::-webkit-scrollbar-track,
-.chat-container::-webkit-scrollbar-track,
-.glassmorphism-chat::-webkit-scrollbar-track,
-.message-list::-webkit-scrollbar-track,
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.message-list-container::-webkit-scrollbar-thumb,
-.chat-container::-webkit-scrollbar-thumb,
-.glassmorphism-chat::-webkit-scrollbar-thumb,
-.message-list::-webkit-scrollbar-thumb,
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: rgba(var(--primary-rgb), 0.1);
-  border-radius: 8px;
-}
-
-/* Für Firefox */
-.message-list-container,
-.chat-container,
-.glassmorphism-chat,
-.message-list,
-.overflow-y-auto {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--primary-rgb), 0.1) transparent;
-}
-
-/* Anpassungen für die Message-List und Willkommensnachricht, um Springen zu verhindern */
-.message-list-container {
-  overflow-y: scroll !important; /* Immer Scrollbalken zeigen, anstatt 'auto' */
-  transform-origin: top; /* Transformationen vom oberen Rand aus anwenden */
-  will-change: transform; /* Für bessere Performance */
-  height: 100%;
-  /* Feste Reservierung für Scrollbalken */
-  padding-right: calc(4px + 0.5rem); /* Scrollbalken-Breite + zusätzlicher Abstand */
-  scrollbar-gutter: stable; /* CSS-Prop für stabilen Scrollbalken-Platz */
-  margin-right: -4px; /* Kompensation für den Scrollbalken */
-}
-
-/* Anpassungen für Willkommensnachricht-Animation */
-.message-list-container .flex.items-center.justify-center {
-  min-height: 250px; /* Mindesthöhe für die Willkommensnachricht */
-  height: calc(100% - 40px); /* Höhe festlegen, abzüglich Abstand */
-  transform-origin: top; /* Transformationen vom oberen Rand aus anwenden */
-  will-change: transform; /* Für bessere Performance */
-}
-
-/* Sanftere Animation für die Willkommensnachricht */
-@keyframes mediaAppear {
-  from {
-    opacity: 0;
-    transform: translateY(3px); /* Weniger Bewegung um Springen zu reduzieren */
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  100% {
+    transform: translateX(100%);
   }
 }
 
-/* Scrollbalken immer gleich breit halten, aber transparent machen */
-.message-list-container::-webkit-scrollbar,
-.chat-container::-webkit-scrollbar,
-.glassmorphism-chat::-webkit-scrollbar,
-.message-list::-webkit-scrollbar,
-.overflow-y-auto::-webkit-scrollbar {
-  width: 4px; /* Schmale Breite für subtile Anzeige */
-  background: transparent;
+/* Füge diese Klassen für Glassmorphism-Effekte und Dialog-Modus hinzu */
+.glassmorphism-chat {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 0px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  z-index: 50;
 }
 
-.message-list-container::-webkit-scrollbar-track,
-.chat-container::-webkit-scrollbar-track,
-.glassmorphism-chat::-webkit-scrollbar-track,
-.message-list::-webkit-scrollbar-track,
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
+.dialog-mode {
+  overflow: hidden !important;
 }
 
-.message-list-container::-webkit-scrollbar-thumb,
-.chat-container::-webkit-scrollbar-thumb,
-.glassmorphism-chat::-webkit-scrollbar-thumb,
-.message-list::-webkit-scrollbar-thumb,
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: rgba(var(--primary-rgb), 0.1);
-  border-radius: 8px;
-}
-
-/* Für Firefox */
-.message-list-container,
-.chat-container,
-.glassmorphism-chat,
-.message-list,
-.overflow-y-auto {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--primary-rgb), 0.1) transparent;
-}
-
-/* Fix für transparenten Hintergrund im Fullscreen-Embed-Modus */
-.embedded-chat.fullscreen-mode {
+.fullscreen-chat {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  /* Konfigurierbarer z-index */
-  --chat-z-index: 999;
-  z-index: var(--chat-z-index);
-  display: flex;
-  flex-direction: column;
-  /* Standardmäßig transparent (für klassischen Modus) */
-  background-color: transparent !important;
+  z-index: 50;
 }
 
-.embedded-body.fullscreen-mode {
-  background-color: transparent !important;
+.embedded-fullscreen {
+  padding-top: 70px !important;
 }
 
-/* Fix für Hover-Effekte, um die Layout-Verschiebung zu minimieren */
-.glassmorphism-bot:hover,
-.glassmorphism-user:hover {
-  transform: scale(1.01) !important; /* Scale statt translateY für weniger Layout-Shifts */
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+.neumorphic {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 30px;
+  box-shadow: 
+    0 3px 8px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* Anpassung für Dialog-Modus im iframe */
-html.embedded-body,
-body.embedded-body {
-  background-color: transparent !important;
+.neumorphic .toggle-indicator {
+  box-shadow: 
+    0 1px 5px rgba(0, 0, 0, 0.15),
+    0 3px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-/* Dialog-Modus im iframe mit weißem Hintergrund, falls transparent unerwünscht ist */
-.dialog-mode-iframe,
-.embedded-body:root.dialog-mode,
-.embedded-body:root {
-  --background: white;
-  background-color: white !important;
+.neumorphic-btn {
+  transition: all 0.2s ease;
 }
 
-/* Speziell für den Fullscreen-Modus */
-.embedded-chat.fullscreen-mode,
-.embedded-chat.fullscreen-mode body,
-.embedded-chat.fullscreen-mode html {
-  background-color: white !important;
-  height: 100vh !important;
-  width: 100vw !important;
-}
-
-div[data-mode="fullscreen"] {
-  background-color: white !important;
+.neumorphic-btn:hover {
+  transform: translateY(-1px) !important;
 }

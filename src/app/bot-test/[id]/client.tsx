@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Chat } from '@/components/chat'
+import { StreamingChat } from '@/components/chat/StreamingChat'
 import { useRouter } from 'next/navigation'
 import { Bot } from '@/types/bot'
 
@@ -11,15 +12,23 @@ export default function BotTestClient({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const [origin, setOrigin] = useState<string>('')
-  const [chatMode, setChatMode] = useState<'bubble' | 'inline' | 'fullscreen'>('inline')
+  const [chatMode, setChatMode] = useState<'bubble' | 'inline' | 'fullscreen'>('bubble')
   const [debugMode, setDebugMode] = useState(false)
   const [showChat, setShowChat] = useState(true)
   const [showSidebar, setShowSidebar] = useState(true)
   const [testSettings, setTestSettings] = useState({
     showDebugInfo: false,
     simulateMobile: false,
-    darkMode: false
+    darkMode: false,
+    useStreaming: true,
+    primaryColor: '#3b82f6',
+    botBgColor: '#ffffff',
+    userBgColor: '#ffffff',
+    botTextColor: '#000000',
+    userTextColor: '#000000',
+    showSuggestions: true
   })
+  const [showSuggestions, setShowSuggestions] = useState(true)
   
   useEffect(() => {
     setOrigin(typeof window !== 'undefined' ? window.location.origin : '')
@@ -47,32 +56,67 @@ export default function BotTestClient({ id }: { id: string }) {
     }
   }, [testSettings.darkMode])
   
-  useEffect(() => {
-    const fetchBot = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(`/api/bots/${id}`)
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Bot nicht gefunden')
-          }
-          throw new Error('Fehler beim Laden des Bots')
+  const fetchBot = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/bots/${id}`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Bot nicht gefunden')
         }
-        
-        const data = await response.json()
-        setBot(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten')
-      } finally {
-        setLoading(false)
+        throw new Error('Fehler beim Laden des Bots')
       }
+      
+      const data = await response.json()
+      setBot(data)
+      
+      console.log("BOTTEST-DEBUG: Bot-Daten geladen:", {
+        id: data.id,
+        name: data.name,
+        hasSettings: !!data.settings,
+        showSuggestions: data.settings?.showSuggestions,
+        suggestionsCount: data.suggestions?.length || 0
+      });
+      
+      setShowSuggestions(data.settings?.showSuggestions === true);
+      
+      if (data.suggestions && Array.isArray(data.suggestions)) {
+        const activeSuggestions = data.suggestions
+          .filter((suggestion: any) => suggestion.isActive)
+          .sort((a: any, b: any) => a.order - b.order);
+        
+        console.log("BOTTEST-DEBUG: Gefilterte aktive Vorschläge:", activeSuggestions.length);
+      }
+      
+      if (data.settings) {
+        setTestSettings(prev => ({
+          ...prev,
+          primaryColor: data.settings.primaryColor || prev.primaryColor,
+          botBgColor: data.settings.botBgColor || prev.botBgColor,
+          userBgColor: data.settings.userBgColor || prev.userBgColor,
+          botTextColor: data.settings.botTextColor || prev.botTextColor,
+          userTextColor: data.settings.userTextColor || prev.userTextColor,
+          useStreaming: data.settings.useStreaming !== undefined 
+            ? data.settings.useStreaming 
+            : prev.useStreaming,
+          showSuggestions: data.settings.showSuggestions !== undefined
+            ? data.settings.showSuggestions
+            : true,
+        }))
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten')
+    } finally {
+      setLoading(false)
     }
-    
+  }, [id])
+  
+  useEffect(() => {
     if (id) {
       fetchBot()
     }
-  }, [id])
+  }, [id, fetchBot])
   
   if (loading) {
     return (
@@ -125,7 +169,11 @@ export default function BotTestClient({ id }: { id: string }) {
         <div 
           onClick={toggleChatVisibility}
           className="fixed bottom-5 right-5 p-4 rounded-full bg-primary text-primary-foreground shadow-lg cursor-pointer flex items-center justify-center hover:opacity-90 transition-opacity z-50"
-          style={{ width: '60px', height: '60px' }}
+          style={{ 
+            width: '60px', 
+            height: '60px',
+            backgroundColor: bot.settings?.primaryColor || 'hsl(var(--primary))'
+          }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -133,7 +181,15 @@ export default function BotTestClient({ id }: { id: string }) {
         </div>
       )
     }
+    console.log("renderChatBubble aufgerufen: chatMode =", chatMode, "showChat =", showChat, "Ergebnis = kein Rendering");
     return null
+  }
+  
+  const handleStreamingChange = (newValue: boolean) => {
+    setTestSettings(prev => ({
+      ...prev,
+      useStreaming: newValue
+    }))
   }
   
   return (
@@ -218,6 +274,15 @@ export default function BotTestClient({ id }: { id: string }) {
             <label className="flex items-center gap-1 text-sm cursor-pointer">
               <input
                 type="checkbox"
+                checked={testSettings.useStreaming}
+                onChange={(e) => handleStreamingChange(e.target.checked)}
+                className="rounded border-gray-300 h-4 w-4"
+              />
+              <span>Streaming</span>
+            </label>
+            <label className="flex items-center gap-1 text-sm cursor-pointer">
+              <input
+                type="checkbox"
                 checked={testSettings.darkMode}
                 onChange={(e) => setTestSettings(prev => ({ ...prev, darkMode: e.target.checked }))}
                 className="rounded border-gray-300 h-4 w-4"
@@ -274,19 +339,45 @@ export default function BotTestClient({ id }: { id: string }) {
           
           {/* Chat Container */}
           {(showChat || chatMode !== 'bubble') && (
-            <div className={`h-full ${testSettings.simulateMobile ? 'flex justify-center' : ''}`}>
-              <div className={`h-full ${testSettings.simulateMobile ? 'w-[390px]' : 'w-full'}`}>
-                <Chat 
-                  initialMode={chatMode} 
-                  embedded={true} 
-                  botId={id}
-                  className=""
-                  key={`chat-instance-${id}-${chatMode}`}
-                  initialSettings={{
-                    ...bot.settings,
-                    welcomeMessage: bot.welcomeMessage
-                  }}
-                />
+            <div className={`h-[700px] ${testSettings.simulateMobile ? 'flex justify-center' : ''}`}>
+              <div className={`h-full ${testSettings.simulateMobile ? 'w-[390px]' : 'w-full'} flex flex-col relative`}>
+                <div className="flex-1">
+                  {testSettings.useStreaming ? (
+                    <StreamingChat
+                      botId={id}
+                      embedded
+                      key={`streaming-${testSettings.useStreaming}-${testSettings.showSuggestions}-${chatMode}`}
+                      initialMode={chatMode}
+                      initialSettings={{
+                        primaryColor: bot.settings?.primaryColor,
+                        botBgColor: bot.settings?.botBgColor,
+                        botTextColor: bot.settings?.botTextColor,
+                        userBgColor: bot.settings?.userBgColor,
+                        userTextColor: bot.settings?.userTextColor,
+                        showSuggestions: testSettings.showSuggestions,
+                        welcomeMessage: bot.welcomeMessage
+                      }}
+                      suggestions={bot.suggestions}
+                    />
+                  ) : (
+                    <Chat
+                      botId={id}
+                      embedded
+                      key={`chat-${testSettings.useStreaming}-${testSettings.showSuggestions}-${chatMode}`}
+                      initialMode={chatMode}
+                      initialSettings={{
+                        primaryColor: bot.settings?.primaryColor,
+                        botBgColor: bot.settings?.botBgColor,
+                        botTextColor: bot.settings?.botTextColor,
+                        userBgColor: bot.settings?.userBgColor,
+                        userTextColor: bot.settings?.userTextColor,
+                        showSuggestions: testSettings.showSuggestions,
+                        welcomeMessage: bot.welcomeMessage
+                      }}
+                      suggestions={bot.suggestions}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -360,9 +451,10 @@ export default function BotTestClient({ id }: { id: string }) {
   data-mode="${chatMode}" 
   data-color="${bot.settings?.primaryColor || '#3b82f6'}" 
   data-position="bottom-right"
-  data-bot-id="${id}">
+  data-bot-id="${id}"
+  data-streaming="${testSettings.useStreaming}">
 </div>
-<script src="${origin}/api/embed?botId=${id}&mode=${chatMode}&color=${(bot.settings?.primaryColor || '#3b82f6').replace('#', '%23')}" defer></script>`}
+<script src="${origin}/api/embed?botId=${id}&mode=${chatMode}&color=${(bot.settings?.primaryColor || '#3b82f6').replace('#', '%23')}&streaming=${testSettings.useStreaming}" defer></script>`}
               </div>
             </div>
           </div>
