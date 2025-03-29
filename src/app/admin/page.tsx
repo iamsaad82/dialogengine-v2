@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import ConversationDetailsModal from './components/ConversationDetailsModal'
 
 // Dashboard-Karte für Statistiken
 function DashboardCard({ title, value, icon }: { title: string; value: string | number; icon: string }) {
@@ -96,6 +97,8 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // State für die Detailansicht
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
   
   // Lade den Markennamen und die Statistiken
   useEffect(() => {
@@ -140,6 +143,14 @@ export default function AdminDashboard() {
   
   return (
     <div className="min-h-screen bg-background">
+      {/* Modal für Konversationsdetails */}
+      {selectedMessageId && (
+        <ConversationDetailsModal 
+          messageId={selectedMessageId}
+          onClose={() => setSelectedMessageId(null)}
+        />
+      )}
+      
       <header className="bg-primary text-primary-foreground p-4">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">{brandName} - Admin Dashboard</h1>
@@ -265,7 +276,7 @@ export default function AdminDashboard() {
                             </div>
                             <button 
                               className="text-primary hover:underline text-sm"
-                              onClick={() => alert(`Details für Frage: ${item.question}`)}
+                              onClick={() => setSelectedMessageId(item.id)}
                             >
                               Details
                             </button>
