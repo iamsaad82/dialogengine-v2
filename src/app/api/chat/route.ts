@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { BotSettings } from '@/types/bot'
+import { v4 as uuidv4 } from 'uuid'
 
 const FLOWISE_URL = process.env.NEXT_PUBLIC_FLOWISE_URL || 'http://localhost:3000'
 const DEFAULT_FLOWISE_CHATFLOW_ID = process.env.FLOWISE_CHATFLOW_ID
@@ -67,6 +68,51 @@ const FALLBACK_RESPONSES = [
   "Leider kann ich Ihre Anfrage derzeit nicht bearbeiten. Bitte versuchen Sie es später noch einmal oder wenden Sie sich direkt an die Stadtverwaltung."
 ];
 
+// Hilfsfunktion, um eine Konversation zu finden oder zu erstellen
+async function getOrCreateConversation(sessionId: string, botId: string) {
+  try {
+    // Versuche, eine bestehende Konversation zu finden
+    let conversation = await prisma.conversation.findUnique({
+      where: { sessionId }
+    });
+    
+    // Wenn keine Konversation gefunden wurde, erstelle eine neue
+    if (!conversation) {
+      conversation = await prisma.conversation.create({
+        data: {
+          sessionId,
+          botId
+        }
+      });
+      console.log("CHAT-API-DEBUG-004: Neue Konversation erstellt:", conversation.id);
+    }
+    
+    return conversation;
+  } catch (error) {
+    console.error("CHAT-API-DEBUG-004: Fehler beim Erstellen/Finden der Konversation:", error);
+    throw error;
+  }
+}
+
+// Hilfsfunktion zum Speichern einer Nachricht in der Datenbank
+async function saveMessage(conversationId: string, content: string, role: 'user' | 'assistant') {
+  try {
+    const message = await prisma.message.create({
+      data: {
+        content,
+        role,
+        conversationId
+      }
+    });
+    console.log(`CHAT-API-DEBUG-004: Nachricht von ${role} gespeichert:`, message.id);
+    return message;
+  } catch (error) {
+    console.error("CHAT-API-DEBUG-004: Fehler beim Speichern der Nachricht:", error);
+    // Wir werfen den Fehler nicht, um den Chat-Flow nicht zu unterbrechen
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
   console.log("CHAT-API-DEBUG-004: POST-Anfrage erhalten");
   
@@ -90,6 +136,9 @@ export async function POST(request: Request) {
     const messages: Message[] = body.messages
     // Wir ignorieren den streaming-Parameter und setzen immer streaming=false
     const streaming = false
+    
+    // Session-ID aus dem Request extrahieren oder generieren
+    const sessionId = body.sessionId || uuidv4();
 
     if (!message && (!messages || messages.length === 0)) {
       console.error("CHAT-API-DEBUG-004: Keine Nachricht gefunden");
@@ -97,7 +146,8 @@ export async function POST(request: Request) {
       // FALLBACK: Sende eine freundliche Fehlermeldung zurück
       return NextResponse.json({
         text: "Entschuldigung, ich habe keine Frage erhalten. Wie kann ich Ihnen helfen?",
-        error: "Keine Nachricht gefunden"
+        error: "Keine Nachricht gefunden",
+        sessionId
       });
     }
 
@@ -106,11 +156,12 @@ export async function POST(request: Request) {
     let flowiseId = DEFAULT_FLOWISE_CHATFLOW_ID;
     let bot = null;
     let botSettings: BotSettingsWithPrompt | null = null;
+    let botId = body.botId;
     
-    if (body.botId) {
+    if (botId) {
       try {
         bot = await prisma.bot.findUnique({
-          where: { id: body.botId },
+          where: { id: botId },
           include: { settings: true }
         });
         
@@ -119,13 +170,17 @@ export async function POST(request: Request) {
           botSettings = bot.settings as BotSettingsWithPrompt;
           console.log(`CHAT-API-DEBUG-004: Verwende Chatflow-ID von Bot "${bot.name}": ${flowiseId}`);
         } else {
-          console.warn(`CHAT-API-DEBUG-004: Bot mit ID ${body.botId} nicht gefunden, verwende Standard-Chatflow`);
+          console.warn(`CHAT-API-DEBUG-004: Bot mit ID ${botId} nicht gefunden, verwende Standard-Chatflow`);
+          botId = null; // Setze botId zurück, wenn Bot nicht gefunden wurde
         }
       } catch (dbError) {
         console.error("CHAT-API-DEBUG-004: Datenbankfehler bei Bot-Abfrage:", dbError);
+        botId = null;
       }
-    } else {
-      // Wenn keine botId angegeben ist, aber ein aktiver Standard-Bot existiert
+    }
+    
+    // Wenn keine botId angegeben ist oder der angegebene Bot nicht gefunden wurde
+    if (!botId) {
       try {
         bot = await prisma.bot.findFirst({
           where: { active: true },
@@ -135,6 +190,7 @@ export async function POST(request: Request) {
         
         if (bot) {
           flowiseId = bot.flowiseId;
+          botId = bot.id;
           botSettings = bot.settings as BotSettingsWithPrompt;
           console.log(`CHAT-API-DEBUG-004: Verwende Chatflow-ID vom Standard-Bot "${bot.name}": ${flowiseId}`);
         }
@@ -151,8 +207,28 @@ export async function POST(request: Request) {
       const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
       return NextResponse.json({
         text: FALLBACK_RESPONSES[randomIndex],
-        error: "Keine Flowise-Chatflow-ID verfügbar"
+        error: "Keine Flowise-Chatflow-ID verfügbar",
+        sessionId
       });
+    }
+
+    // Stelle sicher, dass wir eine gültige botId haben
+    if (!botId) {
+      console.error("CHAT-API-DEBUG-004: Kein gültiger Bot gefunden, Konversation kann nicht gespeichert werden");
+      // Fahre dennoch mit der Anfrage fort, aber ohne Speicherung
+    } else {
+      // Konversation erstellen oder abrufen
+      const conversation = await getOrCreateConversation(sessionId, botId);
+      
+      // Speichere die Benutzernachricht
+      if (message) {
+        await saveMessage(conversation.id, message, 'user');
+      } else if (messages && messages.length > 0) {
+        const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+        if (lastUserMessage) {
+          await saveMessage(conversation.id, lastUserMessage.content, 'user');
+        }
+      }
     }
 
     const apiUrl = `${FLOWISE_URL}/api/v1/prediction/${flowiseId}`
@@ -203,7 +279,8 @@ export async function POST(request: Request) {
         const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
         return NextResponse.json({
           text: FALLBACK_RESPONSES[randomIndex],
-          error: "Keine Benutzernachricht im Verlauf gefunden"
+          error: "Keine Benutzernachricht im Verlauf gefunden",
+          sessionId
         });
       }
     } else {
@@ -261,7 +338,8 @@ export async function POST(request: Request) {
         const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
         return NextResponse.json({
           text: FALLBACK_RESPONSES[randomIndex],
-          error: `API-Fehler: ${response.status}`
+          error: `API-Fehler: ${response.status}`,
+          sessionId
         });
       }
 
@@ -270,8 +348,40 @@ export async function POST(request: Request) {
       console.log("CHAT-API-DEBUG-004: Flowise API Antwort erhalten:", 
                   typeof data, data ? Object.keys(data) : "Keine Daten");
       
-      // Direkt die Antwort von Flowise zurückgeben ohne Modifikationen
-      return NextResponse.json(data)
+      // Speichere die Bot-Antwort, wenn eine gültige Antwort und botId existieren
+      if (botId && data && (data.text || data.response || data.content || data.assistant || data.message)) {
+        try {
+          const conversation = await getOrCreateConversation(sessionId, botId);
+          
+          // Extrahiere die Antwort aus dem verschiedenen möglichen Formaten
+          let botContent = '';
+          if (data.text) {
+            botContent = data.text;
+          } else if (data.response) {
+            botContent = data.response;
+          } else if (data.content) {
+            botContent = data.content;
+          } else if (data.assistant) {
+            botContent = data.assistant;
+          } else if (data.message) {
+            botContent = data.message;
+          }
+          
+          // Speichere die Bot-Antwort
+          if (botContent) {
+            await saveMessage(conversation.id, botContent, 'assistant');
+          }
+        } catch (dbError) {
+          console.error("CHAT-API-DEBUG-004: Fehler beim Speichern der Bot-Antwort:", dbError);
+          // Fahre fort, auch wenn die Speicherung fehlschlägt
+        }
+      }
+      
+      // Füge sessionId zur Antwort hinzu
+      const enhancedData = { ...data, sessionId };
+      
+      // Direkt die Antwort von Flowise zurückgeben mit der ergänzten sessionId
+      return NextResponse.json(enhancedData)
     } catch (fetchError) {
       console.error("CHAT-API-DEBUG-004: Fetch-Fehler bei Flowise-Anfrage:", fetchError);
       
@@ -280,7 +390,8 @@ export async function POST(request: Request) {
       return NextResponse.json({
         text: FALLBACK_RESPONSES[randomIndex],
         question: userQuestion,
-        error: fetchError instanceof Error ? fetchError.message : "Unbekannter Fetch-Fehler"
+        error: fetchError instanceof Error ? fetchError.message : "Unbekannter Fetch-Fehler",
+        sessionId
       });
     }
   } catch (error) {
@@ -290,7 +401,8 @@ export async function POST(request: Request) {
     const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
     return NextResponse.json({
       text: FALLBACK_RESPONSES[randomIndex],
-      error: error instanceof Error ? error.message : 'Ein unbekannter Fehler ist aufgetreten'
+      error: error instanceof Error ? error.message : 'Ein unbekannter Fehler ist aufgetreten',
+      sessionId: uuidv4() // Generiere eine neue Session-ID im Fehlerfall
     }, { status: 200 }) // Wichtig: Status 200 zurückgeben, um Frontend-Fehler zu vermeiden
   }
 } 
