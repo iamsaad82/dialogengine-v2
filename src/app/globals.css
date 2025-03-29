@@ -1038,3 +1038,127 @@ body.dialog-mode .chat-input-field {
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--primary-rgb), 0.1) transparent;
 }
+
+/* Anpassungen für die Message-List und Willkommensnachricht, um Springen zu verhindern */
+.message-list-container {
+  overflow-y: scroll !important; /* Immer Scrollbalken zeigen, anstatt 'auto' */
+  transform-origin: top; /* Transformationen vom oberen Rand aus anwenden */
+  will-change: transform; /* Für bessere Performance */
+  height: 100%;
+  /* Feste Reservierung für Scrollbalken */
+  padding-right: calc(4px + 0.5rem); /* Scrollbalken-Breite + zusätzlicher Abstand */
+  scrollbar-gutter: stable; /* CSS-Prop für stabilen Scrollbalken-Platz */
+  margin-right: -4px; /* Kompensation für den Scrollbalken */
+}
+
+/* Anpassungen für Willkommensnachricht-Animation */
+.message-list-container .flex.items-center.justify-center {
+  min-height: 250px; /* Mindesthöhe für die Willkommensnachricht */
+  height: calc(100% - 40px); /* Höhe festlegen, abzüglich Abstand */
+  transform-origin: top; /* Transformationen vom oberen Rand aus anwenden */
+  will-change: transform; /* Für bessere Performance */
+}
+
+/* Sanftere Animation für die Willkommensnachricht */
+@keyframes mediaAppear {
+  from {
+    opacity: 0;
+    transform: translateY(3px); /* Weniger Bewegung um Springen zu reduzieren */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbalken immer gleich breit halten, aber transparent machen */
+.message-list-container::-webkit-scrollbar,
+.chat-container::-webkit-scrollbar,
+.glassmorphism-chat::-webkit-scrollbar,
+.message-list::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px; /* Schmale Breite für subtile Anzeige */
+  background: transparent;
+}
+
+.message-list-container::-webkit-scrollbar-track,
+.chat-container::-webkit-scrollbar-track,
+.glassmorphism-chat::-webkit-scrollbar-track,
+.message-list::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.message-list-container::-webkit-scrollbar-thumb,
+.chat-container::-webkit-scrollbar-thumb,
+.glassmorphism-chat::-webkit-scrollbar-thumb,
+.message-list::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(var(--primary-rgb), 0.1);
+  border-radius: 8px;
+}
+
+/* Für Firefox */
+.message-list-container,
+.chat-container,
+.glassmorphism-chat,
+.message-list,
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--primary-rgb), 0.1) transparent;
+}
+
+/* Fix für transparenten Hintergrund im Fullscreen-Embed-Modus */
+.embedded-chat.fullscreen-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Konfigurierbarer z-index */
+  --chat-z-index: 999;
+  z-index: var(--chat-z-index);
+  display: flex;
+  flex-direction: column;
+  background-color: white !important; /* Hintergrund festlegen */
+}
+
+.embedded-body.fullscreen-mode {
+  background-color: white !important;
+}
+
+/* Fix für Hover-Effekte, um die Layout-Verschiebung zu minimieren */
+.glassmorphism-bot:hover,
+.glassmorphism-user:hover {
+  transform: scale(1.01) !important; /* Scale statt translateY für weniger Layout-Shifts */
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Anpassung für Dialog-Modus im iframe */
+html.embedded-body,
+body.embedded-body {
+  background-color: white !important;
+}
+
+/* Dialog-Modus im iframe mit weißem Hintergrund, falls transparent unerwünscht ist */
+.dialog-mode-iframe,
+.embedded-body:root.dialog-mode,
+.embedded-body:root {
+  --background: white;
+  background-color: white !important;
+}
+
+/* Speziell für den Fullscreen-Modus */
+.embedded-chat.fullscreen-mode,
+.embedded-chat.fullscreen-mode body,
+.embedded-chat.fullscreen-mode html {
+  background-color: white !important;
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
+div[data-mode="fullscreen"] {
+  background-color: white !important;
+}
