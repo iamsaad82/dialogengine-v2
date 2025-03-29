@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bot } from '@prisma/client'
 import { BotSettingsTabs } from '@/components/bot-settings-tabs'
-import { BotSettings } from '@/types/bot'
+import { BotSettings, BotSuggestion } from '@/types/bot'
+import { prisma } from "@/lib/prisma"
 
 export default function BotDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -19,7 +20,8 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
   const [description, setDescription] = useState('')
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [flowiseId, setFlowiseId] = useState('')
-  const [active, setActive] = useState(true)
+  const [active, setActive] = useState(false)
+  const [suggestions, setSuggestions] = useState<BotSuggestion[]>([])
   
   // Design-Einstellungen
   const [settings, setSettings] = useState<BotSettings>({
@@ -64,7 +66,10 @@ Feiertage:
         setDescription(botData.description || '')
         setWelcomeMessage(botData.welcomeMessage || '')
         setFlowiseId(botData.flowiseId || '')
-        setActive(botData.active)
+        setActive(botData.active || false)
+        
+        // Setze Vorschläge
+        setSuggestions(botData.suggestions || [])
         
         // Design-Einstellungen
         if (botData.settings) {
@@ -125,7 +130,9 @@ Feiertage:
           description,
           welcomeMessage,
           flowiseId,
-          active
+          active,
+          settings,
+          suggestions
         }),
       })
       
@@ -233,12 +240,14 @@ Feiertage:
         flowiseId={flowiseId}
         active={active}
         settings={settings}
+        suggestions={suggestions}
         onNameChange={setName}
         onDescriptionChange={setDescription}
         onWelcomeMessageChange={setWelcomeMessage}
         onFlowiseIdChange={setFlowiseId}
         onActiveChange={setActive}
         onSettingsChange={setSettings}
+        onSuggestionsChange={setSuggestions}
       />
       
       <div className="flex justify-end gap-2 mt-6">

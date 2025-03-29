@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDownIcon } from '@heroicons/react/24/outline'
 
 interface Bot {
   id: string
@@ -37,6 +36,7 @@ export default function EmbedGenerator() {
   const [selectedBotId, setSelectedBotId] = useState<string>('')
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false)
   const [zIndex, setZIndex] = useState('')
+  const [streamingEnabled, setStreamingEnabled] = useState(true)
 
   // Lade verfügbare Bots
   useEffect(() => {
@@ -89,6 +89,7 @@ export default function EmbedGenerator() {
     }
     scriptUrl.searchParams.append('mode', initialMode);
     scriptUrl.searchParams.append('color', primaryColor.replace('#', '%23')); // Einfache URL-Kodierung für #
+    scriptUrl.searchParams.append('streaming', streamingEnabled.toString());
     
     if (initialMode === 'bubble') {
       scriptUrl.searchParams.append('position', position);
@@ -110,6 +111,7 @@ export default function EmbedGenerator() {
   data-color="${primaryColor}" 
   data-position="${position}"
   data-bot-id="${selectedBotId}"
+  data-streaming="${streamingEnabled}"
   ${zIndex ? `data-z-index="${zIndex}"` : ''}
   ${initialMode === 'bubble' ? '' : `style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : '100%'}; position: relative; border-radius: 12px; overflow: hidden;"`}
 ></div>
@@ -121,7 +123,7 @@ export default function EmbedGenerator() {
   useEffect(() => {
     setEmbedCode(generateEmbedCode())
   }, [initialMode, primaryColor, position, height, width, selectedBotId, 
-      bubbleSize, offsetX, offsetY, chatWidth, chatHeight, zIndex])
+      bubbleSize, offsetX, offsetY, chatWidth, chatHeight, zIndex, streamingEnabled])
 
   return (
     <div className="p-6">
@@ -214,6 +216,35 @@ export default function EmbedGenerator() {
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Diese Farbe wird für das Chat-Icon, Schaltflächen und Akzente im Chat verwendet.
+              </p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Streaming-Modus</label>
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    value="true"
+                    checked={streamingEnabled} 
+                    onChange={() => setStreamingEnabled(true)}
+                    className="rounded-full"
+                  />
+                  <span>Aktiviert (flüssigere Antworten)</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    value="false" 
+                    checked={!streamingEnabled}
+                    onChange={() => setStreamingEnabled(false)}
+                    className="rounded-full"
+                  />
+                  <span>Deaktiviert</span>
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Der Streaming-Modus zeigt die Antworten in Echtzeit an, während sie generiert werden.
               </p>
             </div>
             
@@ -447,7 +478,9 @@ export default function EmbedGenerator() {
               className="text-sm text-primary hover:underline flex items-center"
             >
               {showAdvancedOptions ? 'Weniger anzeigen' : 'Mehr anzeigen'}
-              <ChevronDownIcon className={`ml-1 h-4 w-4 transition-transform ${showAdvancedOptions ? 'rotate-180' : ''}`} />
+              <span className={`ml-1 transition-transform ${showAdvancedOptions ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
             </button>
           </div>
           
