@@ -14,10 +14,16 @@ interface ChatInputProps {
 export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: ChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [input, setInput] = useState('')
+  const isMobileRef = useRef<boolean>(false)
 
-  // Autofokus beim Mounten der Komponente
+  // Prüfen, ob es sich um ein mobiles Gerät handelt
   useEffect(() => {
-    if (inputRef.current) {
+    isMobileRef.current = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  }, [])
+
+  // Autofokus beim Mounten der Komponente, aber nicht auf Mobilgeräten
+  useEffect(() => {
+    if (inputRef.current && !isMobileRef.current) {
       inputRef.current.focus()
     }
   }, [])
@@ -90,7 +96,13 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
             onKeyDown={handleKeyDown}
             placeholder="Schreiben Sie eine Nachricht..."
             className="flex h-12 w-full resize-none rounded-full border border-input/30 bg-white/70 backdrop-blur-md px-5 py-3 pr-24 text-sm ring-offset-background placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-primary/40 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm transition-all flex items-center justify-center chat-input-field"
-            style={{ paddingTop: "13px", lineHeight: "normal" }}
+            style={{ 
+              paddingTop: "13px", 
+              lineHeight: "normal",
+              fontSize: "16px", // Mindestgröße 16px, um Auto-Zoom auf Mobilgeräten zu verhindern
+              paddingRight: isMobileRef.current ? "70px" : "96px", // Weniger Abstand rechts auf Mobilgeräten
+              paddingLeft: isMobileRef.current ? "12px" : "20px"  // Weniger Abstand links auf Mobilgeräten
+            }}
             aria-label="Chat Nachricht eingeben"
             aria-multiline="true"
             aria-required="true"
@@ -117,7 +129,7 @@ export function ChatInput({ isLoading, onSend, onCancel, botPrimaryColor }: Chat
             )}
             <button
               type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-muted-foreground hover:bg-gray-100 disabled:hover:bg-white/80 disabled:hover:text-muted-foreground shadow-sm"
+              className={`flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-muted-foreground hover:bg-gray-100 disabled:hover:bg-white/80 disabled:hover:text-muted-foreground shadow-sm ${isMobileRef.current ? 'hidden' : ''}`}
               disabled
               aria-label="Sprachnachricht aufnehmen (nicht verfügbar)"
               title="Sprachnachricht aufnehmen (nicht verfügbar)"

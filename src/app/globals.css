@@ -61,6 +61,35 @@
   --user-avatar-bg: hsl(var(--primary-foreground));
 }
 
+/* Verbesserte Mobile-Optimierungen */
+@media (max-width: 640px) {
+  /* Verhindern von pinch-zoom auf der gesamten Seite */
+  html, body {
+    touch-action: pan-x pan-y;
+  }
+  
+  /* Verhindern von unerwünschtem Zoomen auf Eingabefelder */
+  input, 
+  textarea, 
+  select, 
+  button {
+    font-size: 16px !important; /* Mindestens 16px für iOS */
+  }
+  
+  /* Optimierung für Chat-Eingabefeld */
+  .chat-input-field {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    height: auto !important;
+    min-height: 46px !important;
+  }
+  
+  /* Bessere Tippbarkeit auf Mobilgeräten */
+  .chat-input-field::placeholder {
+    font-size: 16px !important;
+  }
+}
+
 /* Dialog-Modus Styles für Vollbildansicht */
 body.dialog-mode {
   @apply overflow-hidden;

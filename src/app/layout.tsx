@@ -24,6 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: settings.brandName,
     description: `Stadtassistent für ${settings.brandName}`,
+    viewport: 'width=device-width, initial-scale=1, minimum-scale=1',
   }
 }
 
