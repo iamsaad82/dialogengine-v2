@@ -187,7 +187,7 @@ export function MessageList({
   }
 
   return (
-    <div className="h-full w-full overflow-y-auto scroll-smooth pt-2 pb-4 px-3 relative">
+    <div className="h-full w-full overflow-y-auto scroll-smooth pt-2 pb-4 px-3 relative message-list-container">
       {/* Willkommensnachricht nur anzeigen, wenn keine Nachrichten vorhanden sind */}
       {messages.length === 0 && (
         <div className="flex items-center justify-center h-full">

@@ -906,3 +906,40 @@ body.dialog-mode .chat-input-field {
     margin: 1rem 0;
   }
 }
+
+/* Verberge Scrollbalken, behalte aber Scrollfunktion bei */
+.message-list-container::-webkit-scrollbar,
+.chat-container::-webkit-scrollbar,
+.glassmorphism-chat::-webkit-scrollbar,
+.message-list::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px; /* Schmale Breite für subtile Anzeige */
+  background: transparent;
+}
+
+.message-list-container::-webkit-scrollbar-track,
+.chat-container::-webkit-scrollbar-track,
+.glassmorphism-chat::-webkit-scrollbar-track,
+.message-list::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.message-list-container::-webkit-scrollbar-thumb,
+.chat-container::-webkit-scrollbar-thumb,
+.glassmorphism-chat::-webkit-scrollbar-thumb,
+.message-list::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(var(--primary-rgb), 0.1);
+  border-radius: 8px;
+}
+
+/* Für Firefox */
+.message-list-container,
+.chat-container,
+.glassmorphism-chat,
+.message-list,
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--primary-rgb), 0.1) transparent;
+}
