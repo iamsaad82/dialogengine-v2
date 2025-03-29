@@ -9,7 +9,7 @@ const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
-async function main() {
+async function createNewAdmin() {
   console.log('Erstelle neuen Admin-Benutzer...');
 
   // Admin-Einstellungen
@@ -51,4 +51,8 @@ async function main() {
   }
 }
 
-main(); 
+// Skript ausführen
+createNewAdmin();
+
+// Module-Flag setzen
+export {}; 
