@@ -91,15 +91,15 @@ const Message = ({
       >
         {isBot && (
           <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2">
-            <div className="inline-flex items-center justify-center" style={{ width: '20px', height: '20px' }}>
+            <div className="inline-flex items-center justify-center overflow-hidden" style={{ width: '20px', height: '20px' }}>
               {botAvatarUrl ? (
                 <Image 
                   src={botAvatarUrl} 
-                  width={20} 
-                  height={20} 
+                  width={200} 
+                  height={200} 
                   alt={`${displayName} Logo`} 
                   className="object-contain"
-                  style={{ width: '100%', height: '100%', aspectRatio: '1' }}
+                  style={{ width: '100%', height: '100%' }}
                 />
               ) : (
                 <svg 
