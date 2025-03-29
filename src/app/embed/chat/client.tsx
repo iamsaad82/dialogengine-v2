@@ -5,8 +5,11 @@ import { StreamingChat } from '@/components/chat/StreamingChat'
 import { useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 
+// VERSION-MARKER: Chat-Embed-Debug-Code - Version 006
+console.log("Embed Chat Client - Debug-Version 006");
+
 // Client-Komponente für Chat-Embed mit useSearchParams
-export default function ClientChatEmbed() {
+export default function ClientComponent() {
   const [mode, setMode] = useState<'bubble' | 'inline' | 'fullscreen'>('inline')
   const [primaryColor, setPrimaryColor] = useState('#e63946')
   const [botId, setBotId] = useState<string | undefined>(undefined)
@@ -23,8 +26,8 @@ export default function ClientChatEmbed() {
     const streamingParam = searchParams?.get('streaming')
     const shouldUseStreaming = streamingParam === 'true' || streamingParam === '1'
     
-    console.log(`CHAT-EMBED-DEBUG-004: Bot-ID aus URL: ${id || 'nicht gefunden'}`)
-    console.log(`CHAT-EMBED-DEBUG-004: Streaming: ${shouldUseStreaming ? 'aktiviert' : 'deaktiviert'}`)
+    console.log(`CHAT-EMBED-DEBUG-006: Bot-ID aus URL: ${id || 'nicht gefunden'}`)
+    console.log(`CHAT-EMBED-DEBUG-006: Streaming: ${shouldUseStreaming ? 'aktiviert' : 'deaktiviert'}`)
     
     setBotId(id)
     setUseStreaming(shouldUseStreaming)
@@ -34,18 +37,18 @@ export default function ClientChatEmbed() {
     if (embedColor) {
       // Setze die Farbe, wenn sie in der URL angegeben ist
       setPrimaryColor(embedColor)
-      console.log(`CHAT-EMBED-DEBUG-004: Primärfarbe aus URL: ${embedColor}`)
+      console.log(`CHAT-EMBED-DEBUG-006: Primärfarbe aus URL: ${embedColor}`)
     } else {
-      console.log(`CHAT-EMBED-DEBUG-004: Keine Primärfarbe in URL, verwende Standard: ${primaryColor}`)
+      console.log(`CHAT-EMBED-DEBUG-006: Keine Primärfarbe in URL, verwende Standard: ${primaryColor}`)
     }
     
     // Mode aus URL erfassen
     const modeParam = searchParams?.get('mode')
     if (modeParam === 'bubble' || modeParam === 'inline' || modeParam === 'fullscreen') {
       setMode(modeParam)
-      console.log(`CHAT-EMBED-DEBUG-004: Chat-Modus aus URL: ${modeParam}`)
+      console.log(`CHAT-EMBED-DEBUG-006: Chat-Modus aus URL: ${modeParam}`)
     } else {
-      console.log(`CHAT-EMBED-DEBUG-004: Kein gültiger Modus in URL, verwende Standard: ${mode}`)
+      console.log(`CHAT-EMBED-DEBUG-006: Kein gültiger Modus in URL, verwende Standard: ${mode}`)
     }
     
     setIsLoading(false)
@@ -63,7 +66,7 @@ export default function ClientChatEmbed() {
         width
       }, '*')
       
-      console.log(`CHAT-EMBED-DEBUG-004: Sende Resize-Event: ${width}x${height}`)
+      console.log(`CHAT-EMBED-DEBUG-006: Sende Resize-Event: ${width}x${height}`)
     })
     
     if (containerRef.current) {
