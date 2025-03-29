@@ -1,11 +1,8 @@
 import { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import prisma from '@/lib/db'
 import { LunaryScript } from "@/components/LunaryScript";
 import AuthProvider from '@/providers/AuthProvider'
-
-const inter = Inter({ subsets: ['latin'] })
 
 // Lade die App-Einstellungen
 async function getAppSettings() {
@@ -35,7 +32,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
-      <body className={inter.className}>
+      <body>
         <AuthProvider>
           {children}
         </AuthProvider>
