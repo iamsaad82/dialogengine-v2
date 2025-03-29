@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, RefObject, useEffect } from 'react'
-import { Message, ChatMode } from '../types'
+import { Message } from '../types'
 import { LunaryClient } from '@/lib/lunary-client'
 import { v4 as uuidv4 } from 'uuid'
 import { BotSettings } from '@/types/bot'
@@ -76,6 +76,8 @@ function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (..
   };
 }
 
+export type ChatMode = 'bubble' | 'fullscreen' | 'inline';
+
 interface UseChatProps {
   initialMessages?: Message[]
   initialMode?: ChatMode
@@ -103,12 +105,11 @@ export function useChat({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [mode, setMode] = useState<'bubble' | 'fullscreen'>(initialMode)
+  const [mode, setMode] = useState<'bubble' | 'fullscreen' | 'inline'>(initialMode)
   const [isOpen, setIsOpen] = useState(initialOpen)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const sessionIdRef = useRef<string>(uuidv4()) // Eindeutige Sitzungs-ID für Tracking
-  const [botSettings, setBotSettings] = useState<any>(null)
   const lastMessageTimestampRef = useRef<number>(0) // Zeitstempel der letzten gesendeten Nachricht
   const chatInitializedRef = useRef<boolean>(false) // Tracking für die Chat-Initialisierung
   const cancelRef = useRef<boolean>(false) // Ref zum Abbrechen von Operationen
@@ -116,6 +117,7 @@ export function useChat({
   const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null)
   const [isDialogMode, setIsDialogMode] = useState(true)
   const [settings, setSettings] = useState<BotSettings | null>(initialSettings || null)
+  const [botSettings, setBotSettings] = useState<any>(initialSettings || { showSuggestions: false })
 
   // Initialisiere die Session-ID bei der ersten Komponenten-Montage
   useEffect(() => {

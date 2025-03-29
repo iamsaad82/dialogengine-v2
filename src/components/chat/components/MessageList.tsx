@@ -184,19 +184,94 @@ export function MessageList({
 
   // Debug-Ausgabe für die Nachrichtenliste
   useEffect(() => {
-    console.log("MESSAGELIST-DEBUG-002: Nachrichten in der Liste:", messages);
-    console.log("MESSAGELIST-DEBUG-002: isLoading:", isLoading);
-    console.log("MESSAGELIST-DEBUG-002: Anzahl der Nachrichten:", messages.length);
-    console.log("MESSAGELIST-DEBUG-002: botName:", botName);
-    console.log("MESSAGELIST-DEBUG-002: showCopyButton:", showCopyButton);
-    console.log("MESSAGELIST-DEBUG-002: enableFeedback:", enableFeedback);
-    console.log("MESSAGELIST-DEBUG-002: botId:", botId);
+    console.log("MESSAGELIST-DEBUG-003: Nachrichten in der Liste:", messages);
+    console.log("MESSAGELIST-DEBUG-003: isLoading:", isLoading);
+    console.log("MESSAGELIST-DEBUG-003: Anzahl der Nachrichten:", messages.length);
+    console.log("MESSAGELIST-DEBUG-003: welcomeMessage:", welcomeMessage ? 
+      `"${welcomeMessage.substring(0, 50)}${welcomeMessage.length > 50 ? '...' : ''}"` : 
+      "NICHT VORHANDEN");
     
     // Log jede Nachricht einzeln
     messages.forEach((message, index) => {
-      console.log(`MESSAGELIST-DEBUG-002: Nachricht ${index}:`, message);
+      console.log(`MESSAGELIST-DEBUG-003: Nachricht ${index}:`, 
+        message.role, 
+        message.content?.substring(0, 30), 
+        message.streaming ? "(streaming)" : "");
     });
-  }, [messages, isLoading, botName, showCopyButton, enableFeedback, botId]);
+  }, [messages, isLoading, welcomeMessage]);
+
+  // Filter doppelte Nachrichten
+  const filteredMessages = (() => {
+    // Wichtig: Prüfe zuerst, ob es eine Streaming-Nachricht gibt
+    const streamingMessage = messages.find(m => m.streaming === true);
+    const hasStreaming = !!streamingMessage;
+    
+    console.log("MESSAGELIST-DEBUG-006: Filtere Nachrichten, Streaming-Nachricht gefunden:", hasStreaming);
+    
+    // Wenn die Nachrichtenliste leer ist, aber isLoading aktiv und eine Streaming-Nachricht vorhanden,
+    // stelle sicher, dass wir eine leere Liste + die Streaming-Nachricht zurückgeben
+    if (messages.length === 0 && isLoading && streamingMessage) {
+      console.log("MESSAGELIST-DEBUG-006: Leere Liste mit Streaming-Nachricht");
+      return [streamingMessage];
+    }
+    
+    // Einzigartige Nachrichten sammeln
+    const uniqueMessages: MessageType[] = [];
+    const messageKeys = new Set<string>();
+    
+    // Nachrichten durchlaufen und Duplikate entfernen
+    for (const message of messages) {
+      // 1. Streaming-Nachricht immer durchlassen (höchste Priorität)
+      if (message.streaming === true) {
+        console.log("MESSAGELIST-DEBUG-006: Streaming-Nachricht durchgelassen:", 
+          message.content.substring(0, 50));
+        uniqueMessages.push(message);
+        continue;
+      }
+      
+      // 2. Generiere einen eindeutigen Schlüssel für diese Nachricht
+      const messageKey = `${message.role}:${message.content.substring(0, 100)}`;
+      
+      // 3. Wenn wir diese Nachricht bereits haben, überspringen
+      if (messageKeys.has(messageKey)) {
+        console.log("MESSAGELIST-DEBUG-006: Doppelte Nachricht gefiltert:", message.role);
+        continue;
+      }
+      
+      // 4. Ansonsten zur Liste hinzufügen
+      messageKeys.add(messageKey);
+      uniqueMessages.push(message);
+    }
+    
+    // Wenn keine Streaming-Nachricht in den originalen Nachrichten gefunden wurde,
+    // aber wir haben eine isLoading-Anzeige, dann sollten wir sicherstellen, dass
+    // die Benutzeranfrage angezeigt wird, während auf eine Antwort gewartet wird
+    if (!hasStreaming && isLoading && uniqueMessages.length > 0) {
+      console.log("MESSAGELIST-DEBUG-006: isLoading aktiv ohne Streaming-Nachricht");
+      
+      // Stelle sicher, dass wir die letzte Benutzer-Nachricht behalten
+      const lastUserMessage = [...uniqueMessages].reverse().find(m => m.role === 'user');
+      
+      if (lastUserMessage) {
+        console.log("MESSAGELIST-DEBUG-006: Letzte Benutzer-Nachricht beibehalten:", 
+          lastUserMessage.content.substring(0, 30));
+      }
+    }
+    
+    // Sortiere die Nachrichten nach Timestamp, falls vorhanden
+    uniqueMessages.sort((a, b) => {
+      const timeA = a.timestamp || 0;
+      const timeB = b.timestamp || 0;
+      return timeA - timeB;
+    });
+    
+    console.log("MESSAGELIST-DEBUG-006: Originale Nachrichten:", messages.length, "Gefilterte Nachrichten:", uniqueMessages.length);
+    console.log("MESSAGELIST-DEBUG-006: Gefilterte Nachrichten:", uniqueMessages.map(m => 
+      `${m.role}${m.streaming ? " (streaming)" : ""} - ${m.content.substring(0, 20)}...`
+    ));
+    
+    return uniqueMessages;
+  })();
 
   // Überwache das Scrollen, um den "Scroll-to-Bottom"-Button anzuzeigen
   useEffect(() => {
@@ -231,12 +306,12 @@ export function MessageList({
       container.scrollHeight - container.scrollTop - container.clientHeight > 100
       
     // Nur erhöhen, wenn der Nutzer hochgescrollt hat und neue Nachrichten kommen
-    if (isScrolledUp && messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
+    if (isScrolledUp && filteredMessages.length > 0 && filteredMessages[filteredMessages.length - 1].role === 'assistant') {
       setUnreadCount(prev => prev + 1)
     } else if (!isScrolledUp) {
       setUnreadCount(0)
     }
-  }, [messages, messagesEndRef])
+  }, [filteredMessages, messagesEndRef])
 
   // Scroll zum Ende der Nachrichtenliste
   const scrollToBottom = () => {
@@ -247,7 +322,7 @@ export function MessageList({
   return (
     <div className="h-full w-full overflow-y-auto scroll-smooth pt-2 pb-4 px-3 relative message-list-container">
       {/* Willkommensnachricht nur anzeigen, wenn keine Nachrichten vorhanden sind */}
-      {messages.length === 0 && (
+      {filteredMessages.length === 0 && !isLoading && (
         <div className="flex items-center justify-center h-full">
           <motion.div 
             className="max-w-[85%] p-6 text-center"
@@ -415,30 +490,41 @@ export function MessageList({
                 }}
               />
               
-              {welcomeMessage ? (
-                <div className="relative z-10">
-                  {/* Split by paragraphs and animate each separately */}
-                  {welcomeMessage.split('\n\n').map((paragraph, i) => (
-                    <motion.div 
-                      key={i}
-                      className="prose prose-sm max-w-none mb-3 last:mb-0"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.7 + (i * 0.15), duration: 0.5 }}
-                      dangerouslySetInnerHTML={{ __html: paragraph.replace(/\n/g, '<br/>') }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <motion.p 
-                  className="text-muted-foreground"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.7, duration: 0.5 }}
-                >
-                  Wie kann ich Ihnen helfen?
-                </motion.p>
-              )}
+              {(() => {
+                if (welcomeMessage) {
+                  console.log("WILLKOMMEN-RENDER-DEBUG: Rendere Willkommensnachricht mit Länge:", 
+                    welcomeMessage.length, "Paragraphen:", welcomeMessage.split('\n\n').length);
+                  
+                  return (
+                    <div className="relative z-10">
+                      {/* Split by paragraphs and animate each separately */}
+                      {welcomeMessage.split('\n\n').map((paragraph, i) => (
+                        <motion.div 
+                          key={i}
+                          className="prose prose-sm max-w-none mb-3 last:mb-0"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.7 + (i * 0.15), duration: 0.5 }}
+                          dangerouslySetInnerHTML={{ __html: paragraph.replace(/\n/g, '<br/>') }}
+                        />
+                      ))}
+                    </div>
+                  );
+                } else {
+                  console.log("WILLKOMMEN-RENDER-DEBUG: Keine Willkommensnachricht vorhanden, zeige Standardtext");
+                  
+                  return (
+                    <motion.p 
+                      className="text-muted-foreground"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.7, duration: 0.5 }}
+                    >
+                      Wie kann ich Ihnen helfen?
+                    </motion.p>
+                  );
+                }
+              })()}
             </motion.div>
           </motion.div>
         </div>
@@ -446,23 +532,36 @@ export function MessageList({
 
       {/* Nachrichten-Liste */}
       <div className="space-y-3 min-h-0 flex flex-col justify-start">
-        {messages.map((message) => (
+        {/* Nachrichten anzeigen */}
+        {filteredMessages.map((message) => (
           <Message 
             key={typeof message.id === 'string' ? message.id : `msg-${message.timestamp || Date.now()}`}
             content={message.content}
             role={message.role}
             botId={botId}
-            isLastMessage={message === messages[messages.length - 1]}
-            showCopyButton={showCopyButton}
-            enableFeedback={enableFeedback}
+            isLastMessage={message === filteredMessages[filteredMessages.length - 1]}
+            showCopyButton={showCopyButton && !message.streaming}
+            enableFeedback={enableFeedback && !message.streaming}
             botName={botName}
             botAvatarUrl={botAvatarUrl}
+            streaming={message.streaming}
           />
         ))}
         
-        {/* Ladeindikator */}
-        {isLoading && (
-          <LoadingMessage botName={botName} botPrimaryColor={botPrimaryColor} botAvatarUrl={botAvatarUrl} />
+        {/* Lade-Indikator nur anzeigen, wenn: 
+            1. Wir im Lade-Zustand sind 
+            2. Keine gefilterten Nachrichten vorhanden ODER die letzte Nachricht ist vom User
+            3. Es gibt keine aktive Streaming-Nachricht */}
+        {isLoading && 
+         (filteredMessages.length === 0 || 
+          (filteredMessages.length > 0 && 
+           filteredMessages[filteredMessages.length-1].role === 'user')) && 
+         !filteredMessages.some(msg => msg.streaming) && (
+          <LoadingMessage 
+            botName={botName} 
+            botPrimaryColor={botPrimaryColor} 
+            botAvatarUrl={botAvatarUrl} 
+          />
         )}
         
         {/* Verstecktes Element für Auto-Scroll zum Ende der Nachrichtenliste */}

@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useChat } from './hooks/useChat'
 import { ChatBubble } from './components/ChatBubble'
 import { ChatHeader } from './components/ChatHeader'
 import { ChatInput } from './components/ChatInput'
 import { MessageList } from './components/MessageList'
 import { ChatMode } from './types'
+import type { BotSettings, BotSuggestion } from '@/types/bot'
+import { SuggestionsBar } from './SuggestionsBar'
 
 // VERSION-MARKER: Chat-Debug-Code - Version 004
 console.log("Chat.tsx geladen - Debug-Version 004");
@@ -18,12 +20,20 @@ const loadedWelcomeMessages = new Set<string>();
 interface ChatProps {
   initialMode?: ChatMode;
   embedded?: boolean;
-  botId?: string; // Neue Eigenschaft für die Bot-ID
-  className?: string; // Neue Eigenschaft für CSS-Klassen
-  initialSettings?: any; // Bot-Einstellungen direkt übergeben
+  botId?: string;
+  className?: string;
+  initialSettings?: any;
+  suggestions?: BotSuggestion[];
 }
 
-export function Chat({ initialMode = 'bubble', embedded = false, botId, className, initialSettings }: ChatProps) {
+export function Chat({ 
+  initialMode = 'bubble', 
+  embedded = false, 
+  botId, 
+  className, 
+  initialSettings,
+  suggestions = []
+}: ChatProps) {
   const [botName, setBotName] = useState<string>('Dialog Engine')
   const [botPrimaryColor, setBotPrimaryColor] = useState<string>('#3b82f6')
   const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
@@ -175,78 +185,12 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
     };
   }, []);
 
-  // Für embedded bubble/inline ohne Switcher
-  if (embedded && mode !== 'fullscreen') {
-    return (
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="chat-dialog-title"
-        className={`
-          absolute inset-0 w-full h-full flex flex-col
-          ${mode === 'bubble' ? 'embedded-chat bubble-mode' : ''}
-          ${mode === 'inline' ? 'embedded-chat inline-mode' : ''}
-          ${className || ''}
-        `}
-        style={{
-          overflow: 'hidden'
-        }}
-      >
-        <div className="flex-shrink-0">
-          <ChatHeader 
-            mode={mode} 
-            onClose={toggleChat} 
-            onModeChange={cycleMode}
-            setMode={setMode}
-            botName={botName}
-            botPrimaryColor={botPrimaryColor}
-          />
-        </div>
-        
-        <div 
-          className="flex-1 overflow-hidden bg-white flex flex-col min-h-0"
-          style={{
-            borderRadius: mode === 'bubble' ? '0' : undefined,
-            boxShadow: mode === 'bubble' ? '0 6px 30px rgba(0, 0, 0, 0.2)' : 'none',
-          }}
-        >
-          {error && (
-            <div 
-              className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
-              role="alert"
-              aria-live="assertive"
-            >
-              {error}
-            </div>
-          )}
-          
-          <div className="flex-1 overflow-y-auto min-h-0">
-            <MessageList 
-              messages={messages} 
-              isLoading={isLoading} 
-              messagesEndRef={messagesEndRef}
-              botName={botName}
-              showCopyButton={showCopyButton}
-              enableFeedback={enableFeedback}
-              botId={botId}
-              botPrimaryColor={botPrimaryColor}
-              welcomeMessage={welcomeMessage}
-              botAvatarUrl={botAvatarUrl}
-            />
-          </div>
-        </div>
-        
-        <div className="flex-shrink-0 h-[90px]">
-          <ChatInput 
-            isLoading={isLoading} 
-            onSend={sendMessage} 
-            onCancel={cancelMessage} 
-            botPrimaryColor={botPrimaryColor}
-          />
-        </div>
-      </div>
-    );
-  }
+  // Hilfsfunktion zur Behandlung von Vorschlagsklicks
+  const handleSuggestionClick = (text: string) => {
+    if (sendMessage) {
+      sendMessage(text);
+    }
+  };
 
   // Normaler Chat für Bubble/Inline-Modi
   if (!embedded && mode !== 'fullscreen') {
@@ -265,8 +209,8 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
           aria-labelledby="chat-dialog-title"
           className={`
             flex flex-col overflow-hidden shadow-lg bg-background
-            ${mode === 'bubble' ? 'fixed bottom-5 right-5 w-[90vw] max-w-[480px] h-[90vh] max-h-[850px] rounded-xl border' : ''}
-            ${mode === 'inline' ? 'w-full h-[500px] min-h-[400px] rounded-xl border' : ''}
+            ${mode === 'bubble' ? 'fixed bottom-5 right-5 w-[90vw] max-w-[480px] h-[90vh] max-h-[850px] rounded-xl border' : 
+              mode === 'inline' ? 'w-full h-[500px] min-h-[400px] rounded-xl border' : ''}
             ${className || ''}
           `}
           style={{ 
@@ -308,9 +252,19 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                 welcomeMessage={welcomeMessage}
                 botAvatarUrl={botAvatarUrl}
               />
+              
+              {/* Vorschlagsleiste hinzufügen */}
+              {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
+                <div className="px-4 mb-1">
+                  <SuggestionsBar 
+                    suggestions={suggestions} 
+                    onSuggestionClick={handleSuggestionClick} 
+                  />
+                </div>
+              )}
             </div>
             
-            <div className="flex-shrink-0 h-[90px]">
+            <div className="flex-shrink-0 h-[70px]">
               <ChatInput 
                 isLoading={isLoading} 
                 onSend={sendMessage} 
@@ -441,9 +395,19 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                 welcomeMessage={welcomeMessage}
                 botAvatarUrl={botAvatarUrl}
               />
+              
+              {/* Vorschlagsleiste im Fullscreen-Modus */}
+              {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
+                <div className="px-4 mb-3 max-w-3xl mx-auto w-full">
+                  <SuggestionsBar 
+                    suggestions={suggestions} 
+                    onSuggestionClick={handleSuggestionClick} 
+                  />
+                </div>
+              )}
             </div>
             
-            <div className="flex-shrink-0 h-[90px]">
+            <div className="flex-shrink-0 h-[70px]">
               <ChatInput 
                 isLoading={isLoading} 
                 onSend={sendMessage} 

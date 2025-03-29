@@ -55,6 +55,7 @@ model Bot {
   updatedAt       DateTime @updatedAt
   settings        BotSettings?
   conversations   Conversation[]
+  suggestions     BotSuggestion[]
 }
 
 // Einstellungen für einen Bot
@@ -96,4 +97,16 @@ model Message {
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   createdAt      DateTime     @default(now())
+}
+
+// Vorgeschlagene Fragen für Bots
+model BotSuggestion {
+  id          String   @id @default(uuid())
+  text        String   // Der Text der Vorschlagsfrage
+  order       Int      @default(0) // Reihenfolge für die Anzeige
+  isActive    Boolean  @default(true)
+  botId       String
+  bot         Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

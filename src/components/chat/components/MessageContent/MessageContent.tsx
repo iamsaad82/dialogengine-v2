@@ -10,6 +10,8 @@ interface MessageContentProps {
 export const MessageContent: React.FC<MessageContentProps> = ({ content, role }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   
+  // Lese zuerst den gesamten Inhalt, bevor Änderungen vorgenommen werden.
+  
   // Verbesserte Verarbeitung aller speziellen Sektionen
   const enhanceSpecialSections = () => {
     if (!contentRef.current) return;
@@ -133,24 +135,32 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
   // Spezielle Vorverarbeitung für Key Facts und andere Formatierungen
   const processContent = () => {
     // Sicherheitsprüfung für leeren Inhalt
-    if (!content || typeof content !== 'string') {
+    if (content === null || content === undefined) {
       console.log("MESSAGE-DEBUG-011: Ungültiger Inhalt:", content);
       return <div className="text-red-500">Ungültige Nachricht</div>;
     }
+    
+    // Falls content ein leerer String ist, zeige einen leeren Container
+    if (content === '') {
+      return <div className="prose prose-sm break-words pointer-events-auto message-content"></div>;
+    }
+
+    // Stellen wir sicher, dass content wirklich ein String ist
+    const safeContent = typeof content === 'string' ? content : String(content);
 
     // Prüfen, ob der Inhalt HTML ist (beginnt mit <)
-    if (content.trim().startsWith('<') && (content.includes('</div>') || content.includes('</p>'))) {
+    if (safeContent.trim().startsWith('<') && (safeContent.includes('</div>') || safeContent.includes('</p>'))) {
       return (
         <div 
           ref={contentRef}
           className="prose prose-sm break-words pointer-events-auto message-content"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: safeContent }}
         />
       );
     }
     
     // Spezielle Vorverarbeitung für Key Facts
-    let processedContent = content;
+    let processedContent = safeContent;
     
     // 1. Spezielle Ersetzung für bekannte Key Facts-Strukturen
     
@@ -232,7 +242,16 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
     });
     
     return (
-      <div className="prose prose-sm break-words pointer-events-auto message-content">
+      <div 
+        className="prose prose-sm break-words pointer-events-auto message-content"
+        style={{
+          minHeight: role === 'assistant' ? '24px' : 'auto', // Minimale Höhe für Assistenten-Nachrichten
+          transition: 'height 0.1s ease-out', // Sanfte Höhenübergänge
+          overflowAnchor: 'auto', // Verbessert Scroll-Verhalten während Updates
+          contain: 'content', // Reduziert Layout-Neuberechnungen
+          willChange: 'contents', // Optimiert für häufige Inhaltsänderungen
+        }}
+      >
         <ReactMarkdown
           components={{
             a: ({node, ...props}) => {

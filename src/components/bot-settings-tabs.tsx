@@ -1,7 +1,8 @@
 'use client'
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { BotSettings } from "@/types/bot"
+import { BotSettings, BotSuggestion } from "@/types/bot"
+import { useState } from "react"
 
 interface BotSettingsTabsProps {
   name: string
@@ -10,12 +11,14 @@ interface BotSettingsTabsProps {
   flowiseId: string
   active: boolean
   settings: BotSettings
+  suggestions?: BotSuggestion[]
   onNameChange: (value: string) => void
   onDescriptionChange: (value: string) => void
   onWelcomeMessageChange: (value: string) => void
   onFlowiseIdChange: (value: string) => void
   onActiveChange: (value: boolean) => void
   onSettingsChange: (settings: BotSettings) => void
+  onSuggestionsChange?: (suggestions: BotSuggestion[]) => void
 }
 
 // ChatBubble-Vorschau Komponente
@@ -66,19 +69,98 @@ export function BotSettingsTabs({
   flowiseId,
   active,
   settings,
+  suggestions = [],
   onNameChange,
   onDescriptionChange,
   onWelcomeMessageChange,
   onFlowiseIdChange,
   onActiveChange,
-  onSettingsChange
+  onSettingsChange,
+  onSuggestionsChange
 }: BotSettingsTabsProps) {
+  const [newSuggestion, setNewSuggestion] = useState("")
+  
+  // Funktion zum Hinzufügen eines neuen Vorschlags
+  const addSuggestion = () => {
+    if (!newSuggestion.trim() || !onSuggestionsChange) return;
+    
+    const nextOrder = suggestions.length > 0 
+      ? Math.max(...suggestions.map(s => s.order)) + 1 
+      : 0;
+      
+    const newSuggestionItem: BotSuggestion = {
+      id: `temp-${Date.now()}`, // temporäre ID, wird vom Server ersetzt
+      text: newSuggestion,
+      order: nextOrder,
+      isActive: true,
+      botId: "", // wird vom Server gesetzt
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    onSuggestionsChange([...suggestions, newSuggestionItem]);
+    setNewSuggestion("");
+  };
+  
+  // Funktion zum Löschen eines Vorschlags
+  const removeSuggestion = (id: string) => {
+    if (!onSuggestionsChange) return;
+    onSuggestionsChange(suggestions.filter(s => s.id !== id));
+  };
+  
+  // Funktion zum Ändern der Aktivität eines Vorschlags
+  const toggleSuggestionActive = (id: string) => {
+    if (!onSuggestionsChange) return;
+    onSuggestionsChange(
+      suggestions.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s)
+    );
+  };
+  
+  // Funktion zum Ändern der Reihenfolge der Vorschläge
+  const moveSuggestion = (id: string, direction: 'up' | 'down') => {
+    if (!onSuggestionsChange || suggestions.length < 2) return;
+    
+    const currentIndex = suggestions.findIndex(s => s.id === id);
+    if (currentIndex === -1) return;
+    
+    const newSuggestions = [...suggestions];
+    
+    if (direction === 'up' && currentIndex > 0) {
+      // Tausche mit dem vorherigen Element
+      const temp = { ...newSuggestions[currentIndex - 1] };
+      newSuggestions[currentIndex - 1] = { 
+        ...newSuggestions[currentIndex], 
+        order: temp.order 
+      };
+      newSuggestions[currentIndex] = { 
+        ...temp, 
+        order: newSuggestions[currentIndex].order 
+      };
+    } else if (direction === 'down' && currentIndex < suggestions.length - 1) {
+      // Tausche mit dem nächsten Element
+      const temp = { ...newSuggestions[currentIndex + 1] };
+      newSuggestions[currentIndex + 1] = { 
+        ...newSuggestions[currentIndex], 
+        order: temp.order 
+      };
+      newSuggestions[currentIndex] = { 
+        ...temp, 
+        order: newSuggestions[currentIndex].order 
+      };
+    }
+    
+    // Sortiere nach order-Attribut
+    newSuggestions.sort((a, b) => a.order - b.order);
+    onSuggestionsChange(newSuggestions);
+  };
+  
   return (
     <Tabs defaultValue="allgemein" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="allgemein">Allgemeine Einstellungen</TabsTrigger>
         <TabsTrigger value="design">Design &amp; Erscheinungsbild</TabsTrigger>
         <TabsTrigger value="prompt">Prompt-Einstellungen</TabsTrigger>
+        <TabsTrigger value="suggestions">Vorschläge</TabsTrigger>
       </TabsList>
       
       <TabsContent value="allgemein">
@@ -456,6 +538,140 @@ Feiertage:
                 className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Liste der Tage, an denen das Center geschlossen ist"
               />
+            </div>
+          </div>
+        </div>
+      </TabsContent>
+      
+      <TabsContent value="suggestions">
+        <div className="border rounded-lg bg-card text-card-foreground shadow-sm">
+          <div className="flex flex-col space-y-1.5 p-6">
+            <h3 className="text-2xl font-semibold leading-none tracking-tight">Fragen-Vorschläge</h3>
+            <p className="text-sm text-muted-foreground">
+              Verwalten Sie die Vorschläge, die Nutzern im Chat angezeigt werden. Diese Vorschläge können angeklickt werden, um schnell häufige Fragen zu stellen.
+            </p>
+          </div>
+          
+          <div className="px-6">
+            <div className="bg-muted p-3 rounded-md text-sm flex items-center gap-2 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              Die Anzeige der Vorschläge kann unter "Design &amp; Erscheinungsbild" aktiviert oder deaktiviert werden (Option "Vorschläge anzeigen").
+            </div>
+          </div>
+          
+          <div className="p-6 pt-0 space-y-4">
+            <div className="flex gap-2 items-start">
+              <div className="flex-1">
+                <label htmlFor="new-suggestion" className="sr-only">Neuer Vorschlag</label>
+                <input
+                  type="text"
+                  id="new-suggestion"
+                  value={newSuggestion}
+                  onChange={(e) => setNewSuggestion(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="Neue Vorschlagsfrage eingeben, z.B. 'Wie sind die Öffnungszeiten?'"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addSuggestion();
+                    }
+                  }}
+                />
+              </div>
+              <button
+                onClick={addSuggestion}
+                className="px-4 py-2 h-10 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                disabled={!newSuggestion.trim() || !onSuggestionsChange}
+              >
+                Hinzufügen
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Vorhandene Vorschläge</h4>
+              
+              {suggestions.length === 0 && (
+                <div className="text-sm text-muted-foreground py-4 text-center bg-muted/30 rounded-md">
+                  Noch keine Vorschläge vorhanden. Fügen Sie oben Ihren ersten Vorschlag hinzu.
+                </div>
+              )}
+              
+              <ul className="space-y-2">
+                {suggestions.map((suggestion, index) => (
+                  <li key={suggestion.id} className="flex items-center gap-2 p-3 rounded-lg border bg-card">
+                    <div className="flex-1">
+                      <div className={suggestion.isActive ? "font-medium" : "font-medium text-muted-foreground line-through"}>
+                        {suggestion.text}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => moveSuggestion(suggestion.id, 'up')}
+                        disabled={index === 0 || !onSuggestionsChange}
+                        className="p-1 rounded-md hover:bg-muted text-muted-foreground disabled:opacity-30"
+                        title="Nach oben"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m18 15-6-6-6 6"/>
+                        </svg>
+                      </button>
+                      
+                      <button
+                        onClick={() => moveSuggestion(suggestion.id, 'down')}
+                        disabled={index === suggestions.length - 1 || !onSuggestionsChange}
+                        className="p-1 rounded-md hover:bg-muted text-muted-foreground disabled:opacity-30"
+                        title="Nach unten"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                      </button>
+                      
+                      <button
+                        onClick={() => toggleSuggestionActive(suggestion.id)}
+                        disabled={!onSuggestionsChange}
+                        className={`p-1 rounded-md hover:bg-muted ${
+                          suggestion.isActive 
+                            ? "text-green-600 hover:text-green-700" 
+                            : "text-muted-foreground"
+                        }`}
+                        title={suggestion.isActive ? "Deaktivieren" : "Aktivieren"}
+                      >
+                        {suggestion.isActive ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                            <path d="m9 12 2 2 4-4"></path>
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                            <path d="m15 9-6 6"></path>
+                            <path d="m9 9 6 6"></path>
+                          </svg>
+                        )}
+                      </button>
+                      
+                      <button
+                        onClick={() => removeSuggestion(suggestion.id)}
+                        disabled={!onSuggestionsChange}
+                        className="p-1 rounded-md hover:bg-muted text-destructive hover:text-destructive/90"
+                        title="Löschen"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"></path>
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>

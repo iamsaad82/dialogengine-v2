@@ -30,4 +30,15 @@ export interface Bot {
   settings: BotSettings
   createdAt: string
   updatedAt: string
+  suggestions?: BotSuggestion[]
+}
+
+export interface BotSuggestion {
+  id: string
+  text: string
+  order: number
+  isActive: boolean
+  botId: string
+  createdAt: string
+  updatedAt: string
 } 

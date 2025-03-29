@@ -1,4 +1,45 @@
 /* Allgemeine Markdown-Formatierung */
+.message-content {
+  /* Stabilisiert das Layout während des Streamings */
+  isolation: isolate; /* Erzeugt einen Stacking-Kontext, verhindert Überlauffehler */
+  min-height: 1.5rem; /* Minimale Höhe, verhindert Zusammenklappen */
+  transition: all 0.1s ease-out; /* Sanfte Animation bei Updates */
+  containment: content; /* Begrenzt Neuberechnungen des Layouts */
+  column-gap: 0; /* Verhindert Spaltenprobleme, die flackern können */
+  transform: translateZ(0); /* Hardware-Beschleunigung aktivieren */
+  word-wrap: break-word; /* Bricht Wörter um */
+  word-break: normal; /* Normales Wortumbruchverhalten */
+}
+
+/* Streaming Message spezifische Stabilisierung */
+.streaming-message .message-content {
+  transform: translateZ(0); /* Aktiviert Hardware-Beschleunigung */
+  backface-visibility: hidden; /* Reduziert Flackern */
+  perspective: 1000px; /* 3D-Kontext für stabilere Animationen */
+  font-variant-ligatures: none; /* Verhindert Ligatur-Sprünge beim Rendern */
+  text-size-adjust: 100%; /* Verhindert Textgröße-Flackern */
+  pointer-events: auto; /* Stellt sicher, dass Interaktionen funktionieren */
+  
+  /* Verbesserte Stabilisierung für Streaming */
+  animation: none !important; /* Alle Animationen deaktivieren */
+  transition: color 0.1s linear !important; /* Nur Farb-Übergänge erlauben, andere Übergänge blockieren */
+  will-change: contents; /* Browser-Hint für Optimierung */
+  contain: layout style; /* Stärkeres Containment */
+  
+  /* Vermeidung von Layout-Shifts */
+  min-height: 100px; /* Minimale Höhe festlegen */
+  height: auto !important; /* Höhe nicht durch Animation verändern */
+}
+
+/* Verhindert Bewegungsanimationen während des Streamings */
+.streaming-message {
+  animation: none !important;
+  transform: translateZ(0);
+  will-change: opacity;
+  transition-property: opacity !important;
+  transition-duration: 0.1s !important;
+}
+
 .message-content a {
   color: var(--bot-accent-color, #5D5FEF);
   text-decoration: none;
@@ -196,5 +237,99 @@
     width: 1.75rem;
     height: 1.75rem;
     font-size: 1rem;
+  }
+}
+
+/* Spezielle Optimierungen für die StreamingContent-Komponente */
+.streaming-content {
+  contain: content; 
+  display: block;
+  position: relative;
+  transform: translateZ(0);
+  will-change: contents;
+  animation: none !important;
+  
+  /* Verhindert Sprünge beim Layout */
+  min-height: 80px;
+  height: auto !important;
+  width: 100%;
+  
+  /* Deaktiviert alle Transitions die Flackern verursachen könnten */
+  transition: none !important;
+  
+  /* Keine Selektierbarkeit während des Streamings */
+  user-select: none;
+  
+  /* Optimierung für kritische Render-Pfade */
+  content-visibility: auto;
+}
+
+/* Rendering-Spezifikationen */
+@media (prefers-reduced-motion: no-preference) {
+  .streaming-content * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Verhindern aller Animationen innerhalb der stabilisierten Komponente */
+.no-animations, 
+.no-animations *, 
+.stable-message, 
+.stable-message * {
+  animation: none !important;
+  transition: none !important;
+  animation-delay: 0s !important;
+  animation-duration: 0s !important;
+  animation-play-state: paused !important;
+  transition-delay: 0s !important;
+  transition-duration: 0s !important;
+}
+
+/* Verhindern von Layout-Shifts für das Logo */
+.stable-message img,
+.streaming-message img {
+  /* Stabilisiert Bilder durch Hardware-Beschleunigung und fixierte Position */
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000;
+  -webkit-perspective: 1000;
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  max-height: 40px;
+  object-fit: contain;
+  object-position: center;
+  margin: 0 auto;
+}
+
+/* Stabile Content-Text-Anzeige */
+.stream-content-text {
+  position: relative;
+  display: block;
+  min-height: 24px;
+  width: 100%;
+  contain: content;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Verhindert Flackern durch Stacking-Kontext-Isolierung */
+.stable-message {
+  isolation: isolate;
+  contain: layout style paint;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Für Safari/WebKit spezifische Optimierungen */
+@supports (-webkit-overflow-scrolling: touch) {
+  .stable-message img,
+  .streaming-message img {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 } 
