@@ -39,6 +39,14 @@ const Message = ({
 }: MessageProps) => {
   const isBot = role === 'assistant';
   
+  // Verbesserten Anzeigenamen erzeugen
+  const displayName = isBot ? (
+    botName === 'creditreform' ? 'Creditreform Assistent' : 
+    botName === 'brandenburg' ? 'Brandenburg Dialog' : 
+    botName.includes('-') || botName.length < 4 ? `${botName} Assistent` : 
+    botName
+  ) : '';
+  
   // Animation für das Einblenden der Nachricht
   const messageVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -58,7 +66,8 @@ const Message = ({
     showCopyButton,
     enableFeedback,
     contentLength: content?.length || 0,
-    botName
+    botName,
+    displayName
   });
 
   return (
@@ -87,7 +96,7 @@ const Message = ({
                 src={botAvatarUrl} 
                 width={200} 
                 height={200} 
-                alt={`${botName} Logo`} 
+                alt={`${displayName} Logo`} 
                 className="inline mr-1 object-contain"
               />
             ) : (
@@ -99,7 +108,7 @@ const Message = ({
                 className="inline mr-1"
               />
             )}
-            <span className="text-sm font-semibold">{botName}</span>
+            <span className="text-sm font-semibold">{displayName}</span>
           </div>
         )}
         

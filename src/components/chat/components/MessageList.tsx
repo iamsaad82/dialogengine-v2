@@ -26,6 +26,11 @@ interface MessageListProps {
 
 // Ladeindikator-Komponente
 function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { botName?: string, botPrimaryColor?: string }) {
+  // Den Anzeigenamen verbessern, wenn es sich um einen technischen Namen handelt
+  const displayName = botName === 'creditreform' ? 'Creditreform Assistent' : 
+                     botName === 'brandenburg' ? 'Brandenburg Dialog' : 
+                     botName.includes('-') || botName.length < 4 ? `${botName} Assistent` : botName;
+  
   return (
     <motion.div
       className="group relative mb-4 flex items-start justify-start max-w-full"
@@ -80,7 +85,7 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { bo
         
         <div className="flex-1 space-y-2 overflow-hidden">
           <div className="text-sm font-medium">
-            {botName}
+            {displayName}
           </div>
           <div className="flex flex-col space-y-2">
             {/* Elegantere Typing-Animation */}
