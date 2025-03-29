@@ -31,6 +31,26 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { bo
                      botName === 'brandenburg' ? 'Brandenburg Dialog' : 
                      botName.includes('-') || botName.length < 4 ? `${botName} Assistent` : botName;
   
+  // Verschiedene Texte für die Lade-Animation
+  const loadingTexts = [
+    "Ich bereite eine Antwort vor...",
+    "Ich suche nach passenden Informationen...",
+    "Ich analysiere Ihre Anfrage...",
+    "Einen Moment bitte..."
+  ];
+  
+  // State für den aktuellen Text
+  const [textIndex, setTextIndex] = useState(0);
+  
+  // Effekt zum Wechseln des Textes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTextIndex(prevIndex => (prevIndex + 1) % loadingTexts.length);
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   return (
     <motion.div
       className="group relative mb-4 flex items-start justify-start max-w-full"
@@ -41,12 +61,14 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { bo
       aria-label="Nachricht wird geladen"
     >
       <div 
-        className="flex max-w-[85%] items-start gap-3 rounded-lg p-3 shadow-lg glassmorphism-light"
+        className="max-w-3xl rounded-lg p-3 mb-4 glassmorphism-bot"
         style={{
+          backgroundColor: 'var(--bot-bg-color)', 
+          color: 'var(--bot-text-color)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
         }}
       >
-        <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2 w-full">
+        <div className="pb-1 flex items-center gap-2 text-xs text-gray-500 border-b border-gray-200 mb-2">
           <div className="inline-flex items-center justify-center" style={{ width: '20px', height: '20px' }}>
             <svg 
               viewBox="0 0 24 24" 
@@ -68,28 +90,66 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { bo
           <span className="text-sm font-semibold leading-none">{displayName}</span>
         </div>
         
-        <div className="flex-1 space-y-2 overflow-hidden pl-2">
-          <div className="flex flex-col space-y-2">
-            {/* Elegantere Typing-Animation */}
-            <div className="flex h-6 items-center">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0s' }}></div>
-                <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0.4s' }}></div>
-              </div>
-            </div>
-            
-            {/* Hinweis zum Vorbereiten der Antwort */}
-            <div className="text-xs text-muted-foreground/90 italic">
-              Ich bereite eine Antwort vor...
+        <div className="py-2">
+          <div className="flex items-center mb-2">
+            <div className="flex items-center gap-1.5">
+              <motion.div 
+                className="w-2 h-2 bg-primary/60 rounded-full"
+                animate={{ 
+                  scale: [1, 1.5, 1],
+                  opacity: [0.7, 1, 0.7]
+                }}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 1.5,
+                  ease: "easeInOut" 
+                }}
+              />
+              <motion.div 
+                className="w-2 h-2 bg-primary/60 rounded-full"
+                animate={{ 
+                  scale: [1, 1.5, 1],
+                  opacity: [0.7, 1, 0.7]
+                }}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 1.5,
+                  ease: "easeInOut",
+                  delay: 0.2
+                }}
+              />
+              <motion.div 
+                className="w-2 h-2 bg-primary/60 rounded-full"
+                animate={{ 
+                  scale: [1, 1.5, 1],
+                  opacity: [0.7, 1, 0.7]
+                }}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 1.5,
+                  ease: "easeInOut",
+                  delay: 0.4
+                }}
+              />
             </div>
           </div>
           
-          <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
-            <span>
-              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          </div>
+          <motion.div 
+            key={textIndex}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.3 }}
+            className="text-sm text-muted-foreground/90"
+          >
+            {loadingTexts[textIndex]}
+          </motion.div>
+        </div>
+        
+        <div className="mt-1 flex items-center justify-end gap-2 text-xs text-muted-foreground/70">
+          <span>
+            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
         </div>
       </div>
     </motion.div>
