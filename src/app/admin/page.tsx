@@ -106,7 +106,7 @@ export default function AdminDashboard() {
         // Parallele Anfragen für bessere Performance
         const [settingsResponse, statsResponse] = await Promise.all([
           fetch('/api/settings'),
-          fetch(`/api/admin/stats?botId=${selectedBot}&timeRange=${timeRange}`)
+          fetch(`/admin/api/stats?botId=${selectedBot}&timeRange=${timeRange}`)
         ])
         
         if (settingsResponse.ok) {
