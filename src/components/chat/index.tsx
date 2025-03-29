@@ -140,8 +140,8 @@ export function Chat({ initialMode = 'bubble', embedded = false, botId, classNam
                 console.log("CHAT-DEBUG-004: Setze Willkommensnachricht", welcomeKey);
                 loadedWelcomeMessages.add(welcomeKey);
                 
-                // Sicherstellen, dass useChat die Willkommensnachricht erhält
-                // aber keine doppelten Messages erzeugt
+                // Willkommensnachricht setzen
+                setWelcomeMessage(botData.welcomeMessage);
               }
             }
           }

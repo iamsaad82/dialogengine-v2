@@ -85,16 +85,16 @@ const Message = ({
             {botAvatarUrl ? (
               <Image 
                 src={botAvatarUrl} 
-                width={35} 
-                height={35} 
+                width={200} 
+                height={200} 
                 alt={`${botName} Logo`} 
                 className="inline mr-1 object-contain"
               />
             ) : (
               <Image 
                 src="/brandenburg-logo.svg" 
-                width={150} 
-                height={150} 
+                width={200} 
+                height={200} 
                 alt="Brandenburg Logo" 
                 className="inline mr-1"
               />
