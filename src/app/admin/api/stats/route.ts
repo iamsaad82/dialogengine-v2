@@ -63,7 +63,8 @@ export async function GET(request: Request) {
     const conversationFilter: any = {
       createdAt: dateFilter
     }
-    if (botId) {
+    // Setze den botId Filter nur, wenn ein spezifischer Bot ausgewählt wurde (nicht 'all')
+    if (botId && botId !== 'all') {
       conversationFilter.botId = botId
     }
     

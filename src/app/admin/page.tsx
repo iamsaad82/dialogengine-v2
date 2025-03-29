@@ -263,7 +263,12 @@ export default function AdminDashboard() {
                                 )}
                               </div>
                             </div>
-                            <button className="text-primary hover:underline text-sm">Details</button>
+                            <button 
+                              className="text-primary hover:underline text-sm"
+                              onClick={() => alert(`Details für Frage: ${item.question}`)}
+                            >
+                              Details
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -277,7 +282,12 @@ export default function AdminDashboard() {
                   <div className="w-full lg:w-1/2 bg-card rounded-lg shadow p-6">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl font-bold">Top Fragen</h2>
-                      <button className="text-sm text-primary hover:underline">Bericht erstellen</button>
+                      <button 
+                        className="text-sm text-primary hover:underline"
+                        onClick={() => alert('Bericht wird erstellt... (Funktion noch in Entwicklung)')}
+                      >
+                        Bericht erstellen
+                      </button>
                     </div>
                     {topQuestions.length > 0 ? (
                       <div className="space-y-3">
