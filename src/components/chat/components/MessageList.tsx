@@ -47,7 +47,8 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { bo
         }}
       >
         <motion.div 
-          className="flex h-6 w-6 shrink-0 select-none items-center justify-center rounded-md border bg-background/80 backdrop-blur-sm shadow-inner"
+          className="flex-shrink-0 flex items-center justify-center border rounded-md bg-background/80 backdrop-blur-sm shadow-inner"
+          style={{ width: '20px', height: '20px' }}
           animate={{ 
             rotate: [0, 5, 0, -5, 0],
             scale: [1, 1.05, 1, 1.05, 1]
@@ -64,9 +65,8 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { bo
             height="16"
             fill="none" 
             xmlns="http://www.w3.org/2000/svg" 
-            aria-hidden="true" 
-            className="flex-shrink-0"
-            style={{ minWidth: '16px', minHeight: '16px' }}
+            aria-hidden="true"
+            style={{ aspectRatio: '1/1' }}
           >
             <rect width="18" height="10" x="3" y="11" rx="2" stroke="currentColor" strokeWidth="2" />
             <circle cx="12" cy="5" r="2" stroke="currentColor" strokeWidth="2" />
@@ -93,7 +93,7 @@ function LoadingMessage({ botName = 'SMG Dialog Engine', botPrimaryColor }: { bo
         </motion.div>
         
         <div className="flex-1 space-y-2 overflow-hidden">
-          <div className="text-sm font-medium">
+          <div className="text-sm font-medium leading-none">
             {displayName}
           </div>
           <div className="flex flex-col space-y-2">
