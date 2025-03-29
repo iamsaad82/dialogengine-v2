@@ -15,14 +15,21 @@ async function getAppSettings() {
   }
 }
 
+// Metadaten für SEO und Browsertitel
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getAppSettings()
   
   return {
     title: settings.brandName,
     description: `Stadtassistent für ${settings.brandName}`,
-    viewport: 'width=device-width, initial-scale=1, minimum-scale=1',
   }
+}
+
+// Separater Viewport-Export nach Next.js 14 Konvention
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
 }
 
 export default function RootLayout({

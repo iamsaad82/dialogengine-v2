@@ -1,9 +1,16 @@
 import { Metadata } from 'next'
 
+// SEO-Metadaten
 export const metadata: Metadata = {
   title: 'Brandenburg Dialog',
   description: 'Stadtassistent für Brandenburg an der Havel',
-  viewport: 'width=device-width, initial-scale=1, minimum-scale=1',
+}
+
+// Separater Viewport-Export nach Next.js 14 Konvention
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
 }
 
 export default function EmbedChatLayout({
