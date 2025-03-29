@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { signOut, useSession } from 'next-auth/react'
 
 export default function AdminLayout({
   children,
@@ -10,6 +11,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const { data: session } = useSession()
 
   // Funktion zum Prüfen, ob der aktuelle Pfad mit dem Link übereinstimmt
   const isActive = (path: string) => {
@@ -28,30 +30,26 @@ export default function AdminLayout({
         }`}
       >
         {/* Sidebar Header */}
-        <div className="border-b p-4 flex items-center justify-between">
-          {!sidebarCollapsed && (
-            <div className="font-bold text-primary">Admin-Bereich</div>
-          )}
+        <div className="h-16 border-b flex items-center justify-between px-4">
+          <div className={`flex items-center ${sidebarCollapsed ? 'hidden' : ''}`}>
+            <span className="text-xl font-semibold">Admin</span>
+          </div>
           <button 
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="p-1 rounded-md hover:bg-muted"
-            aria-label={sidebarCollapsed ? "Sidebar erweitern" : "Sidebar einklappen"}
+            onClick={() => setSidebarCollapsed(prev => !prev)}
           >
             {sidebarCollapsed ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="13 17 18 12 13 7"></polyline>
-                <polyline points="6 17 11 12 6 7"></polyline>
+                <path d="m9 18 6-6-6-6"/>
               </svg>
             ) : (
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="11 17 6 12 11 7"></polyline>
-                <polyline points="18 17 13 12 18 7"></polyline>
+                <path d="m15 18-6-6 6-6"/>
               </svg>
             )}
           </button>
         </div>
         
-        {/* Sidebar Navigation */}
         <nav className="flex-1 py-4">
           <ul className="space-y-1">
             <li>
@@ -124,17 +122,37 @@ export default function AdminLayout({
         
         {/* Sidebar Footer */}
         <div className="border-t p-4">
-          <a
-            href="/"
-            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            {!sidebarCollapsed && <span>Zurück zur Website</span>}
-          </a>
+          {!sidebarCollapsed && session?.user && (
+            <div className="mb-3 text-xs text-muted-foreground">
+              <p>Angemeldet als:</p>
+              <p className="font-medium">{session.user.name || session.user.email}</p>
+            </div>
+          )}
+          
+          <div className="flex flex-col space-y-2">
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="flex items-center text-sm text-muted-foreground hover:text-destructive"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              {!sidebarCollapsed && <span>Abmelden</span>}
+            </button>
+            
+            <a
+              href="/"
+              className="flex items-center text-sm text-muted-foreground hover:text-foreground"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              {!sidebarCollapsed && <span>Zurück zur Website</span>}
+            </a>
+          </div>
         </div>
       </aside>
       
