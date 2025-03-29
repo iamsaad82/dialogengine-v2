@@ -776,17 +776,17 @@ body.embedded-body {
   background-color: transparent !important;
 }
 
-/* Dialog-Modus im iframe hat weißen Hintergrund */
+/* Dialog-Modus im iframe hat transparenten Hintergrund */
 body.dialog-mode.embedded-body,
 html.dialog-mode.embedded-body {
-  background-color: white !important;
+  background-color: transparent !important;
 }
 
 /* Dialog-Modus im iframe mit weißem Hintergrund, Dialog-Modus mit weißem Hintergrund */
 .dialog-mode-iframe,
 .embedded-body:root.dialog-mode {
-  --background: white;
-  background-color: white !important;
+  --background: transparent;
+  background-color: transparent !important;
 }
 
 /* Für klassischen Modus immer transparent */
@@ -803,9 +803,10 @@ html.dialog-mode.embedded-body {
   width: 100vw !important;
 }
 
+/* Dialog-Modus mit transparentem Hintergrund, damit der Verlauf sichtbar ist */
 body.dialog-mode .embedded-chat.fullscreen-mode,
 body.dialog-mode .embedded-chat.fullscreen-mode html {
-  background-color: white !important;
+  background-color: transparent !important;
 }
 
 /* Data-Mode Fullscreen transparent für klassischen Modus */
@@ -813,9 +814,9 @@ div[data-mode="fullscreen"] {
   background-color: transparent !important;
 }
 
-/* Dialog-Modus mit weißem Hintergrund */
+/* Dialog-Modus mit transparentem Hintergrund */
 body.dialog-mode div[data-mode="fullscreen"] {
-  background-color: white !important;
+  background-color: transparent !important;
 }
 
 /* Responsive Anpassungen für mobile Geräte */
@@ -1182,11 +1183,12 @@ body.dialog-mode div[data-mode="fullscreen"] {
   z-index: var(--chat-z-index);
   display: flex;
   flex-direction: column;
-  background-color: white !important; /* Hintergrund festlegen */
+  /* Standardmäßig transparent (für klassischen Modus) */
+  background-color: transparent !important;
 }
 
 .embedded-body.fullscreen-mode {
-  background-color: white !important;
+  background-color: transparent !important;
 }
 
 /* Fix für Hover-Effekte, um die Layout-Verschiebung zu minimieren */
@@ -1199,7 +1201,7 @@ body.dialog-mode div[data-mode="fullscreen"] {
 /* Anpassung für Dialog-Modus im iframe */
 html.embedded-body,
 body.embedded-body {
-  background-color: white !important;
+  background-color: transparent !important;
 }
 
 /* Dialog-Modus im iframe mit weißem Hintergrund, falls transparent unerwünscht ist */
