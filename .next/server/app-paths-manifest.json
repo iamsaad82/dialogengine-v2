@@ -1,4 +1,5 @@
 {
   "/bot-test/[id]/page": "app/bot-test/[id]/page.js",
+  "/login/page": "app/login/page.js",
   "/admin/bots/page": "app/admin/bots/page.js"
 }

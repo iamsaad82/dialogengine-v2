@@ -1303,6 +1303,9 @@ video {
   margin-left: auto;
   margin-right: auto;
 }
+.-ml-1 {
+  margin-left: -0.25rem;
+}
 .mb-1 {
   margin-bottom: 0.25rem;
 }
@@ -2011,6 +2014,9 @@ video {
 }
 .p-6 {
   padding: 1.5rem;
+}
+.p-8 {
+  padding: 2rem;
 }
 .px-1 {
   padding-left: 0.25rem;
@@ -3298,6 +3304,9 @@ body.dialog-mode .chat-input-field {
 .hover\:text-accent-foreground:hover {
   color: hsl(var(--accent-foreground));
 }
+.hover\:text-destructive:hover {
+  color: hsl(var(--destructive));
+}
 .hover\:text-emerald-700:hover {
   --tw-text-opacity: 1;
   color: rgb(4 120 87 / var(--tw-text-opacity));
@@ -3345,6 +3354,9 @@ body.dialog-mode .chat-input-field {
 }
 .focus\:ring-opacity-50:focus {
   --tw-ring-opacity: 0.5;
+}
+.focus\:ring-offset-2:focus {
+  --tw-ring-offset-width: 2px;
 }
 .focus-visible\:border-primary\/40:focus-visible {
   border-color: hsl(var(--primary) / 0.4);
