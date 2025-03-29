@@ -1,156 +1,105 @@
 'use client'
 
 import { Chat } from '@/components/chat'
+import { StreamingChat } from '@/components/chat/StreamingChat'
 import { useEffect, useState, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 
-export default function EmbeddedChat() {
+// VERSION-MARKER: Chat-Embed-Debug-Code - Version 004
+console.log("Embed Chat Page - Debug-Version 004");
+
+export default function ChatEmbed() {
   const [mode, setMode] = useState<'bubble' | 'inline' | 'fullscreen'>('inline')
   const [primaryColor, setPrimaryColor] = useState('#e63946')
   const [botId, setBotId] = useState<string | undefined>(undefined)
+  const [useStreaming, setUseStreaming] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
+  const searchParams = useSearchParams()
   
   useEffect(() => {
-    // Setze Hintergrund transparent und füge embedded-body Klasse hinzu
-    document.documentElement.style.background = 'transparent';
-    document.body.style.background = 'transparent';
-    document.body.classList.add('embedded-body');
+    // Bot-ID aus den URL-Parametern extrahieren
+    const id = searchParams?.get('botId') || undefined
     
-    // Kurze Ladezeit für Client-Hydration
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 100)
+    // Prüfen, ob Streaming-Parameter vorhanden ist
+    const streamingParam = searchParams?.get('streaming')
+    const shouldUseStreaming = streamingParam === 'true' || streamingParam === '1'
     
-    // Parameter aus der URL holen mit nativem URLSearchParams
-    const searchParams = new URLSearchParams(window.location.search)
+    console.log(`CHAT-EMBED-DEBUG-004: Bot-ID aus URL: ${id || 'nicht gefunden'}`)
+    console.log(`CHAT-EMBED-DEBUG-004: Streaming: ${shouldUseStreaming ? 'aktiviert' : 'deaktiviert'}`)
     
-    const modeParam = searchParams.get('mode')
+    setBotId(id)
+    setUseStreaming(shouldUseStreaming)
+    
+    // Erfasse die primäre Farbe aus der URL
+    const embedColor = searchParams?.get('color')
+    if (embedColor) {
+      // Setze die Farbe, wenn sie in der URL angegeben ist
+      setPrimaryColor(embedColor)
+      console.log(`CHAT-EMBED-DEBUG-004: Primärfarbe aus URL: ${embedColor}`)
+    } else {
+      console.log(`CHAT-EMBED-DEBUG-004: Keine Primärfarbe in URL, verwende Standard: ${primaryColor}`)
+    }
+    
+    // Mode aus URL erfassen
+    const modeParam = searchParams?.get('mode')
     if (modeParam === 'bubble' || modeParam === 'inline' || modeParam === 'fullscreen') {
       setMode(modeParam)
-      
-      // Bei Bubble-Modus speziellen Stylings für den Body
-      if (modeParam === 'bubble') {
-        document.body.style.overflow = 'visible';
-        document.body.style.height = 'auto';
-        document.documentElement.style.overflow = 'visible';
-        document.documentElement.style.height = 'auto';
-      }
+      console.log(`CHAT-EMBED-DEBUG-004: Chat-Modus aus URL: ${modeParam}`)
+    } else {
+      console.log(`CHAT-EMBED-DEBUG-004: Kein gültiger Modus in URL, verwende Standard: ${mode}`)
     }
     
-    const colorParam = searchParams.get('color')
-    if (colorParam) {
-      const decodedColor = decodeURIComponent(colorParam)
-      setPrimaryColor(decodedColor)
+    setIsLoading(false)
+  }, [searchParams, primaryColor, mode])
+  
+  // Größe des iframes automatisch anpassen
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      const height = containerRef.current?.offsetHeight || 600
+      const width = containerRef.current?.offsetWidth || 400
       
-      // Primärfarbe als CSS-Variable setzen
-      document.documentElement.style.setProperty('--primary', decodedColor)
+      window.parent.postMessage({
+        type: 'resize',
+        height,
+        width
+      }, '*')
       
-      // RGB-Werte für Primärfarbe berechnen für Schatten etc.
-      if (decodedColor.startsWith('#') && decodedColor.length >= 7) {
-        const r = parseInt(decodedColor.slice(1, 3), 16)
-        const g = parseInt(decodedColor.slice(3, 5), 16)
-        const b = parseInt(decodedColor.slice(5, 7), 16)
-        document.documentElement.style.setProperty('--primary-rgb', `${r}, ${g}, ${b}`)
-      }
-      
-      // Wenn kein Bot-ID Parameter angegeben ist, werden hier die Standardfarben für den Chat gesetzt
-      if (!searchParams.get('botId')) {
-        document.documentElement.style.setProperty('--bot-accent-color', decodedColor)
-        document.documentElement.style.setProperty('--user-bg-color', `linear-gradient(135deg, ${decodedColor}, ${decodedColor}cc)`)
-      }
-    }
-    
-    // Bot-ID aus der URL holen
-    const botIdParam = searchParams.get('botId')
-    if (botIdParam) {
-      setBotId(botIdParam)
-    }
-    
-    // Größenmessungs-Funktion zum Senden der Container-Höhe an die übergeordnete Seite
-    const reportSize = () => {
-      if (containerRef.current) {
-        const height = containerRef.current.scrollHeight;
-        // Sende Nachricht an übergeordnetes Fenster mit der aktuellen Höhe
-        window.parent.postMessage({ 
-          type: 'dialog-resize', 
-          height: height,
-          mode: mode
-        }, '*');
-      }
-    };
-    
-    // Regelmäßig die Größe überprüfen und bei Änderungen melden
-    const sizeObserver = new ResizeObserver(() => {
-      reportSize();
-    });
+      console.log(`CHAT-EMBED-DEBUG-004: Sende Resize-Event: ${width}x${height}`)
+    })
     
     if (containerRef.current) {
-      sizeObserver.observe(containerRef.current);
+      observer.observe(containerRef.current)
     }
     
-    // Kommunikation mit der Eltern-Seite
-    function handleMessage(event: MessageEvent) {
-      // Sicherstellen, dass die Nachricht von einer vertrauenswürdigen Quelle kommt
-      if (event.data && event.data.type === 'smg-dialog') {
-        // Hier könnten später weitere Befehle verarbeitet werden
-        if (event.data.action === 'close') {
-          // Chat schließen - für die Bubble-Implementierung
-          window.parent.postMessage({ type: 'smg-dialog', action: 'chat-closed' }, '*')
-        } else if (event.data.action === 'request-size') {
-          // Bei Anfrage die aktuelle Größe melden
-          reportSize();
-        }
-      }
-    }
-    
-    window.addEventListener('message', handleMessage)
-    
-    // Initial die Größe melden, nachdem der Inhalt geladen wurde
-    setTimeout(reportSize, 500);
-    
-    // Z-Index konfigurieren basierend auf Host-Seiten-Parameter
-    const zIndexParam = searchParams.get('zIndex');
-    if (zIndexParam && !isNaN(parseInt(zIndexParam))) {
-      // Custom CSS Variable für z-index setzen
-      document.documentElement.style.setProperty('--chat-z-index', zIndexParam);
-    }
-    
-    // Cleanup-Funktion
     return () => {
-      window.removeEventListener('message', handleMessage)
-      clearTimeout(timer)
-      sizeObserver.disconnect();
-      document.body.classList.remove('embedded-body');
+      observer.disconnect()
     }
-  }, [mode])
-
-  // Lade-Zustand während der Client-Hydration
+  }, [])
+  
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <span className="ml-3">Lade...</span>
-      </div>
-    )
+    return <div className="w-screen h-screen bg-white/50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
   }
-
+  
   return (
-    <div 
-      ref={containerRef} 
-      className={`embedded-chat ${mode}`}
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%'
-      }}
-    >
-      <Chat initialMode={mode} embedded={true} botId={botId} />
+    <div ref={containerRef} className="h-screen w-screen overflow-hidden relative">
+      {useStreaming ? (
+        // Streaming-Chat - unterstützt jetzt auch inline
+        <StreamingChat 
+          botId={botId}
+          initialMode={mode}
+          embedded={true}
+        />
+      ) : (
+        // Normaler Chat
+        <Chat 
+          botId={botId} 
+          initialMode={mode}
+          embedded={true}
+        />
+      )}
     </div>
   )
 } 

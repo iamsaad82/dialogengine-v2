@@ -7,6 +7,7 @@ export async function GET(request: Request) {
   const mode = searchParams.get('mode') || 'bubble'
   const position = searchParams.get('position') || 'bottom-right'
   const color = searchParams.get('color') || '#3b82f6'
+  const streaming = searchParams.get('streaming') !== 'false' // Standardmäßig true, außer bei explizitem "false"
   
   // Zusätzliche Parameter für mehr Anpassungsmöglichkeiten
   const bubbleSize = searchParams.get('bubbleSize') || '60' // Größe der Chat-Bubble in px
@@ -53,6 +54,7 @@ export async function GET(request: Request) {
     const configColor = targetContainer.getAttribute('data-color') || "${botColor}";
     const configBotId = targetContainer.getAttribute('data-bot-id') || "${botId}";
     const configZIndex = targetContainer.getAttribute('data-z-index') || "${zIndex}";
+    const configStreaming = targetContainer.getAttribute('data-streaming') !== "false" ? true : false; // Standardmäßig true
     
     // Erweiterte Einstellungen aus Datenattributen oder Standardwerten
     const configBubbleSize = parseInt(targetContainer.getAttribute('data-bubble-size') || "${bubbleSize}");
@@ -66,6 +68,7 @@ export async function GET(request: Request) {
     const mode = configMode;
     const position = configPosition;
     const color = configColor;
+    const streaming = configStreaming;
     const bubbleSize = configBubbleSize;
     const offsetX = configOffsetX;
     const offsetY = configOffsetY;
@@ -198,6 +201,7 @@ export async function GET(request: Request) {
       widgetUrl.searchParams.append('mode', mode);
       widgetUrl.searchParams.append('color', encodeURIComponent(color));
       widgetUrl.searchParams.append('botId', botId);
+      widgetUrl.searchParams.append('streaming', streaming.toString()); // Streaming-Parameter hinzufügen
       
       // Z-Index Parameter hinzufügen, wenn gesetzt
       if (configZIndex) {
