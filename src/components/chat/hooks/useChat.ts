@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, RefObject, useEffect } from 'react'
 import { Message, ChatMode } from '../types'
 import { LunaryClient } from '@/lib/lunary-client'
 import { v4 as uuidv4 } from 'uuid'
+import { BotSettings } from '@/types/bot'
 
 // VERSION-MARKER: Eindeutiger Debug-Code - Version 007
 console.log("useChat.ts geladen - Debug-Version 007");
@@ -99,12 +100,11 @@ export function useChat({
   initialSettings
 }: UseChatProps = {}) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
+  const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mode, setMode] = useState<'bubble' | 'fullscreen'>(initialMode)
   const [isOpen, setIsOpen] = useState(initialOpen)
-  const [mode, setMode] = useState<ChatMode>(initialMode)
-  const [input, setInput] = useState('')
-  const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const sessionIdRef = useRef<string>(uuidv4()) // Eindeutige Sitzungs-ID für Tracking
@@ -113,6 +113,25 @@ export function useChat({
   const chatInitializedRef = useRef<boolean>(false) // Tracking für die Chat-Initialisierung
   const cancelRef = useRef<boolean>(false) // Ref zum Abbrechen von Operationen
   const cancelFetchRef = useRef<boolean>(false) // Ref zum Abbrechen von Fetch-Operationen
+  const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null)
+  const [isDialogMode, setIsDialogMode] = useState(true)
+  const [settings, setSettings] = useState<BotSettings | null>(initialSettings || null)
+
+  // Initialisiere die Session-ID bei der ersten Komponenten-Montage
+  useEffect(() => {
+    // Versuche, eine vorhandene Session-ID aus dem localStorage zu laden
+    const storedSessionId = localStorage.getItem(`${botId || 'default'}_sessionId`);
+    
+    if (storedSessionId) {
+      sessionIdRef.current = storedSessionId;
+      console.log('DEBUG-007: Bestehende Session-ID geladen:', storedSessionId);
+    } else {
+      // Generiere eine neue Session-ID
+      sessionIdRef.current = uuidv4();
+      localStorage.setItem(`${botId || 'default'}_sessionId`, sessionIdRef.current);
+      console.log('DEBUG-007: Neue Session-ID generiert:', sessionIdRef.current);
+    }
+  }, [botId]);
 
   // Toggle Chat öffnen/schließen
   const toggleChat = useCallback(() => {
@@ -265,6 +284,7 @@ export function useChat({
           message: content,
           history: messages,
           botId: botId,
+          sessionId: sessionIdRef.current // Füge die sessionId zum Request hinzu
         }),
         signal,
       });
@@ -276,6 +296,13 @@ export function useChat({
       }
       
       const data = await response.json();
+      
+      // Aktualisiere die sessionId falls die API eine neue zurückgibt
+      if (data.sessionId && data.sessionId !== sessionIdRef.current) {
+        console.log('DEBUG-007: Neue Session-ID von API erhalten:', data.sessionId);
+        sessionIdRef.current = data.sessionId;
+        localStorage.setItem(`${botId || 'default'}_sessionId`, data.sessionId);
+      }
       
       // Füge Bot-Antwort hinzu
       let botContent = '';
