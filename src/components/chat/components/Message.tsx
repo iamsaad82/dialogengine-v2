@@ -94,18 +94,18 @@ const Message = ({
             {botAvatarUrl ? (
               <Image 
                 src={botAvatarUrl} 
-                width={200} 
-                height={200} 
+                width={24} 
+                height={24} 
                 alt={`${displayName} Logo`} 
-                className="inline mr-1 object-contain"
+                className="inline-block flex-shrink-0 object-contain w-6 h-6"
               />
             ) : (
               <Image 
                 src="/brandenburg-logo.svg" 
-                width={200} 
-                height={200} 
+                width={24} 
+                height={24} 
                 alt="Brandenburg Logo" 
-                className="inline mr-1"
+                className="inline-block flex-shrink-0 w-6 h-6"
               />
             )}
             <span className="text-sm font-semibold">{displayName}</span>
