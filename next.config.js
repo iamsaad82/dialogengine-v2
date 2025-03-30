@@ -6,6 +6,9 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
+    // !! ACHTUNG !!
+    // Ignorieren der TypeScript-Fehler während des Build-Prozesses
+    // Langfristig sollten die eigentlichen Typprobleme behoben werden
     ignoreBuildErrors: true,
   },
   // Experimentelle Funktionen für Optimierungen im Build-Prozess
