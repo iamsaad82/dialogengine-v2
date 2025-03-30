@@ -546,7 +546,7 @@ export function StreamingChat({
           )}
           <div className="flex-shrink-0">
             <ChatHeader 
-              mode="fullscreen" 
+              mode={mode}  // Übergebe den aktuellen Modus
               onClose={toggleChat} 
               onModeChange={cycleMode}
               setMode={setMode as any}

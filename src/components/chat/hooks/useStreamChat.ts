@@ -134,7 +134,8 @@ export function useStreamChat({
 
   // Toggle Chat öffnen/schließen
   const toggleChat = useCallback(() => {
-    setIsOpen((prev) => !prev)
+    setIsOpen(!isOpen)
+    console.log("useStreamChat: toggleChat - neuer Status:", !isOpen, "aktueller Modus:", mode);
     
     // Tracking für Chat-Öffnen/Schließen
     LunaryClient.track({
@@ -142,7 +143,7 @@ export function useStreamChat({
       properties: { botId },
       metadata: { sessionId: sessionIdRef.current }
     })
-  }, [isOpen, botId])
+  }, [isOpen, botId, mode])
 
   // Wechselt zwischen den Modi (bubble -> fullscreen -> bubble)
   const cycleMode = useCallback(() => {
@@ -163,7 +164,8 @@ export function useStreamChat({
   // Direkt zu einem bestimmten Modus wechseln
   const setCurrentMode = useCallback((newMode: StreamChatMode) => {
     setMode(newMode)
-  }, [])
+    console.log("useStreamChat: setCurrentMode - neuer Modus:", newMode, "isOpen:", isOpen);
+  }, [isOpen])
 
   // Nachrichtenliste aktualisieren mit neuer Nachricht
   useEffect(() => {
