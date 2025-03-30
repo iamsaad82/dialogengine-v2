@@ -576,7 +576,7 @@ export default function EmbedGenerator() {
                   <Label className="text-sm mb-2 block">Streaming-Modus</Label>
                   <RadioGroup 
                     value={streamingEnabled ? "true" : "false"} 
-                    onValueChange={(v) => setStreamingEnabled(v === "true")}
+                    onValueChange={(v: string) => setStreamingEnabled(v === "true")}
                     className="flex space-x-4"
                   >
                     <div className="flex items-center space-x-2">
@@ -698,7 +698,7 @@ export default function EmbedGenerator() {
                   <p className="mb-1">
                     <strong>Bubble-Modus:</strong> Der Bot erscheint als Bubble in der angegebenen Ecke.
                   </p>
-                  <Button variant="link" className="h-auto p-0 text-primary" onClick={() => router.push('/admin/dokumentation')}>
+                  <Button variant="link" className="h-auto p-0 text-primary" onClick={() => router.push('/admin')}>
                     Mehr erfahren
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </Button>

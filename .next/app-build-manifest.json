@@ -11,15 +11,30 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
+    "/error": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/error.js"
+    ],
     "/not-found": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/not-found.js"
     ],
-    "/error": [
+    "/admin/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/error.js"
+      "static/chunks/app/admin/layout.js"
+    ],
+    "/admin/embed/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/embed/page.js"
+    ],
+    "/admin/bots/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/bots/page.js"
     ],
     "/bot-test/[id]/page": [
       "static/chunks/webpack.js",
@@ -27,30 +42,16 @@
       "static/css/app/bot-test/[id]/page.css",
       "static/chunks/app/bot-test/[id]/page.js"
     ],
-    "/admin/layout": [
+    "/embed/(chat)/chat/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/layout.js"
+      "static/css/app/embed/(chat)/chat/page.css",
+      "static/chunks/app/embed/(chat)/chat/page.js"
     ],
-    "/admin/bots/page": [
+    "/embed/(chat)/chat/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/bots/page.js"
-    ],
-    "/admin/bots/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/bots/[id]/page.js"
-    ],
-    "/admin/embed/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/embed/page.js"
-    ],
-    "/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
+      "static/chunks/app/embed/(chat)/chat/layout.js"
     ]
   }
 }

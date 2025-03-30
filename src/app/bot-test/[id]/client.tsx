@@ -352,7 +352,10 @@ export default function BotTestClient({ id }: { id: string }) {
                         userBgColor: bot.settings?.userBgColor,
                         userTextColor: bot.settings?.userTextColor,
                         showSuggestions: testSettings.showSuggestions,
-                        welcomeMessage: bot.welcomeMessage
+                        welcomeMessage: bot.welcomeMessage,
+                        showCopyButton: bot.settings?.showCopyButton,
+                        enableFeedback: bot.settings?.enableFeedback,
+                        avatarUrl: bot.settings?.avatarUrl || bot.avatarUrl
                       }}
                       suggestions={bot.suggestions}
                     />
@@ -369,7 +372,10 @@ export default function BotTestClient({ id }: { id: string }) {
                         userBgColor: bot.settings?.userBgColor,
                         userTextColor: bot.settings?.userTextColor,
                         showSuggestions: testSettings.showSuggestions,
-                        welcomeMessage: bot.welcomeMessage
+                        welcomeMessage: bot.welcomeMessage,
+                        showCopyButton: bot.settings?.showCopyButton,
+                        enableFeedback: bot.settings?.enableFeedback,
+                        avatarUrl: bot.settings?.avatarUrl || bot.avatarUrl
                       }}
                       suggestions={bot.suggestions}
                     />
