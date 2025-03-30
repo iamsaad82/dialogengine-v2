@@ -244,7 +244,9 @@ export function Chat({
              inset: 0,
              height: embedded ? '100%' : '100vh',
              width: embedded ? '100%' : '100vw',
-             pointerEvents: isDialogMode ? 'auto' : 'none' 
+             pointerEvents: 'auto',
+             opacity: isDialogMode ? 1 : 0.01,
+             transition: 'opacity 0.3s ease'
            }}>
         {/* Segment-Control Toggle für Dialog/Klassisch */}
         <div

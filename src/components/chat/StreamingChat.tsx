@@ -261,7 +261,7 @@ export function StreamingChat({
   if (mode === 'fullscreen') {
     // Dialog-Modus State für Fullscreen
     const [isDialogMode, setIsDialogMode] = useState(true);
-    console.log("SUGGESTIONS-DEBUG: Im Fullscreen-Modus, botSettings:", botSettings, "Vorschläge:", suggestions.length);
+    console.log("SUGGESTIONS-DEBUG: Im Fullscreen-Modus, botSettings:", botSettings, "Vorschläge:", suggestions.length, "DialogMode:", isDialogMode);
 
     // Umschalten zwischen Dialog und Web Modus
     const toggleDialogMode = () => {
@@ -302,12 +302,14 @@ export function StreamingChat({
           ${className || ''}
         `}
         style={{ 
-          pointerEvents: isDialogMode ? 'auto' : 'none',
+          pointerEvents: 'auto', // Immer aktivieren, damit der Chat bedienbar bleibt
           paddingTop: '70px',
           // Bei eingebettetem Modus keinen fixed-Stil verwenden
           position: embedded ? 'absolute' : 'fixed',
           height: embedded ? '100%' : '100vh',
-          width: embedded ? '100%' : '100vw'
+          width: embedded ? '100%' : '100vw',
+          opacity: isDialogMode ? 1 : 0.01, // Im Web-Modus fast unsichtbar statt pointer-events zu deaktivieren
+          transition: 'opacity 0.3s ease'
         }}
         role="dialog"
         aria-modal="true"
