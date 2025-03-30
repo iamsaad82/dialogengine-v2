@@ -14,8 +14,8 @@ const nextConfig = {
     typedRoutes: true,
     // Optionale Umbenennung von Komponenten im Build
     useDeploymentId: false,
-    // Deaktiviere SSG für bestimmte Routen, die useSearchParams() verwenden
-    disableStaticRoutes: ['/embed/chat'],
+    // Diese Option wird nicht unterstützt in Next.js 14.1.0
+    // disableStaticRoutes: ['/embed/chat'],
   },
   // Konfiguration für Bilder und Medien
   images: {
