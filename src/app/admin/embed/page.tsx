@@ -106,6 +106,22 @@ export default function EmbedGenerator() {
     }
   }, [selectedBotId, bots])
 
+  // Funktion zum Aktualisieren von Bot-Einstellungen für die Vorschau
+  const updateBotSetting = (setting: string, value: boolean) => {
+    if (!selectedBot || !selectedBot.settings) return;
+    
+    // Tiefe Kopie des Bots und seiner Einstellungen erstellen
+    const updatedBot: Bot = {
+      ...selectedBot,
+      settings: {
+        ...selectedBot.settings,
+        [setting]: value
+      }
+    };
+    
+    setSelectedBot(updatedBot);
+  };
+
   // Generiert den Embed-Code basierend auf den Einstellungen
   const generateEmbedCode = () => {
     // Base URL für das Skript
@@ -322,15 +338,39 @@ export default function EmbedGenerator() {
                           </div>
                           <div className="grid grid-cols-3 py-2">
                             <dt className="font-medium text-muted-foreground">Vorschläge</dt>
-                            <dd className="col-span-2">{selectedBot.settings?.showSuggestions ? 'Aktiviert' : 'Deaktiviert'}</dd>
+                            <dd className="col-span-2 flex justify-between items-center">
+                              <span>{selectedBot.settings?.showSuggestions ? 'Aktiviert' : 'Deaktiviert'}</span>
+                              <button 
+                                onClick={() => updateBotSetting('showSuggestions', !selectedBot.settings?.showSuggestions)}
+                                className="text-xs px-2 py-1 rounded bg-primary/10 hover:bg-primary/20 text-primary"
+                              >
+                                {selectedBot.settings?.showSuggestions ? 'Deaktivieren' : 'Aktivieren'}
+                              </button>
+                            </dd>
                           </div>
                           <div className="grid grid-cols-3 py-2">
                             <dt className="font-medium text-muted-foreground">Feedback</dt>
-                            <dd className="col-span-2">{selectedBot.settings?.enableFeedback ? 'Aktiviert' : 'Deaktiviert'}</dd>
+                            <dd className="col-span-2 flex justify-between items-center">
+                              <span>{selectedBot.settings?.enableFeedback ? 'Aktiviert' : 'Deaktiviert'}</span>
+                              <button 
+                                onClick={() => updateBotSetting('enableFeedback', !selectedBot.settings?.enableFeedback)}
+                                className="text-xs px-2 py-1 rounded bg-primary/10 hover:bg-primary/20 text-primary"
+                              >
+                                {selectedBot.settings?.enableFeedback ? 'Deaktivieren' : 'Aktivieren'}
+                              </button>
+                            </dd>
                           </div>
                           <div className="grid grid-cols-3 py-2">
                             <dt className="font-medium text-muted-foreground">Kopier-Button</dt>
-                            <dd className="col-span-2">{selectedBot.settings?.showCopyButton ? 'Aktiviert' : 'Deaktiviert'}</dd>
+                            <dd className="col-span-2 flex justify-between items-center">
+                              <span>{selectedBot.settings?.showCopyButton ? 'Aktiviert' : 'Deaktiviert'}</span>
+                              <button 
+                                onClick={() => updateBotSetting('showCopyButton', !selectedBot.settings?.showCopyButton)}
+                                className="text-xs px-2 py-1 rounded bg-primary/10 hover:bg-primary/20 text-primary"
+                              >
+                                {selectedBot.settings?.showCopyButton ? 'Deaktivieren' : 'Aktivieren'}
+                              </button>
+                            </dd>
                           </div>
                         </dl>
                       </div>
@@ -379,6 +419,92 @@ export default function EmbedGenerator() {
                     <span>Vollbild</span>
                   </TabsTrigger>
                 </TabsList>
+                
+                <div className="mb-4 border p-4 rounded-md bg-muted/5">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium">Vorschau</h3>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setIsMobilePreview(false)}
+                        className={`p-1 rounded ${!isMobilePreview ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
+                        title="Desktop-Vorschau"
+                      >
+                        <Monitor className="h-4 w-4" />
+                      </button>
+                      <button 
+                        onClick={() => setIsMobilePreview(true)}
+                        className={`p-1 rounded ${isMobilePreview ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
+                        title="Mobile-Vorschau"
+                      >
+                        <Smartphone className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className={`relative border rounded-md overflow-hidden ${isMobilePreview ? 'w-64 h-96 mx-auto' : 'w-full h-80'}`}>
+                    <div className="absolute inset-0 flex items-center justify-center flex-col text-center p-6">
+                      {initialMode === 'bubble' && (
+                        <>
+                          <div 
+                            className="w-12 h-12 rounded-full flex items-center justify-center text-white mb-2"
+                            style={{ backgroundColor: primaryColor }}
+                          >
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                          <div 
+                            className="absolute rounded-md shadow-lg p-4"
+                            style={{ 
+                              [position.includes('top') ? 'top' : 'bottom']: offsetY + 'px',
+                              [position.includes('left') ? 'left' : 'right']: offsetX + 'px',
+                              width: chatWidth + 'px',
+                              height: chatHeight + 'px',
+                              maxWidth: '90%',
+                              maxHeight: '70%',
+                              background: 'white',
+                              display: 'none'
+                            }}
+                          >
+                            <span className="text-sm">Chat-Fenster (erscheint beim Klick)</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Dargestellt als Bubble in der <strong>{position}</strong>-Ecke
+                          </p>
+                        </>
+                      )}
+                      
+                      {initialMode === 'inline' && (
+                        <>
+                          <div className="w-full h-full border rounded-md flex items-center justify-center">
+                            <div className="text-center max-w-xs">
+                              <span className="text-sm font-medium block mb-1">Inline Chat</span>
+                              <p className="text-xs text-muted-foreground">Eingebettet mit Größe: {width} × {height}px</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {initialMode === 'fullscreen' && (
+                        <>
+                          <div className="w-full h-full flex items-center justify-center bg-opacity-80 bg-black">
+                            <div className="text-center max-w-xs text-white">
+                              <span className="text-sm font-medium block mb-1">Vollbild-Chat</span>
+                              <p className="text-xs opacity-70">Nimmt den gesamten Bildschirm ein</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end mt-2">
+                    <Button variant="outline" size="sm" onClick={showPreview} className="flex gap-1.5">
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Vollbild-Vorschau</span>
+                    </Button>
+                  </div>
+                </div>
                 
                 <TabsContent value="bubble" className="mt-0">
                   <div className="space-y-4 border rounded-md p-4 bg-muted/10">
