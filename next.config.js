@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['lucide-react', 'geist'],
@@ -32,6 +34,9 @@ const nextConfig = {
   },
   // Analyse des Build-Outputs bei Verwendung von ANALYZE=true
   webpack: (config, { isServer }) => {
+    // Definiere explizit das @/-Alias für webpack
+    config.resolve.alias['@'] = path.join(__dirname, 'src');
+    
     // Bundle-Analyse-Plugin bei Bedarf
     if (process.env.ANALYZE) {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
