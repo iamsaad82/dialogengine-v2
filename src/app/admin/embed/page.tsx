@@ -642,8 +642,8 @@ export default function EmbedGenerator() {
                 <TabsContent value="fullscreen" className="mt-0">
                   <div className="space-y-4 border rounded-md p-4 bg-muted/10">
                     <p className="text-sm">
-                      Der Chat füllt das gesamte Browserfenster aus, mit einem Dialog/Web-Switcher.
-                      Ideal für dedizierte Chat-Seiten oder als Vollbildanwendung.
+                      Der Chat füllt das gesamte Browserfenster aus, mit einem Toggle zwischen "Dialog" und "Klassisch".
+                      Ideal für dedizierte Chat-Seiten oder als vollständige Chat-Anwendung.
                     </p>
                     
                     <div className="rounded-md bg-amber-50 border border-amber-200 p-3 mt-4">
@@ -653,9 +653,9 @@ export default function EmbedGenerator() {
                       </h4>
                       <p className="text-xs text-amber-700 mt-1">
                         Im Vollbildmodus werden automatisch alle verfügbaren Abmessungen genutzt. 
-                        Ein Umschalter erscheint unten rechts, mit dem Benutzer zwischen dem Chat
-                        und der darunter liegenden Website wechseln können. Diese Funktionalität ermöglicht
-                        es den Nutzern, den Chat zu verlassen und zur Website zurückzukehren, ohne die Seite verlassen zu müssen.
+                        Ein Toggle erscheint unten rechts, mit dem Benutzer zwischen dem Dialog-Modus (Chat)
+                        und dem klassischen Modus (Web-Ansicht) wechseln können. So können Nutzer
+                        jederzeit zur Originalseite zurückkehren, ohne den Tab zu verlassen.
                       </p>
                     </div>
                   </div>
