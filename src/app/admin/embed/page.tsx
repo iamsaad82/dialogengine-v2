@@ -653,8 +653,9 @@ export default function EmbedGenerator() {
                       </h4>
                       <p className="text-xs text-amber-700 mt-1">
                         Im Vollbildmodus werden automatisch alle verfügbaren Abmessungen genutzt. 
-                        Der Bot bietet einen Dialog/Web-Switcher, mit dem Benutzer zwischen dem Chat 
-                        und der darunter liegenden Website wechseln können.
+                        Ein Umschalter erscheint unten rechts, mit dem Benutzer zwischen dem Chat
+                        und der darunter liegenden Website wechseln können. Diese Funktionalität ermöglicht
+                        es den Nutzern, den Chat zu verlassen und zur Website zurückzukehren, ohne die Seite verlassen zu müssen.
                       </p>
                     </div>
                   </div>
