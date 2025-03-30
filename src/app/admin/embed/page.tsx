@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { InfoIcon, AlertCircle, Copy, ExternalLink, Settings2, EyeIcon, Eye, Smartphone, Monitor, CheckCircle2, HelpCircle } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 interface Bot {
   id: string
@@ -14,11 +23,17 @@ interface Bot {
     enableAnalytics: boolean
     showSuggestions: boolean
     showCopyButton: boolean
+    botBgColor: string
+    botTextColor: string
+    userBgColor: string
+    userTextColor: string
+    avatarUrl?: string
   }
 }
 
 export default function EmbedGenerator() {
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState('standard')
   const [initialMode, setInitialMode] = useState<'bubble' | 'inline' | 'fullscreen'>('bubble')
   const [primaryColor, setPrimaryColor] = useState('#e63946')
   const [height, setHeight] = useState('500')
@@ -34,9 +49,12 @@ export default function EmbedGenerator() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedBotId, setSelectedBotId] = useState<string>('')
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false)
   const [zIndex, setZIndex] = useState('')
   const [streamingEnabled, setStreamingEnabled] = useState(true)
+  const [codeCopied, setCodeCopied] = useState(false)
+  const [isMobilePreview, setIsMobilePreview] = useState(false)
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
+  const [previewHtml, setPreviewHtml] = useState('')
 
   // Lade verfügbare Bots
   useEffect(() => {
@@ -56,6 +74,7 @@ export default function EmbedGenerator() {
         if (data.length > 0) {
           const activeBot = data.find((bot: Bot) => bot.active) || data[0]
           setSelectedBotId(activeBot.id)
+          setSelectedBot(activeBot)
           
           // Wenn der Bot eine Primärfarbe hat, setze diese
           if (activeBot.settings?.primaryColor) {
@@ -74,6 +93,18 @@ export default function EmbedGenerator() {
     
     fetchBots()
   }, [])
+
+  // Update des ausgewählten Bots, wenn sich die Bot-ID ändert
+  useEffect(() => {
+    if (selectedBotId && bots.length > 0) {
+      const bot = bots.find(bot => bot.id === selectedBotId)
+      setSelectedBot(bot || null)
+      
+      if (bot?.settings?.primaryColor) {
+        setPrimaryColor(bot.settings.primaryColor)
+      }
+    }
+  }, [selectedBotId, bots])
 
   // Generiert den Embed-Code basierend auf den Einstellungen
   const generateEmbedCode = () => {
@@ -105,7 +136,7 @@ export default function EmbedGenerator() {
     // Z-Index hinzufügen, wenn angegeben
     if (zIndex) scriptUrl.searchParams.append('zIndex', zIndex);
     
-    return `<!-- Dialog Engine Chat Widget -->
+    const code = `<!-- Dialog Engine Chat Widget -->
 <div id="dialog-container" 
   data-mode="${initialMode}" 
   data-color="${primaryColor}" 
@@ -115,393 +146,566 @@ export default function EmbedGenerator() {
   ${zIndex ? `data-z-index="${zIndex}"` : ''}
   ${initialMode === 'bubble' ? '' : `style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : '100%'}; position: relative; border-radius: 12px; overflow: hidden;"`}
 ></div>
-<script src="${scriptUrl.toString()}" defer></script>
-`
+<script src="${scriptUrl.toString()}" defer></script>`;
+
+    return code;
   }
 
-  // Aktualisiere den Embed-Code, wenn sich die Einstellungen ändern
+  // Aktualisiere den Embed-Code und die Vorschau, wenn sich die Einstellungen ändern
   useEffect(() => {
-    setEmbedCode(generateEmbedCode())
+    const code = generateEmbedCode();
+    setEmbedCode(code);
+    
+    // Erstelle HTML für die iFrame-Vorschau
+    const previewHtml = `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot-Vorschau</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f9fafb;
+      height: ${isMobilePreview ? '100%' : '100vh'};
+      width: ${isMobilePreview ? '100%' : '100%'};
+      box-sizing: border-box;
+    }
+    h1 {
+      font-size: ${isMobilePreview ? '1.5rem' : '2rem'};
+      color: #111827;
+    }
+    p {
+      color: #4b5563;
+      line-height: 1.6;
+    }
+    .content {
+      max-width: ${isMobilePreview ? '100%' : '800px'};
+      margin: 0 auto;
+    }
+    .placeholder {
+      margin-top: 2rem;
+      padding: 1rem;
+      background-color: #e5e7eb;
+      border-radius: 0.5rem;
+      height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h1>Beispielseite für Bot-Vorschau</h1>
+    <p>
+      Hier sehen Sie eine Beispielseite mit dem eingebetteten Bot. 
+      Sie können die verschiedenen Einstellungen und Platzierungen testen.
+    </p>
+    <div class="placeholder">Platzhalterinhalt</div>
+    <p>
+      Dieser Text dient nur der Demonstration, um die Seite zu füllen und 
+      den Bot in verschiedenen Szenarien zu testen.
+    </p>
+    <div class="placeholder">Weiterer Platzhalterinhalt</div>
+  </div>
+  
+  ${code}
+</body>
+</html>
+    `;
+    
+    setPreviewHtml(previewHtml);
   }, [initialMode, primaryColor, position, height, width, selectedBotId, 
-      bubbleSize, offsetX, offsetY, chatWidth, chatHeight, zIndex, streamingEnabled])
+    bubbleSize, offsetX, offsetY, chatWidth, chatHeight, zIndex, streamingEnabled, isMobilePreview]);
+
+  // Funktion zum Kopieren des Codes
+  const copyCode = () => {
+    navigator.clipboard.writeText(embedCode);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
+
+  // Funktion zur Anzeige der Vorschau
+  const showPreview = () => {
+    const blob = new Blob([previewHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Embed-Code Generator</h1>
-        <p className="text-muted-foreground">Generieren Sie einen Embed-Code für die SMG Dialog Engine</p>
+    <div className="container px-4 py-6 mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Bot-Einbettung generieren</h1>
+          <p className="text-muted-foreground">Erstellen Sie einen Einbettungscode für Ihre Website</p>
+        </div>
+        <Button variant="outline" onClick={() => router.push('/admin/bots')}>
+          <Settings2 className="w-4 h-4 mr-2" />
+          Bots verwalten
+        </Button>
       </div>
       
-      <div className="max-w-3xl">
-        <div className="bg-card rounded-lg shadow p-6 mb-8">
-          <p className="text-muted-foreground mb-6">
-            Hier können Sie einen Embed-Code für die SMG Dialog Engine generieren.
-            Dieser Code kann auf jeder Website eingefügt werden, um den Chat einzubinden.
-          </p>
-          
+      {/* Haupt-UI-Bereich */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Linke Spalte - Einstellungen */}
+        <div className="lg:col-span-6 xl:col-span-7 space-y-6">
           {error && (
-            <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-md text-destructive">
-              {error}
-            </div>
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Fehler</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
           
-          <div className="space-y-6">
-            {/* Bot-Auswahl */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Bot auswählen</label>
+          <Card>
+            <CardHeader>
+              <CardTitle>1. Bot auswählen</CardTitle>
+              <CardDescription>
+                Wählen Sie den Bot aus, der auf Ihrer Website eingebettet werden soll
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               {loading ? (
-                <div className="w-full p-2 border rounded-md bg-muted/20">Lade Bots...</div>
+                <div className="flex items-center justify-center h-24 bg-muted/20 rounded-md">
+                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                  <span className="ml-2">Bots werden geladen...</span>
+                </div>
+              ) : bots.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 text-center bg-muted/20 rounded-md">
+                  <AlertCircle className="h-10 w-10 text-muted-foreground mb-2" />
+                  <h3 className="font-medium">Keine Bots verfügbar</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Erstellen Sie zuerst einen Bot, bevor Sie einen Einbettungscode generieren.
+                  </p>
+                  <Button variant="default" className="mt-4" onClick={() => router.push('/admin/bots/new')}>
+                    Bot erstellen
+                  </Button>
+                </div>
               ) : (
-                <select 
-                  value={selectedBotId}
-                  onChange={(e) => {
-                    setSelectedBotId(e.target.value)
-                    // Finde den ausgewählten Bot
-                    const selectedBot = bots.find(bot => bot.id === e.target.value)
-                    // Wenn der Bot eine Primärfarbe hat, setze diese
-                    if (selectedBot?.settings?.primaryColor) {
-                      setPrimaryColor(selectedBot.settings.primaryColor)
-                    }
-                  }}
-                  className="w-full p-2 border rounded-md"
-                >
-                  {bots.length === 0 && (
-                    <option value="">Keine Bots verfügbar</option>
-                  )}
-                  {bots.map(bot => (
-                    <option key={bot.id} value={bot.id}>
-                      {bot.name} {!bot.active && '(inaktiv)'}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Wählen Sie den Bot aus, der in dieses Embed integriert werden soll.
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Darstellungsmodus</label>
-              <select 
-                value={initialMode}
-                onChange={(e) => setInitialMode(e.target.value as any)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="bubble">Bubble (Chat-Icon in der Ecke)</option>
-                <option value="inline">Inline (Eingebettet in die Seite)</option>
-                <option value="fullscreen">Vollbild (Mit Dialog/Web-Switcher)</option>
-              </select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Der Bubble-Modus zeigt ein Chat-Icon, das beim Klick den Chat öffnet. 
-                Inline bettet den Chat direkt in die Seite ein.
-                Vollbild nutzt die gesamte Bildschirmfläche und bietet einen Dialog/Web-Switcher.
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Farbe</label>
-              <div className="flex items-center gap-3">
-                <input 
-                  type="color" 
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="w-10 h-10 border rounded cursor-pointer"
-                />
-                <input 
-                  type="text" 
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Diese Farbe wird für das Chat-Icon, Schaltflächen und Akzente im Chat verwendet.
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Streaming-Modus</label>
-              <div className="flex items-center space-x-4">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    value="true"
-                    checked={streamingEnabled} 
-                    onChange={() => setStreamingEnabled(true)}
-                    className="rounded-full"
-                  />
-                  <span>Aktiviert (flüssigere Antworten)</span>
-                </label>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    value="false" 
-                    checked={!streamingEnabled}
-                    onChange={() => setStreamingEnabled(false)}
-                    className="rounded-full"
-                  />
-                  <span>Deaktiviert</span>
-                </label>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Der Streaming-Modus zeigt die Antworten in Echtzeit an, während sie generiert werden.
-              </p>
-            </div>
-            
-            {initialMode === 'inline' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Höhe (px)</label>
-                  <input 
-                    type="number" 
-                    value={height}
-                    onChange={(e) => setHeight(e.target.value)}
-                    className="w-full p-2 border rounded-md"
-                    min="300"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Empfohlene Mindesthöhe: 500px
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Breite</label>
-                  <input 
-                    type="text" 
-                    value={width}
-                    onChange={(e) => setWidth(e.target.value)}
-                    className="w-full p-2 border rounded-md"
-                    placeholder="100% oder px-Wert"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Z.B. "100%", "350px", "50vw"
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            {initialMode === 'bubble' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Position</label>
-                  <select 
-                    value={position}
-                    onChange={(e) => setPosition(e.target.value as any)}
-                    className="w-full p-2 border rounded-md"
-                  >
-                    <option value="bottom-right">Unten rechts</option>
-                    <option value="bottom-left">Unten links</option>
-                    <option value="top-right">Oben rechts</option>
-                    <option value="top-left">Oben links</option>
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Position des Chat-Icons auf der Webseite
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Container-Breite</label>
-                    <input 
-                      type="text" 
-                      value={width}
-                      onChange={(e) => setWidth(e.target.value)}
-                      className="w-full p-2 border rounded-md"
-                      placeholder="100% oder px-Wert"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Z.B. "30%", "350px", "50vw"
-                    </p>
-                  </div>
-                </div>
-                
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                    className="text-sm font-medium text-primary flex items-center"
-                  >
-                    {showAdvancedOptions ? '- Erweiterte Optionen ausblenden' : '+ Erweiterte Optionen anzeigen'}
-                  </button>
-                </div>
-                
-                {showAdvancedOptions && (
-                  <>
+                <>
+                  <div className="grid gap-6">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Bubble-Größe (px)</label>
-                      <input
-                        type="number"
-                        value={bubbleSize}
-                        onChange={(e) => setBubbleSize(e.target.value)}
-                        min="40"
-                        max="100"
-                        className="w-full p-2 border rounded-md"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Größe des Chat-Icons (Standard: 60px)
+                      <Label htmlFor="bot-select">Bot</Label>
+                      <div className="relative">
+                        <select 
+                          id="bot-select"
+                          value={selectedBotId}
+                          onChange={(e) => setSelectedBotId(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-md bg-background"
+                        >
+                          {bots.map(bot => (
+                            <option key={bot.id} value={bot.id}>
+                              {bot.name} {!bot.active && '(inaktiv)'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {selectedBot && (
+                      <div className="rounded-md border p-4 bg-muted/10">
+                        <h3 className="text-sm font-medium mb-2 flex items-center">
+                          <InfoIcon className="w-4 h-4 mr-1 text-muted-foreground" />
+                          Bot-Einstellungen
+                        </h3>
+                        <dl className="text-sm divide-y">
+                          <div className="grid grid-cols-3 py-2">
+                            <dt className="font-medium text-muted-foreground">Primärfarbe</dt>
+                            <dd className="col-span-2 flex items-center">
+                              <div 
+                                className="w-4 h-4 mr-2 rounded-full border"
+                                style={{ backgroundColor: selectedBot.settings?.primaryColor || '#3b82f6' }}
+                              />
+                              {selectedBot.settings?.primaryColor || '#3b82f6'}
+                            </dd>
+                          </div>
+                          <div className="grid grid-cols-3 py-2">
+                            <dt className="font-medium text-muted-foreground">Vorschläge</dt>
+                            <dd className="col-span-2">{selectedBot.settings?.showSuggestions ? 'Aktiviert' : 'Deaktiviert'}</dd>
+                          </div>
+                          <div className="grid grid-cols-3 py-2">
+                            <dt className="font-medium text-muted-foreground">Feedback</dt>
+                            <dd className="col-span-2">{selectedBot.settings?.enableFeedback ? 'Aktiviert' : 'Deaktiviert'}</dd>
+                          </div>
+                          <div className="grid grid-cols-3 py-2">
+                            <dt className="font-medium text-muted-foreground">Kopier-Button</dt>
+                            <dd className="col-span-2">{selectedBot.settings?.showCopyButton ? 'Aktiviert' : 'Deaktiviert'}</dd>
+                          </div>
+                        </dl>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>2. Darstellungsmodus wählen</CardTitle>
+              <CardDescription>
+                Wählen Sie aus, wie der Bot auf Ihrer Website angezeigt werden soll
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="bubble" onValueChange={(value) => setInitialMode(value as any)}>
+                <TabsList className="grid grid-cols-3 mb-6">
+                  <TabsTrigger value="bubble" className="flex items-center gap-2">
+                    <div className="p-1.5 bg-primary/10 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                    </div>
+                    <span>Bubble</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="inline" className="flex items-center gap-2">
+                    <div className="p-1.5 bg-primary/10 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect width="18" height="12" x="3" y="6" rx="2" ry="2"></rect>
+                        <line x1="3" x2="21" y1="12" y2="12"></line>
+                      </svg>
+                    </div>
+                    <span>Inline</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="fullscreen" className="flex items-center gap-2">
+                    <div className="p-1.5 bg-primary/10 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                        <path d="m10 7-3 3 3 3"></path>
+                        <path d="m14 17 3-3-3-3"></path>
+                      </svg>
+                    </div>
+                    <span>Vollbild</span>
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="bubble" className="mt-0">
+                  <div className="space-y-4 border rounded-md p-4 bg-muted/10">
+                    <p className="text-sm">
+                      Ein Chat-Symbol in einer Ecke des Bildschirms, das sich beim Klicken zu einem Chat-Fenster öffnet.
+                      Ideal für Websites, bei denen der Chat eine ergänzende Funktion ist.
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="position" className="text-sm">Position</Label>
+                        <select 
+                          id="position"
+                          value={position}
+                          onChange={(e) => setPosition(e.target.value as any)}
+                          className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                        >
+                          <option value="bottom-right">Unten rechts</option>
+                          <option value="bottom-left">Unten links</option>
+                          <option value="top-right">Oben rechts</option>
+                          <option value="top-left">Oben links</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="bubble-size" className="text-sm">Bubble-Größe (px)</Label>
+                        <input 
+                          id="bubble-size"
+                          type="number" 
+                          value={bubbleSize}
+                          onChange={(e) => setBubbleSize(e.target.value)}
+                          min="40"
+                          max="100"
+                          className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <Accordion type="single" collapsible>
+                      <AccordionItem value="advanced-bubble">
+                        <AccordionTrigger className="text-sm">Erweiterte Einstellungen</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="grid grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <Label htmlFor="offset-x" className="text-sm">Horizontaler Abstand (px)</Label>
+                              <input
+                                id="offset-x"
+                                type="number"
+                                value={offsetX}
+                                onChange={(e) => setOffsetX(e.target.value)}
+                                min="0"
+                                className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="offset-y" className="text-sm">Vertikaler Abstand (px)</Label>
+                              <input
+                                id="offset-y"
+                                type="number"
+                                value={offsetY}
+                                onChange={(e) => setOffsetY(e.target.value)}
+                                min="0"
+                                className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="chat-width" className="text-sm">Chat-Breite (px)</Label>
+                              <input
+                                id="chat-width"
+                                type="number"
+                                value={chatWidth}
+                                onChange={(e) => setChatWidth(e.target.value)}
+                                min="300"
+                                className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="chat-height" className="text-sm">Chat-Höhe (px)</Label>
+                              <input
+                                id="chat-height"
+                                type="number"
+                                value={chatHeight}
+                                onChange={(e) => setChatHeight(e.target.value)}
+                                min="400"
+                                className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                              />
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="inline" className="mt-0">
+                  <div className="space-y-4 border rounded-md p-4 bg-muted/10">
+                    <p className="text-sm">
+                      Der Chat wird direkt in die Seite eingebettet. Ideal für dedizierte Chat-Seiten oder
+                      wenn der Chat eine zentrale Funktion auf der Seite ist.
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="inline-height" className="text-sm">Höhe (px)</Label>
+                        <input 
+                          id="inline-height"
+                          type="number" 
+                          value={height}
+                          onChange={(e) => setHeight(e.target.value)}
+                          min="300"
+                          className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Empfohlene Mindesthöhe: 500px
+                        </p>
+                      </div>
+                      <div>
+                        <Label htmlFor="inline-width" className="text-sm">Breite</Label>
+                        <input 
+                          id="inline-width"
+                          type="text" 
+                          value={width}
+                          onChange={(e) => setWidth(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                          placeholder="100% oder px-Wert"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Z.B. "100%", "350px", "50vw"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="fullscreen" className="mt-0">
+                  <div className="space-y-4 border rounded-md p-4 bg-muted/10">
+                    <p className="text-sm">
+                      Der Chat füllt das gesamte Browserfenster aus, mit einem Dialog/Web-Switcher.
+                      Ideal für dedizierte Chat-Seiten oder als Vollbildanwendung.
+                    </p>
+                    
+                    <div className="rounded-md bg-amber-50 border border-amber-200 p-3 mt-4">
+                      <h4 className="text-sm font-medium text-amber-800 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        Hinweis
+                      </h4>
+                      <p className="text-xs text-amber-700 mt-1">
+                        Im Vollbildmodus werden automatisch alle verfügbaren Abmessungen genutzt. 
+                        Der Bot bietet einen Dialog/Web-Switcher, mit dem Benutzer zwischen dem Chat 
+                        und der darunter liegenden Website wechseln können.
                       </p>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Horizontaler Abstand (px)</label>
-                        <input
-                          type="number"
-                          value={offsetX}
-                          onChange={(e) => setOffsetX(e.target.value)}
-                          min="0"
-                          className="w-full p-2 border rounded-md"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Abstand vom Rand (Standard: 20px)
-                        </p>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Vertikaler Abstand (px)</label>
-                        <input
-                          type="number"
-                          value={offsetY}
-                          onChange={(e) => setOffsetY(e.target.value)}
-                          min="0"
-                          className="w-full p-2 border rounded-md"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Abstand vom Rand (Standard: 20px)
-                        </p>
-                      </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>3. Weitere Einstellungen</CardTitle>
+              <CardDescription>
+                Passen Sie zusätzliche Optionen für den Bot an
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6">
+                <div className="space-y-4">
+                  <Label className="text-sm">Design</Label>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="color" 
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-10 h-10 border rounded cursor-pointer"
+                      aria-label="Primärfarbe"
+                    />
+                    <div className="flex-1">
+                      <Label htmlFor="color-input" className="sr-only">Primärfarbe</Label>
+                      <input 
+                        id="color-input"
+                        type="text" 
+                        value={primaryColor}
+                        onChange={(e) => setPrimaryColor(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-md bg-background"
+                      />
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Chat-Breite (px)</label>
-                        <input
-                          type="number"
-                          value={chatWidth}
-                          onChange={(e) => setChatWidth(e.target.value)}
-                          min="300"
-                          className="w-full p-2 border rounded-md"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Breite des Chat-Fensters (Standard: 480px)
-                        </p>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Chat-Höhe (px)</label>
-                        <input
-                          type="number"
-                          value={chatHeight}
-                          onChange={(e) => setChatHeight(e.target.value)}
-                          min="400"
-                          className="w-full p-2 border rounded-md"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Höhe des Chat-Fensters (Standard: 700px)
-                        </p>
-                      </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Diese Farbe wird für das Chat-Icon, Schaltflächen und Akzente im Chat verwendet.
+                  </p>
+                </div>
+                
+                <div>
+                  <Label className="text-sm mb-2 block">Streaming-Modus</Label>
+                  <RadioGroup 
+                    value={streamingEnabled ? "true" : "false"} 
+                    onValueChange={(v) => setStreamingEnabled(v === "true")}
+                    className="flex space-x-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="streaming-on" />
+                      <Label htmlFor="streaming-on" className="font-normal">Aktiviert</Label>
                     </div>
-                  </>
-                )}
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="streaming-off" />
+                      <Label htmlFor="streaming-off" className="font-normal">Deaktiviert</Label>
+                    </div>
+                  </RadioGroup>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Der Streaming-Modus zeigt die Antworten in Echtzeit an, während sie generiert werden.
+                  </p>
+                </div>
+                
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="technical">
+                    <AccordionTrigger className="text-sm">Technische Einstellungen</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4 pt-2">
+                        <div>
+                          <Label htmlFor="z-index" className="text-sm">Z-Index (optional)</Label>
+                          <input 
+                            id="z-index"
+                            type="number" 
+                            value={zIndex}
+                            onChange={(e) => setZIndex(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-md bg-background mt-1"
+                            placeholder="leer = Standard"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Z-Index für den Chat, falls es Überlagerungsprobleme mit anderen Elementen gibt.
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
-            )}
-          </div>
+            </CardContent>
+          </Card>
         </div>
         
-        <div className="bg-card rounded-lg shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold">Generierter Embed-Code</h3>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(embedCode);
-                alert('Code in die Zwischenablage kopiert!');
-              }}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition"
-            >
-              Code kopieren
-            </button>
-          </div>
-          <div className="relative">
-            <pre className="bg-muted p-4 rounded-md overflow-x-auto whitespace-pre-wrap text-sm">
-              {embedCode}
-            </pre>
-          </div>
-          
-          <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">Beispiele für verschiedene Größen:</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="mb-1">30% Breite, 700px Höhe:</p>
-                <pre className="bg-muted p-2 rounded-md text-xs overflow-x-auto">
-                  {`<div id="dialog-container" 
-  data-mode="bubble" 
-  data-color="${primaryColor}" 
-  data-bot-id="${selectedBotId}"
-  style="width: 30%; height: 700px; position: relative;">
-</div>`}
-                </pre>
+        {/* Rechte Spalte - Vorschau und Code */}
+        <div className="lg:col-span-6 xl:col-span-5 space-y-6">
+          <Card className="sticky top-4">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Vorschau & Embed-Code</CardTitle>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setIsMobilePreview(!isMobilePreview)}>
+                    {isMobilePreview ? <Monitor className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />}
+                    <span className="ml-2">{isMobilePreview ? 'Desktop' : 'Mobil'}</span>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={showPreview}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Vorschau
+                  </Button>
+                </div>
               </div>
-              <div>
-                <p className="mb-1">550px Breite, 80% Höhe:</p>
-                <pre className="bg-muted p-2 rounded-md text-xs overflow-x-auto">
-                  {`<div id="dialog-container" 
-  data-mode="bubble" 
-  data-color="${primaryColor}" 
-  data-bot-id="${selectedBotId}"
-  style="width: 550px; height: 80%; position: relative;">
-</div>`}
-                </pre>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Vorschau-Container */}
+              <div className={`relative bg-muted/20 border rounded-md overflow-hidden ${isMobilePreview ? 'w-[320px] h-[568px] mx-auto' : 'w-full h-[300px]'}`}>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center px-4">
+                    <p className="text-muted-foreground text-sm mb-2">Klicken Sie auf "Vorschau", um den Bot in einem neuen Tab zu testen</p>
+                    <Button variant="outline" size="sm" onClick={showPreview}>
+                      <EyeIcon className="h-4 w-4 mr-2" />
+                      Bot-Vorschau öffnen
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h3 className="text-lg font-medium text-yellow-800 mb-2">Hinweis zur Installation</h3>
-          <p className="text-yellow-700 mb-2">
-            <strong>Einfache Einbettung:</strong> Kopieren Sie einfach den generierten Code in Ihre Website, und der Bot wird mit den Standardgrößen funktionieren.
-          </p>
-          <p className="text-yellow-700 mb-2">
-            <strong>Bubble-Modus:</strong> Der Bot erscheint standardmäßig als Bubble unten rechts und öffnet sich bei Klick mit 480px×700px.
-          </p>
-          <p className="text-yellow-700 mb-2">
-            <strong>Inline-Modus:</strong> Legen Sie die Größe entweder im container-div oder über die erweiterten Optionen fest.
-          </p>
-          <p className="text-yellow-700">
-            <strong>Anpassung:</strong> Im container-div können Sie über <code>style="width: 500px; height: 700px;"</code> die Größe des Bots anpassen.
-          </p>
-        </div>
-
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Erweiterte Optionen</h3>
-            <button 
-              type="button"
-              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-              className="text-sm text-primary hover:underline flex items-center"
-            >
-              {showAdvancedOptions ? 'Weniger anzeigen' : 'Mehr anzeigen'}
-              <span className={`ml-1 transition-transform ${showAdvancedOptions ? 'rotate-180' : ''}`}>
-                ▼
-              </span>
-            </button>
-          </div>
-          
-          {showAdvancedOptions && (
-            <div className="space-y-6 rounded-md p-4 bg-muted/20">
-              {/* Z-Index Option */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Z-Index (optional)</label>
-                <input 
-                  type="number" 
-                  value={zIndex}
-                  onChange={(e) => setZIndex(e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                  placeholder="z-index Wert (leer = Standard)"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Z-Index für Chat-Elemente, falls es Überlagerungsprobleme mit anderen Elementen gibt.
-                </p>
+              
+              <Separator />
+              
+              {/* Embed-Code */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-base font-medium">Embed-Code</h3>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={copyCode}
+                  >
+                    {codeCopied ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        <span>Kopiert!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-2" />
+                        <span>Kopieren</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="relative rounded-md overflow-hidden">
+                  <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs whitespace-pre-wrap">
+                    {embedCode}
+                  </pre>
+                </div>
               </div>
-            </div>
-          )}
+              
+              <Alert>
+                <HelpCircle className="h-4 w-4" />
+                <AlertTitle>Hilfe zur Integration</AlertTitle>
+                <AlertDescription className="text-sm">
+                  <p className="mb-2">
+                    Fügen Sie den obigen Code an der Stelle ein, an der der Bot auf Ihrer Website erscheinen soll.
+                  </p>
+                  <p className="mb-2">
+                    <strong>Inline-Modus:</strong> Der Container passt sich an die angegebenen Abmessungen an.
+                  </p>
+                  <p className="mb-1">
+                    <strong>Bubble-Modus:</strong> Der Bot erscheint als Bubble in der angegebenen Ecke.
+                  </p>
+                  <Button variant="link" className="h-auto p-0 text-primary" onClick={() => router.push('/admin/dokumentation')}>
+                    Mehr erfahren
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
