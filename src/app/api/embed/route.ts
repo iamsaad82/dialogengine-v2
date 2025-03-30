@@ -435,9 +435,94 @@ export async function GET(request: Request) {
         fullscreenChat.style.left = '0';
         fullscreenChat.style.width = '100%';
         fullscreenChat.style.height = '100%';
-        fullscreenChat.style.zIndex = '9999';
+        fullscreenChat.style.zIndex = configZIndex || '9999';
+        fullscreenChat.id = 'dialog-fullscreen-container';
+        
+        // Toggle-Button für den Wechsel zwischen Chat und Website hinzufügen
+        const toggleButton = document.createElement('div');
+        toggleButton.style.position = 'fixed';
+        toggleButton.style.bottom = '20px';
+        toggleButton.style.right = '20px';
+        toggleButton.style.width = '50px';
+        toggleButton.style.height = '50px';
+        toggleButton.style.borderRadius = '50%';
+        toggleButton.style.backgroundColor = color;
+        toggleButton.style.color = 'white';
+        toggleButton.style.display = 'flex';
+        toggleButton.style.alignItems = 'center';
+        toggleButton.style.justifyContent = 'center';
+        toggleButton.style.cursor = 'pointer';
+        toggleButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+        toggleButton.style.zIndex = '10000';
+        toggleButton.innerHTML = \`
+          <div class="toggle-chat-icon" style="display: none;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div class="toggle-web-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
+        \`;
+        
+        // Website-Container zum Anzeigen der ursprünglichen Website
+        const websiteContainer = document.createElement('div');
+        websiteContainer.style.position = 'fixed';
+        websiteContainer.style.top = '0';
+        websiteContainer.style.left = '0';
+        websiteContainer.style.width = '100%';
+        websiteContainer.style.height = '100%';
+        websiteContainer.style.zIndex = configZIndex ? (parseInt(configZIndex) - 1).toString() : '9998';
+        websiteContainer.style.display = 'none';
+        websiteContainer.style.backgroundColor = '#f8f9fa';
+        websiteContainer.style.overflow = 'auto';
+        websiteContainer.id = 'dialog-website-container';
+        
+        // Füge den Inhalt der ursprünglichen Webseite in den Container ein
+        websiteContainer.innerHTML = \`
+          <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+            <h2 style="margin-bottom: 16px; color: #333;">Du befindest dich im Chat-Modus</h2>
+            <p style="margin-bottom: 16px; color: #555; line-height: 1.5;">
+              Der Chat ist im Vollbildmodus geöffnet. Du kannst mit dem Button unten rechts 
+              zwischen dem Chat und dieser Informationsseite wechseln.
+            </p>
+            <div style="background-color: #e9ecef; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+              <p style="color: #495057;">Klicke auf das Web-Symbol <span style="display: inline-block; border-radius: 50%; width: 24px; height: 24px; background-color: ${color}; text-align: center; color: white;">🌐</span>, um zurück zum Chat zu gelangen.</p>
+            </div>
+          </div>
+        \`;
+        
+        // Chat-iframe erstellen
         fullscreenChat.innerHTML = \`<iframe class="dialog-iframe" src="\${widgetUrl.toString()}" title="Chat" style="border: none; width: 100%; height: 100%"></iframe>\`;
+        
+        // Elemente zum DOM hinzufügen
         document.body.appendChild(fullscreenChat);
+        document.body.appendChild(websiteContainer);
+        document.body.appendChild(toggleButton);
+        
+        // Toggle-Funktionalität
+        let chatVisible = true;
+        toggleButton.addEventListener('click', function() {
+          chatVisible = !chatVisible;
+          
+          if (chatVisible) {
+            // Zeige Chat, verstecke Website
+            fullscreenChat.style.display = 'block';
+            websiteContainer.style.display = 'none';
+            document.querySelector('.toggle-chat-icon').style.display = 'none';
+            document.querySelector('.toggle-web-icon').style.display = 'block';
+          } else {
+            // Verstecke Chat, zeige Website
+            fullscreenChat.style.display = 'none';
+            websiteContainer.style.display = 'block';
+            document.querySelector('.toggle-chat-icon').style.display = 'block';
+            document.querySelector('.toggle-web-icon').style.display = 'none';
+          }
+        });
       }
     } catch (error) {
       console.error('Fehler bei der URL-Konstruktion', error);
