@@ -210,10 +210,40 @@ export function Chat({
 
   // Fullscreen-Modus
   if (mode === 'fullscreen') {
+    // Umschalten der Dialog/Web CSS-Klassen - nur im nicht-eingebetteten Modus
+    useEffect(() => {
+      if (!embedded) {
+        if (isDialogMode) {
+          document.body.classList.add('dialog-mode');
+          document.documentElement.classList.add('dialog-mode');
+          document.body.style.background = `linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))`;
+          console.log("Dialog-Modus aktiviert. Body-Klassen:", document.body.className);
+        } else {
+          document.body.classList.remove('dialog-mode');
+          document.documentElement.classList.remove('dialog-mode');
+          document.body.style.background = 'transparent';
+          console.log("Dialog-Modus deaktiviert. Body-Klassen:", document.body.className);
+        }
+      }
+      
+      // Cleanup beim Unmounten
+      return () => {
+        if (!embedded) {
+          document.body.classList.remove('dialog-mode');
+          document.documentElement.classList.remove('dialog-mode');
+          document.body.style.background = '';
+        }
+      };
+    }, [isDialogMode, embedded]);
+    
     return (
       <div className={`transparent-container ${embedded ? 'embedded-chat fullscreen-mode' : ''}`}
            style={{ 
              background: 'transparent', 
+             position: embedded ? 'absolute' : 'fixed',
+             inset: 0,
+             height: embedded ? '100%' : '100vh',
+             width: embedded ? '100%' : '100vw',
              pointerEvents: isDialogMode ? 'auto' : 'none' 
            }}>
         {/* Segment-Control Toggle für Dialog/Klassisch */}

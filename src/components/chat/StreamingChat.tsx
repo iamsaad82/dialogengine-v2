@@ -224,7 +224,7 @@ export function StreamingChat({
     return finalMessages;
   };
 
-  // Neue Funktion zum Senden von Vorschlägen
+  // Funktion zum Behandeln von Vorschlagsklicks
   const handleSuggestionClick = (text: string) => {
     if (sendMessage) {
       sendMessage(text);
@@ -241,105 +241,27 @@ export function StreamingChat({
     });
   }, [suggestions, botSettings, messages.length]);
 
-  // Für embedded bubble/inline ohne Switcher
-  if (embedded) {
-    // Wenn Bubble-Modus UND nicht geöffnet, zeigen wir nur den Button an
-    if (mode === 'bubble' && !isOpen) {
-      return (
-        <button
-          onClick={toggleChat}
-          className="fixed bottom-4 right-4 w-16 h-16 rounded-full flex items-center justify-center bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          style={{ backgroundColor: botPrimaryColor }}
-          aria-label="Chat öffnen"
-        >
-          <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-        </button>
-      );
-    }
-    
-    // Inline-Modus oder Bubble-Modus mit geöffnetem Chat
-    if (mode !== 'fullscreen') {
-      return (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="chat-dialog-title"
-          className={`
-            absolute inset-0 w-full h-full flex flex-col
-            ${getModeClass(mode)}
-            ${className || ''}
-          `}
-          style={getModeStyle(mode)}
-        >
-          <div className="flex-shrink-0">
-            <ChatHeader 
-              mode={mode as any} 
-              onClose={toggleChat} 
-              onModeChange={cycleMode}
-              setMode={setMode as any}
-              botName={botName}
-              botPrimaryColor={botPrimaryColor}
-            />
-          </div>
-          
-          <div 
-            className="flex-1 overflow-hidden bg-white flex flex-col min-h-0"
-          >
-            {error && (
-              <div 
-                className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
-                role="alert"
-                aria-live="assertive"
-              >
-                {error}
-              </div>
-            )}
-            
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <MessageList 
-                messages={allMessages()} 
-                isLoading={isLoading} 
-                messagesEndRef={messagesEndRef}
-                botName={botName}
-                showCopyButton={showCopyButton}
-                enableFeedback={enableFeedback}
-                botId={botId}
-                botPrimaryColor={botPrimaryColor}
-                welcomeMessage={welcomeMessage}
-                botAvatarUrl={botAvatarUrl}
-              />
-              
-              {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
-                <div className="px-4 mb-1">
-                  <SuggestionsBar 
-                    suggestions={suggestions} 
-                    onSuggestionClick={handleSuggestionClick} 
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex-shrink-0 h-[70px]">
-            <ChatInput 
-              isLoading={isLoading} 
-              onSend={sendMessage} 
-              onCancel={cancelMessage} 
-              botPrimaryColor={botPrimaryColor}
-            />
-          </div>
-        </div>
-      );
-    }
+  // Bubble-Modus: Wenn nicht geöffnet und im Bubble-Modus, zeige nur die Bubble
+  if (mode === 'bubble' && !isOpen) {
+    return (
+      <button
+        onClick={toggleChat}
+        className={`${embedded ? 'absolute' : 'fixed'} bottom-4 right-4 w-16 h-16 rounded-full flex items-center justify-center bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary`}
+        style={{ backgroundColor: botPrimaryColor }}
+        aria-label="Chat öffnen"
+      >
+        <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      </button>
+    );
   }
 
-  // Für fullscreen-Modus in embedded Ansicht
-  if (embedded && mode === 'fullscreen') {
+  // Fullscreen-Modus: Verwende eine einheitliche Implementierung
+  if (mode === 'fullscreen') {
     // Dialog-Modus State für Fullscreen
     const [isDialogMode, setIsDialogMode] = useState(true);
-    console.log("SUGGESTIONS-DEBUG: Im fullscreen embedded Modus, botSettings:", botSettings, "Vorschläge:", suggestions.length);
+    console.log("SUGGESTIONS-DEBUG: Im Fullscreen-Modus, botSettings:", botSettings, "Vorschläge:", suggestions.length);
 
     // Umschalten zwischen Dialog und Web Modus
     const toggleDialogMode = () => {
@@ -348,119 +270,60 @@ export function StreamingChat({
     
     // Dialog-Modus CSS-Klasse zum body und html hinzufügen/entfernen
     useEffect(() => {
-      if (isDialogMode) {
-        document.body.classList.add('dialog-mode');
-        document.documentElement.classList.add('dialog-mode');
-        document.body.style.background = `linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))`;
-      } else {
-        document.body.classList.remove('dialog-mode');
-        document.documentElement.classList.remove('dialog-mode');
-        document.body.style.background = 'transparent';
+      if (!embedded) {
+        // Nur im nicht-eingebetteten Modus die globalen Styles anwenden
+        if (isDialogMode) {
+          document.body.classList.add('dialog-mode');
+          document.documentElement.classList.add('dialog-mode');
+          document.body.style.background = `linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))`;
+        } else {
+          document.body.classList.remove('dialog-mode');
+          document.documentElement.classList.remove('dialog-mode');
+          document.body.style.background = 'transparent';
+        }
       }
       
       // Cleanup beim Unmounten
       return () => {
-        document.body.classList.remove('dialog-mode');
-        document.documentElement.classList.remove('dialog-mode');
-        document.body.style.background = '';
+        if (!embedded) {
+          document.body.classList.remove('dialog-mode');
+          document.documentElement.classList.remove('dialog-mode');
+          document.body.style.background = '';
+        }
       };
-    }, [isDialogMode]);
+    }, [isDialogMode, embedded]);
 
     return (
       <div 
         className={`
-          fixed inset-0 flex flex-col z-50
-          ${mode === 'fullscreen' ? 'fullscreen-chat embedded-fullscreen' : ''}
+          ${embedded ? 'absolute' : 'fixed'} inset-0 flex flex-col z-50
+          fullscreen-chat ${embedded ? 'embedded-fullscreen' : ''}
           ${isDialogMode ? 'glassmorphism-chat' : 'bg-transparent'} 
           ${className || ''}
         `}
         style={{ 
           pointerEvents: isDialogMode ? 'auto' : 'none',
-          paddingTop: '70px'
+          paddingTop: '70px',
+          // Bei eingebettetem Modus keinen fixed-Stil verwenden
+          position: embedded ? 'absolute' : 'fixed',
+          height: embedded ? '100%' : '100vh',
+          width: embedded ? '100%' : '100vw'
         }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="chat-dialog-title"
       >
         {/* Dialog/Web Toggle hinzufügen */}
-        <div
-          className="fixed z-60 overflow-hidden font-medium neumorphic"
-          style={{
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '3px',
-            display: 'flex',
-            position: 'relative',
-            width: '180px',
-            pointerEvents: 'auto',
-          }}
-        >
-          {/* Hintergrund-Indikator mit 3D-Effekt */}
-          <div
-            className="absolute toggle-indicator"
-            style={{
-              left: isDialogMode ? '50%' : '0',
-              top: '3px',
-              width: '50%',
-              height: 'calc(100% - 6px)',
-              borderRadius: '100px',
-              backgroundColor: botPrimaryColor || 'hsl(var(--primary))',
-              zIndex: 0,
-              transform: isDialogMode ? 'translateX(0)' : 'translateX(0)',
-            }}
-          >
-            {/* Oberer Highlight-Effekt */}
-            <div 
-              className="absolute opacity-80" 
-              style={{
-                top: '0',
-                left: '10%',
-                right: '10%',
-                height: '1px',
-                background: 'rgba(255,255,255,0.8)',
-                borderRadius: '100px',
-              }}
-            />
-          </div>
-          
-          <button
-            className={`py-2 px-3 z-10 transition-all duration-300 relative flex items-center justify-center gap-1.5 neumorphic-btn ${!isDialogMode ? 'text-white font-bold' : 'text-gray-600 hover:text-gray-800'}`}
-            style={{
-              borderRadius: '100px',
-              flex: 1,
-              transform: !isDialogMode ? 'scale(1.02)' : 'scale(1)',
-            }}
-            onClick={() => {
-              if (isDialogMode) toggleDialogMode();
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-sm">Web</span>
-          </button>
-          
-          <button
-            className={`py-2 px-3 z-10 transition-all duration-300 relative flex items-center justify-center gap-1.5 neumorphic-btn ${isDialogMode ? 'text-white font-bold' : 'text-gray-600 hover:text-gray-800'}`}
-            style={{
-              borderRadius: '100px',
-              flex: 1,
-              transform: isDialogMode ? 'scale(1.02)' : 'scale(1)',
-            }}
-            onClick={() => {
-              if (!isDialogMode) toggleDialogMode();
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            <span className="text-sm">Dialog</span>
-          </button>
-        </div>
+        <DialogWebToggle 
+          botPrimaryColor={botPrimaryColor} 
+          suggestions={suggestions}
+          botSettings={botSettings}
+          embedded={embedded}
+        />
+        
         <div className="flex-shrink-0">
           <ChatHeader 
-            mode="fullscreen" 
+            mode={mode}
             onClose={toggleChat} 
             onModeChange={cycleMode}
             setMode={setMode as any}
@@ -517,102 +380,75 @@ export function StreamingChat({
     );
   }
 
+  // Bubble (geöffnet) oder Inline Modus
   return (
-    <>
-      {isOpen ? (
-        <div 
-          className={`
-            fixed inset-0 flex flex-col z-50
-            ${mode === 'fullscreen' ? 'fullscreen-chat' : 'bg-white'}
-            ${className || ''}
-          `}
-          style={{
-            pointerEvents: mode === 'fullscreen' ? 'auto' : 'auto',
-            paddingTop: mode === 'fullscreen' ? '70px' : '0'
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="chat-dialog-title"
-        >
-          {/* Dialog/Web Toggle für die normale Fullscreen-Ansicht */}
-          {mode === 'fullscreen' && (
-            <>
-              <DialogWebToggle 
-                botPrimaryColor={botPrimaryColor} 
-                suggestions={suggestions}
-                botSettings={botSettings}
-              />
-            </>
-          )}
-          <div className="flex-shrink-0">
-            <ChatHeader 
-              mode={mode}  // Übergebe den aktuellen Modus
-              onClose={toggleChat} 
-              onModeChange={cycleMode}
-              setMode={setMode as any}
-              botName={botName}
-              botPrimaryColor={botPrimaryColor}
-            />
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="chat-dialog-title"
+      className={`
+        ${embedded ? 'absolute' : 'fixed'} inset-0 w-full h-full flex flex-col
+        ${getModeClass(mode)}
+        ${className || ''}
+      `}
+      style={getModeStyle(mode)}
+    >
+      <div className="flex-shrink-0">
+        <ChatHeader 
+          mode={mode} 
+          onClose={toggleChat} 
+          onModeChange={cycleMode}
+          setMode={setMode as any}
+          botName={botName}
+          botPrimaryColor={botPrimaryColor}
+        />
+      </div>
+      
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+        {error && (
+          <div 
+            className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
+            role="alert"
+            aria-live="assertive"
+          >
+            {error}
           </div>
+        )}
+        
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <MessageList 
+            messages={allMessages()} 
+            isLoading={isLoading} 
+            messagesEndRef={messagesEndRef}
+            botName={botName}
+            showCopyButton={showCopyButton}
+            enableFeedback={enableFeedback}
+            botId={botId}
+            botPrimaryColor={botPrimaryColor}
+            welcomeMessage={welcomeMessage}
+            botAvatarUrl={botAvatarUrl}
+          />
           
-          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-            {error && (
-              <div 
-                className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
-                role="alert"
-                aria-live="assertive"
-              >
-                {error}
-              </div>
-            )}
-            
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <MessageList 
-                messages={allMessages()} 
-                isLoading={isLoading} 
-                messagesEndRef={messagesEndRef}
-                botName={botName}
-                showCopyButton={showCopyButton}
-                enableFeedback={enableFeedback}
-                botId={botId}
-                botPrimaryColor={botPrimaryColor}
-                welcomeMessage={welcomeMessage}
-                botAvatarUrl={botAvatarUrl}
-              />
-              
-              {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
-                <div className="px-4 mb-1">
-                  <SuggestionsBar 
-                    suggestions={suggestions} 
-                    onSuggestionClick={handleSuggestionClick} 
-                  />
-                </div>
-              )}
-            </div>
-            
-            <div className="flex-shrink-0 h-[70px]">
-              <ChatInput 
-                isLoading={isLoading} 
-                onSend={sendMessage} 
-                onCancel={cancelMessage} 
-                botPrimaryColor={botPrimaryColor}
+          {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
+            <div className="px-4 mb-1">
+              <SuggestionsBar 
+                suggestions={suggestions} 
+                onSuggestionClick={handleSuggestionClick} 
               />
             </div>
-          </div>
+          )}
         </div>
-      ) : (
-        <button
-          onClick={toggleChat}
-          className="fixed bottom-4 right-4 w-16 h-16 rounded-full flex items-center justify-center bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          style={{ backgroundColor: botPrimaryColor }}
-          aria-label="Chat öffnen"
-        >
-          <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-        </button>
-      )}
-    </>
+        
+        <div className="flex-shrink-0 h-[70px]">
+          <ChatInput 
+            isLoading={isLoading} 
+            onSend={sendMessage} 
+            onCancel={cancelMessage} 
+            botPrimaryColor={botPrimaryColor}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -620,36 +456,42 @@ export function StreamingChat({
 const DialogWebToggle = ({ 
   botPrimaryColor,
   suggestions, 
-  botSettings
+  botSettings,
+  embedded = false
 }: { 
   botPrimaryColor: string | null | undefined,
   suggestions: any[],
-  botSettings: any
+  botSettings: any,
+  embedded?: boolean
 }) => {
   // Standardmäßig mit Klassisch/Dialog starten
   const [isDialogMode, setIsDialogMode] = useState(true);
   
   // Dialog-Modus CSS-Klasse zum body und html hinzufügen/entfernen
   useEffect(() => {
-    if (isDialogMode) {
-      document.body.classList.add('dialog-mode');
-      document.documentElement.classList.add('dialog-mode');
-      document.body.style.background = `linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))`;
-      console.log("Dialog-Modus aktiviert. Body-Klassen:", document.body.className);
-    } else {
-      document.body.classList.remove('dialog-mode');
-      document.documentElement.classList.remove('dialog-mode');
-      document.body.style.background = 'transparent';
-      console.log("Dialog-Modus deaktiviert. Body-Klassen:", document.body.className);
+    if (!embedded) {
+      if (isDialogMode) {
+        document.body.classList.add('dialog-mode');
+        document.documentElement.classList.add('dialog-mode');
+        document.body.style.background = `linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))`;
+        console.log("Dialog-Modus aktiviert. Body-Klassen:", document.body.className);
+      } else {
+        document.body.classList.remove('dialog-mode');
+        document.documentElement.classList.remove('dialog-mode');
+        document.body.style.background = 'transparent';
+        console.log("Dialog-Modus deaktiviert. Body-Klassen:", document.body.className);
+      }
     }
     
     // Cleanup beim Unmounten
     return () => {
-      document.body.classList.remove('dialog-mode');
-      document.documentElement.classList.remove('dialog-mode');
-      document.body.style.background = '';
+      if (!embedded) {
+        document.body.classList.remove('dialog-mode');
+        document.documentElement.classList.remove('dialog-mode');
+        document.body.style.background = '';
+      }
     };
-  }, [isDialogMode]);
+  }, [isDialogMode, embedded]);
   
   // Debug-Ausgaben
   useEffect(() => {
@@ -663,16 +505,17 @@ const DialogWebToggle = ({
   
   return (
     <div
-      className="fixed z-60 overflow-hidden font-medium neumorphic"
+      className="overflow-hidden font-medium neumorphic"
       style={{
-        top: '20px',
+        top: embedded ? '10px' : '20px',
         left: '50%',
         transform: 'translateX(-50%)',
         padding: '3px',
         display: 'flex',
-        position: 'relative',
+        position: 'absolute',
         width: '180px',
         pointerEvents: 'auto',
+        zIndex: 60
       }}
     >
       {/* Hintergrund-Indikator mit 3D-Effekt */}

@@ -334,14 +334,11 @@ export default function BotTestClient({ id }: { id: string }) {
       <div className="flex flex-1 overflow-hidden">
         {/* Chat Test Area - Flexible Width */}
         <div className={`flex-1 overflow-hidden bg-muted/20 relative`}>
-          {/* Render Chat Bubble for Bubble Mode */}
-          {renderChatBubble()}
-          
           {/* Chat Container */}
           {(showChat || chatMode !== 'bubble') && (
-            <div className={`h-[700px] ${testSettings.simulateMobile ? 'flex justify-center' : ''}`}>
-              <div className={`h-full ${testSettings.simulateMobile ? 'w-[390px]' : 'w-full'} flex flex-col relative`}>
-                <div className="flex-1">
+            <div className={`h-[700px] relative ${testSettings.simulateMobile ? 'flex justify-center' : ''}`}>
+              <div className={`h-full ${testSettings.simulateMobile ? 'w-[390px]' : 'w-full'} flex flex-col relative overflow-hidden`}>
+                <div className="flex-1 relative">
                   {testSettings.useStreaming ? (
                     <StreamingChat
                       botId={id}
@@ -381,6 +378,9 @@ export default function BotTestClient({ id }: { id: string }) {
               </div>
             </div>
           )}
+          
+          {/* Render Chat Bubble for Bubble Mode */}
+          {renderChatBubble()}
         </div>
         
         {/* Sidebar - Fixed Width - Collapsible */}
