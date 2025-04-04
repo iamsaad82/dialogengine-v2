@@ -79,6 +79,7 @@ export function BaseChatLayout({
   showCopyButton = true,
   enableFeedback = false,
   showSuggestions = true,
+  showNameInHeader = true,
   messageTemplate,
   botAvatarUrl,
   welcomeMessage,
