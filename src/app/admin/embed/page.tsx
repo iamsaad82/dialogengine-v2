@@ -27,6 +27,7 @@ interface Bot {
     botTextColor: string
     userBgColor: string
     userTextColor: string
+    messageTemplate?: string
     avatarUrl?: string
   }
 }
@@ -62,26 +63,26 @@ export default function EmbedGenerator() {
       try {
         setLoading(true)
         const response = await fetch('/api/bots')
-        
+
         if (!response.ok) {
           throw new Error('Fehler beim Laden der Bots')
         }
-        
+
         const data = await response.json()
         setBots(data)
-        
+
         // Setze den ersten aktiven Bot als Standard, wenn verfügbar
         if (data.length > 0) {
           const activeBot = data.find((bot: Bot) => bot.active) || data[0]
           setSelectedBotId(activeBot.id)
           setSelectedBot(activeBot)
-          
+
           // Wenn der Bot eine Primärfarbe hat, setze diese
           if (activeBot.settings?.primaryColor) {
             setPrimaryColor(activeBot.settings.primaryColor)
           }
         }
-        
+
         setError(null)
       } catch (err) {
         console.error('Fehler beim Laden der Bots:', err)
@@ -90,7 +91,7 @@ export default function EmbedGenerator() {
         setLoading(false)
       }
     }
-    
+
     fetchBots()
   }, [])
 
@@ -99,9 +100,19 @@ export default function EmbedGenerator() {
     if (selectedBotId && bots.length > 0) {
       const bot = bots.find(bot => bot.id === selectedBotId)
       setSelectedBot(bot || null)
-      
-      if (bot?.settings?.primaryColor) {
-        setPrimaryColor(bot.settings.primaryColor)
+
+      // Aktualisiere alle Farbwerte und Einstellungen aus den Bot-Einstellungen
+      if (bot?.settings) {
+        // Primärfarbe aktualisieren
+        if (bot.settings.primaryColor) {
+          setPrimaryColor(bot.settings.primaryColor)
+        }
+
+        // Weitere Bot-Einstellungen im UI-Zustand aktualisieren
+        setStreamingEnabled(true); // Standard: Streaming aktiviert
+
+        // Aktualisiere hier weitere relevante Einstellungen für die Vorschau
+        console.log('Bot-Einstellungen aktualisiert:', bot.settings)
       }
     }
   }, [selectedBotId, bots])
@@ -109,7 +120,7 @@ export default function EmbedGenerator() {
   // Funktion zum Aktualisieren von Bot-Einstellungen für die Vorschau
   const updateBotSetting = (setting: string, value: boolean) => {
     if (!selectedBot || !selectedBot.settings) return;
-    
+
     // Tiefe Kopie des Bots und seiner Einstellungen erstellen
     const updatedBot: Bot = {
       ...selectedBot,
@@ -118,7 +129,7 @@ export default function EmbedGenerator() {
         [setting]: value
       }
     };
-    
+
     setSelectedBot(updatedBot);
   };
 
@@ -126,10 +137,10 @@ export default function EmbedGenerator() {
   const generateEmbedCode = () => {
     // Base URL für das Skript
     const baseUrl = window.location.origin;
-    
+
     // URL mit Parametern statt data-Attributen
     const scriptUrl = new URL(`${baseUrl}/api/embed`);
-    
+
     // Parameter direkt in die URL einfügen
     if (selectedBotId) {
       scriptUrl.searchParams.append('botId', selectedBotId);
@@ -137,10 +148,10 @@ export default function EmbedGenerator() {
     scriptUrl.searchParams.append('mode', initialMode);
     scriptUrl.searchParams.append('color', primaryColor.replace('#', '%23')); // Einfache URL-Kodierung für #
     scriptUrl.searchParams.append('streaming', streamingEnabled.toString());
-    
+
     if (initialMode === 'bubble') {
       scriptUrl.searchParams.append('position', position);
-      
+
       // Erweiterte Optionen nur hinzufügen, wenn sie verändert wurden
       if (bubbleSize !== '60') scriptUrl.searchParams.append('bubbleSize', bubbleSize);
       if (offsetX !== '20') scriptUrl.searchParams.append('offsetX', offsetX);
@@ -148,17 +159,43 @@ export default function EmbedGenerator() {
       if (chatWidth !== '480') scriptUrl.searchParams.append('chatWidth', chatWidth);
       if (chatHeight !== '700') scriptUrl.searchParams.append('chatHeight', chatHeight);
     }
-    
+
     // Z-Index hinzufügen, wenn angegeben
     if (zIndex) scriptUrl.searchParams.append('zIndex', zIndex);
-    
+
+    // Message Template hinzufügen, wenn der Bot eines hat
+    if (selectedBot?.settings?.messageTemplate && selectedBot.settings.messageTemplate !== 'default') {
+      scriptUrl.searchParams.append('messageTemplate', selectedBot.settings.messageTemplate);
+    }
+
+    // Vorschläge-Anzeige hinzufügen
+    if (selectedBot?.settings?.showSuggestions !== undefined) {
+      scriptUrl.searchParams.append('showSuggestions', selectedBot.settings.showSuggestions.toString());
+    }
+
+    // Feedback-Option hinzufügen
+    if (selectedBot?.settings?.enableFeedback !== undefined) {
+      scriptUrl.searchParams.append('enableFeedback', selectedBot.settings.enableFeedback.toString());
+    }
+
+    // Kopieren-Button-Option hinzufügen
+    if (selectedBot?.settings?.showCopyButton !== undefined) {
+      scriptUrl.searchParams.append('showCopyButton', selectedBot.settings.showCopyButton.toString());
+    }
+
     const code = `<!-- Dialog Engine Chat Widget -->
-<div id="dialog-container" 
-  data-mode="${initialMode}" 
-  data-color="${primaryColor}" 
+<div id="dialog-container"
+  data-mode="${initialMode}"
+  data-color="${primaryColor}"
   data-position="${position}"
   data-bot-id="${selectedBotId}"
   data-streaming="${streamingEnabled}"
+  data-initial-dialog-mode="true"
+  ${selectedBot?.settings?.showSuggestions !== undefined ? `data-show-suggestions="${selectedBot.settings.showSuggestions}"` : ''}
+  ${selectedBot?.settings?.enableFeedback !== undefined ? `data-enable-feedback="${selectedBot.settings.enableFeedback}"` : ''}
+  ${selectedBot?.settings?.showCopyButton !== undefined ? `data-show-copy-button="${selectedBot.settings.showCopyButton}"` : ''}
+  ${selectedBot?.settings?.messageTemplate && selectedBot.settings.messageTemplate !== 'default' ?
+    `data-message-template="${selectedBot.settings.messageTemplate}"` : ''}
   ${zIndex ? `data-z-index="${zIndex}"` : ''}
   ${initialMode === 'bubble' ? '' : `style="width: ${width}; height: ${initialMode === 'inline' ? height + 'px' : '100%'}; position: relative; border-radius: 12px; overflow: hidden;"`}
 ></div>
@@ -171,7 +208,7 @@ export default function EmbedGenerator() {
   useEffect(() => {
     const code = generateEmbedCode();
     setEmbedCode(code);
-    
+
     // Erstelle HTML für die iFrame-Vorschau
     const previewHtml = `
 <!DOCTYPE html>
@@ -215,24 +252,24 @@ export default function EmbedGenerator() {
   <div class="content">
     <h1>Beispielseite für Bot-Vorschau</h1>
     <p>
-      Hier sehen Sie eine Beispielseite mit dem eingebetteten Bot. 
+      Hier sehen Sie eine Beispielseite mit dem eingebetteten Bot.
       Sie können die verschiedenen Einstellungen und Platzierungen testen.
     </p>
     <div class="placeholder">Platzhalterinhalt</div>
     <p>
-      Dieser Text dient nur der Demonstration, um die Seite zu füllen und 
+      Dieser Text dient nur der Demonstration, um die Seite zu füllen und
       den Bot in verschiedenen Szenarien zu testen.
     </p>
     <div class="placeholder">Weiterer Platzhalterinhalt</div>
   </div>
-  
+
   ${code}
 </body>
 </html>
     `;
-    
+
     setPreviewHtml(previewHtml);
-  }, [initialMode, primaryColor, position, height, width, selectedBotId, 
+  }, [initialMode, primaryColor, position, height, width, selectedBotId,
     bubbleSize, offsetX, offsetY, chatWidth, chatHeight, zIndex, streamingEnabled, isMobilePreview]);
 
   // Funktion zum Kopieren des Codes
@@ -261,7 +298,7 @@ export default function EmbedGenerator() {
           Bots verwalten
         </Button>
       </div>
-      
+
       {/* Haupt-UI-Bereich */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Linke Spalte - Einstellungen */}
@@ -273,7 +310,7 @@ export default function EmbedGenerator() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           <Card>
             <CardHeader>
               <CardTitle>1. Bot auswählen</CardTitle>
@@ -304,7 +341,7 @@ export default function EmbedGenerator() {
                     <div>
                       <Label htmlFor="bot-select">Bot</Label>
                       <div className="relative">
-                        <select 
+                        <select
                           id="bot-select"
                           value={selectedBotId}
                           onChange={(e) => setSelectedBotId(e.target.value)}
@@ -318,7 +355,7 @@ export default function EmbedGenerator() {
                         </select>
                       </div>
                     </div>
-                    
+
                     {selectedBot && (
                       <div className="rounded-md border p-4 bg-muted/10">
                         <h3 className="text-sm font-medium mb-2 flex items-center">
@@ -329,7 +366,7 @@ export default function EmbedGenerator() {
                           <div className="grid grid-cols-3 py-2">
                             <dt className="font-medium text-muted-foreground">Primärfarbe</dt>
                             <dd className="col-span-2 flex items-center">
-                              <div 
+                              <div
                                 className="w-4 h-4 mr-2 rounded-full border"
                                 style={{ backgroundColor: selectedBot.settings?.primaryColor || '#3b82f6' }}
                               />
@@ -340,7 +377,7 @@ export default function EmbedGenerator() {
                             <dt className="font-medium text-muted-foreground">Vorschläge</dt>
                             <dd className="col-span-2 flex justify-between items-center">
                               <span>{selectedBot.settings?.showSuggestions ? 'Aktiviert' : 'Deaktiviert'}</span>
-                              <button 
+                              <button
                                 onClick={() => updateBotSetting('showSuggestions', !selectedBot.settings?.showSuggestions)}
                                 className="text-xs px-2 py-1 rounded bg-primary/10 hover:bg-primary/20 text-primary"
                               >
@@ -352,7 +389,7 @@ export default function EmbedGenerator() {
                             <dt className="font-medium text-muted-foreground">Feedback</dt>
                             <dd className="col-span-2 flex justify-between items-center">
                               <span>{selectedBot.settings?.enableFeedback ? 'Aktiviert' : 'Deaktiviert'}</span>
-                              <button 
+                              <button
                                 onClick={() => updateBotSetting('enableFeedback', !selectedBot.settings?.enableFeedback)}
                                 className="text-xs px-2 py-1 rounded bg-primary/10 hover:bg-primary/20 text-primary"
                               >
@@ -364,7 +401,7 @@ export default function EmbedGenerator() {
                             <dt className="font-medium text-muted-foreground">Kopier-Button</dt>
                             <dd className="col-span-2 flex justify-between items-center">
                               <span>{selectedBot.settings?.showCopyButton ? 'Aktiviert' : 'Deaktiviert'}</span>
-                              <button 
+                              <button
                                 onClick={() => updateBotSetting('showCopyButton', !selectedBot.settings?.showCopyButton)}
                                 className="text-xs px-2 py-1 rounded bg-primary/10 hover:bg-primary/20 text-primary"
                               >
@@ -380,7 +417,7 @@ export default function EmbedGenerator() {
               )}
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>2. Darstellungsmodus wählen</CardTitle>
@@ -419,19 +456,19 @@ export default function EmbedGenerator() {
                     <span>Vollbild</span>
                   </TabsTrigger>
                 </TabsList>
-                
+
                 <div className="mb-4 border p-4 rounded-md bg-muted/5">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-sm font-medium">Vorschau</h3>
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => setIsMobilePreview(false)}
                         className={`p-1 rounded ${!isMobilePreview ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
                         title="Desktop-Vorschau"
                       >
                         <Monitor className="h-4 w-4" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => setIsMobilePreview(true)}
                         className={`p-1 rounded ${isMobilePreview ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
                         title="Mobile-Vorschau"
@@ -440,12 +477,12 @@ export default function EmbedGenerator() {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className={`relative border rounded-md overflow-hidden ${isMobilePreview ? 'w-64 h-96 mx-auto' : 'w-full h-80'}`}>
                     <div className="absolute inset-0 flex items-center justify-center flex-col text-center p-6">
                       {initialMode === 'bubble' && (
                         <>
-                          <div 
+                          <div
                             className="w-12 h-12 rounded-full flex items-center justify-center text-white mb-2"
                             style={{ backgroundColor: primaryColor }}
                           >
@@ -453,9 +490,9 @@ export default function EmbedGenerator() {
                               <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </div>
-                          <div 
+                          <div
                             className="absolute rounded-md shadow-lg p-4"
-                            style={{ 
+                            style={{
                               [position.includes('top') ? 'top' : 'bottom']: offsetY + 'px',
                               [position.includes('left') ? 'left' : 'right']: offsetX + 'px',
                               width: chatWidth + 'px',
@@ -473,7 +510,7 @@ export default function EmbedGenerator() {
                           </p>
                         </>
                       )}
-                      
+
                       {initialMode === 'inline' && (
                         <>
                           <div className="w-full h-full border rounded-md flex items-center justify-center">
@@ -484,7 +521,7 @@ export default function EmbedGenerator() {
                           </div>
                         </>
                       )}
-                      
+
                       {initialMode === 'fullscreen' && (
                         <>
                           <div className="w-full h-full flex items-center justify-center bg-opacity-80 bg-black">
@@ -497,7 +534,7 @@ export default function EmbedGenerator() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end mt-2">
                     <Button variant="outline" size="sm" onClick={showPreview} className="flex gap-1.5">
                       <Eye className="w-3.5 h-3.5" />
@@ -505,18 +542,18 @@ export default function EmbedGenerator() {
                     </Button>
                   </div>
                 </div>
-                
+
                 <TabsContent value="bubble" className="mt-0">
                   <div className="space-y-4 border rounded-md p-4 bg-muted/10">
                     <p className="text-sm">
                       Ein Chat-Symbol in einer Ecke des Bildschirms, das sich beim Klicken zu einem Chat-Fenster öffnet.
                       Ideal für Websites, bei denen der Chat eine ergänzende Funktion ist.
                     </p>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="position" className="text-sm">Position</Label>
-                        <select 
+                        <select
                           id="position"
                           value={position}
                           onChange={(e) => setPosition(e.target.value as any)}
@@ -528,12 +565,12 @@ export default function EmbedGenerator() {
                           <option value="top-left">Oben links</option>
                         </select>
                       </div>
-                      
+
                       <div>
                         <Label htmlFor="bubble-size" className="text-sm">Bubble-Größe (px)</Label>
-                        <input 
+                        <input
                           id="bubble-size"
-                          type="number" 
+                          type="number"
                           value={bubbleSize}
                           onChange={(e) => setBubbleSize(e.target.value)}
                           min="40"
@@ -542,7 +579,7 @@ export default function EmbedGenerator() {
                         />
                       </div>
                     </div>
-                    
+
                     <Accordion type="single" collapsible>
                       <AccordionItem value="advanced-bubble">
                         <AccordionTrigger className="text-sm">Erweiterte Einstellungen</AccordionTrigger>
@@ -598,20 +635,20 @@ export default function EmbedGenerator() {
                     </Accordion>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="inline" className="mt-0">
                   <div className="space-y-4 border rounded-md p-4 bg-muted/10">
                     <p className="text-sm">
                       Der Chat wird direkt in die Seite eingebettet. Ideal für dedizierte Chat-Seiten oder
                       wenn der Chat eine zentrale Funktion auf der Seite ist.
                     </p>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="inline-height" className="text-sm">Höhe (px)</Label>
-                        <input 
+                        <input
                           id="inline-height"
-                          type="number" 
+                          type="number"
                           value={height}
                           onChange={(e) => setHeight(e.target.value)}
                           min="300"
@@ -623,9 +660,9 @@ export default function EmbedGenerator() {
                       </div>
                       <div>
                         <Label htmlFor="inline-width" className="text-sm">Breite</Label>
-                        <input 
+                        <input
                           id="inline-width"
-                          type="text" 
+                          type="text"
                           value={width}
                           onChange={(e) => setWidth(e.target.value)}
                           className="w-full px-3 py-2 border rounded-md bg-background mt-1"
@@ -638,24 +675,23 @@ export default function EmbedGenerator() {
                     </div>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="fullscreen" className="mt-0">
                   <div className="space-y-4 border rounded-md p-4 bg-muted/10">
                     <p className="text-sm">
-                      Der Chat füllt das gesamte Browserfenster aus, mit einem Toggle zwischen "Dialog" und "Klassisch".
-                      Ideal für dedizierte Chat-Seiten oder als vollständige Chat-Anwendung.
+                      Der Chat füllt das gesamte Browserfenster aus, mit einem Dialog/Web-Switcher.
+                      Ideal für dedizierte Chat-Seiten oder als Vollbildanwendung.
                     </p>
-                    
+
                     <div className="rounded-md bg-amber-50 border border-amber-200 p-3 mt-4">
                       <h4 className="text-sm font-medium text-amber-800 flex items-center">
                         <AlertCircle className="w-4 h-4 mr-1" />
                         Hinweis
                       </h4>
                       <p className="text-xs text-amber-700 mt-1">
-                        Im Vollbildmodus werden automatisch alle verfügbaren Abmessungen genutzt. 
-                        Ein Toggle erscheint unten rechts, mit dem Benutzer zwischen dem Dialog-Modus (Chat)
-                        und dem klassischen Modus (Web-Ansicht) wechseln können. So können Nutzer
-                        jederzeit zur Originalseite zurückkehren, ohne den Tab zu verlassen.
+                        Im Vollbildmodus werden automatisch alle verfügbaren Abmessungen genutzt.
+                        Der Bot bietet einen Dialog/Web-Switcher, mit dem Benutzer zwischen dem Chat
+                        und der darunter liegenden Website wechseln können.
                       </p>
                     </div>
                   </div>
@@ -663,7 +699,7 @@ export default function EmbedGenerator() {
               </Tabs>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>3. Weitere Einstellungen</CardTitle>
@@ -676,8 +712,8 @@ export default function EmbedGenerator() {
                 <div className="space-y-4">
                   <Label className="text-sm">Design</Label>
                   <div className="flex items-center gap-3">
-                    <input 
-                      type="color" 
+                    <input
+                      type="color"
                       value={primaryColor}
                       onChange={(e) => setPrimaryColor(e.target.value)}
                       className="w-10 h-10 border rounded cursor-pointer"
@@ -685,9 +721,9 @@ export default function EmbedGenerator() {
                     />
                     <div className="flex-1">
                       <Label htmlFor="color-input" className="sr-only">Primärfarbe</Label>
-                      <input 
+                      <input
                         id="color-input"
-                        type="text" 
+                        type="text"
                         value={primaryColor}
                         onChange={(e) => setPrimaryColor(e.target.value)}
                         className="w-full px-3 py-2 border rounded-md bg-background"
@@ -698,11 +734,11 @@ export default function EmbedGenerator() {
                     Diese Farbe wird für das Chat-Icon, Schaltflächen und Akzente im Chat verwendet.
                   </p>
                 </div>
-                
+
                 <div>
                   <Label className="text-sm mb-2 block">Streaming-Modus</Label>
-                  <RadioGroup 
-                    value={streamingEnabled ? "true" : "false"} 
+                  <RadioGroup
+                    value={streamingEnabled ? "true" : "false"}
                     onValueChange={(v: string) => setStreamingEnabled(v === "true")}
                     className="flex space-x-4"
                   >
@@ -719,7 +755,7 @@ export default function EmbedGenerator() {
                     Der Streaming-Modus zeigt die Antworten in Echtzeit an, während sie generiert werden.
                   </p>
                 </div>
-                
+
                 <Accordion type="single" collapsible>
                   <AccordionItem value="technical">
                     <AccordionTrigger className="text-sm">Technische Einstellungen</AccordionTrigger>
@@ -727,9 +763,9 @@ export default function EmbedGenerator() {
                       <div className="space-y-4 pt-2">
                         <div>
                           <Label htmlFor="z-index" className="text-sm">Z-Index (optional)</Label>
-                          <input 
+                          <input
                             id="z-index"
-                            type="number" 
+                            type="number"
                             value={zIndex}
                             onChange={(e) => setZIndex(e.target.value)}
                             className="w-full px-3 py-2 border rounded-md bg-background mt-1"
@@ -747,7 +783,7 @@ export default function EmbedGenerator() {
             </CardContent>
           </Card>
         </div>
-        
+
         {/* Rechte Spalte - Vorschau und Code */}
         <div className="lg:col-span-6 xl:col-span-5 space-y-6">
           <Card className="sticky top-4">
@@ -779,16 +815,16 @@ export default function EmbedGenerator() {
                   </div>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               {/* Embed-Code */}
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <h3 className="text-base font-medium">Embed-Code</h3>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={copyCode}
                   >
                     {codeCopied ? (
@@ -804,14 +840,14 @@ export default function EmbedGenerator() {
                     )}
                   </Button>
                 </div>
-                
+
                 <div className="relative rounded-md overflow-hidden">
                   <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs whitespace-pre-wrap">
                     {embedCode}
                   </pre>
                 </div>
               </div>
-              
+
               <Alert>
                 <HelpCircle className="h-4 w-4" />
                 <AlertTitle>Hilfe zur Integration</AlertTitle>
@@ -837,4 +873,4 @@ export default function EmbedGenerator() {
       </div>
     </div>
   )
-} 
+}

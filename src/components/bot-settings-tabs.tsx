@@ -31,9 +31,33 @@ function ChatBubblePreview({ settings, welcomeMessage }: { settings: BotSettings
   }
   
   const userBubbleStyle = {
-    background: settings.userBgColor || `linear-gradient(135deg, ${settings.primaryColor}, ${settings.primaryColor}cc)`,
+    background: settings.userBgColor || createGradientFromColor(settings.primaryColor),
     color: settings.userTextColor || '#ffffff',
     boxShadow: `0 4px 12px rgba(${parseInt(settings.primaryColor.slice(1, 3), 16)}, ${parseInt(settings.primaryColor.slice(3, 5), 16)}, ${parseInt(settings.primaryColor.slice(5, 7), 16)}, 0.2)`
+  }
+  
+  // Hilfsfunktion für Gradienten aus der Primärfarbe
+  function createGradientFromColor(color: string): string {
+    try {
+      // Aus der Hex-Farbe die einzelnen RGB-Komponenten extrahieren
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      
+      // Hellere Version für den Start des Gradienten (10% heller)
+      const lighterColor = `#${Math.min(255, Math.floor(r * 1.1)).toString(16).padStart(2, '0')}${
+        Math.min(255, Math.floor(g * 1.1)).toString(16).padStart(2, '0')}${
+        Math.min(255, Math.floor(b * 1.1)).toString(16).padStart(2, '0')}`;
+      
+      // Dunklere Version für das Ende des Gradienten (15% dunkler)
+      const darkerColor = `#${Math.floor(r * 0.85).toString(16).padStart(2, '0')}${
+        Math.floor(g * 0.85).toString(16).padStart(2, '0')}${
+        Math.floor(b * 0.85).toString(16).padStart(2, '0')}`;
+      
+      return `linear-gradient(135deg, ${lighterColor}, ${darkerColor})`;
+    } catch (e) {
+      return `linear-gradient(135deg, ${color}, ${color}cc)`;
+    }
   }
   
   return (
@@ -300,6 +324,26 @@ export function BotSettingsTabs({
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Willkommensnachricht, die angezeigt wird, wenn der Chat geöffnet wird"
               />
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">Nachrichten-Template</label>
+                <select
+                  value={settings.messageTemplate === null || settings.messageTemplate === '' ? 'default' : settings.messageTemplate}
+                  onChange={(e) => onSettingsChange({...settings, messageTemplate: e.target.value})}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="default">Standard</option>
+                  <option value="aok">AOK-Design</option>
+                  <option value="creditreform">Creditreform-Design</option>
+                  <option value="brandenburg">Stadt Brandenburg-Design</option>
+                  <option value="mall">Shopping Mall-Design</option>
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Wähle ein spezielles Design für die Chat-Nachrichten.
+                </p>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

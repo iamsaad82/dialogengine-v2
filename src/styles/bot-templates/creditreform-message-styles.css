@@ -1,0 +1,221 @@
+/* 
+ * CREDITREFORM MESSAGE TEMPLATE STYLES 
+ * Zuletzt aktualisiert: 16.06.2024
+ */
+
+/* Creditreform Farbpalette - Wird dynamisch über Inline-Styles überschrieben */
+:root {
+  --creditreform-primary: #003b71;
+  --creditreform-secondary: #e20031;
+  --creditreform-accent: #ffd500;
+  --creditreform-light: #f6f6f8;
+  --creditreform-text: #333333;
+  --creditreform-highlight: #e74c3c;  /* Rot für Warnungen/wichtige Infos */
+}
+
+/* Allgemeine Typografie */
+.creditreform-message {
+  color: var(--creditreform-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.creditreform-message h3 {
+  color: var(--creditreform-primary) !important;
+  font-weight: 600 !important;
+  font-size: 1.25rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.creditreform-message a {
+  color: var(--creditreform-primary) !important;
+  text-decoration: none !important;
+  border-bottom: 1px solid rgba(0, 59, 113, 0.3) !important;
+  transition: color 0.2s ease, border-color 0.2s ease !important;
+  padding-bottom: 1px !important;
+}
+
+.creditreform-message a:hover {
+  color: var(--creditreform-secondary) !important;
+  border-bottom: 1px solid var(--creditreform-primary) !important;
+}
+
+/* Kurzantwort am Anfang der Nachricht */
+.creditreform-short-answer {
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  margin-bottom: 1.25rem !important;
+  padding-bottom: 0.75rem !important;
+  border-bottom: 1px solid rgba(0, 59, 113, 0.3) !important;
+  color: var(--creditreform-primary) !important;
+}
+
+/* Key Facts für wichtige Informationen */
+.creditreform-keyfacts {
+  background-color: var(--creditreform-light);
+  border: 1px solid #e0e0e5;
+  border-left: 4px solid var(--creditreform-primary);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 20px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+}
+
+.creditreform-keyfacts h4 {
+  color: var(--creditreform-primary);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.creditreform-keyfacts h4::before {
+  content: "📊";
+  margin-right: 8px;
+}
+
+.creditreform-keyfacts-list {
+  list-style: none;
+  padding-left: 5px;
+  margin: 0;
+}
+
+.creditreform-keyfacts-list li {
+  padding: 6px 0;
+  position: relative;
+  padding-left: 30px;
+  border-bottom: 1px dotted #e0e0e5;
+  margin-bottom: 5px;
+}
+
+.creditreform-keyfacts-list li strong:first-child {
+  position: absolute;
+  left: 0;
+  top: 6px;
+}
+
+/* Service-Sektion für Kontakt und Dienstleistungen */
+.creditreform-service-section {
+  background-color: #fff;
+  border: 1px solid #e0e0e5;
+  border-top: 4px solid var(--creditreform-secondary);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 20px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+}
+
+.creditreform-service-section h4 {
+  color: var(--creditreform-secondary);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.creditreform-service-section h4::before {
+  content: "🛎️";
+  margin-right: 8px;
+}
+
+.creditreform-contact {
+  margin: 1rem 0 !important;
+}
+
+.creditreform-contact p {
+  margin: 0.5rem 0 !important;
+  font-size: 0.95rem !important;
+}
+
+.creditreform-button {
+  display: inline-block;
+  background-color: var(--creditreform-primary);
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  margin-top: 10px;
+  text-decoration: none !important;
+  border: none !important;
+  transition: background-color 0.2s ease;
+}
+
+.creditreform-button:hover {
+  background-color: #00294f;
+  text-decoration: none !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* Allgemeine Info-Box */
+.creditreform-info {
+  background-color: #fff;
+  border: 1px solid #e0e0e5;
+  border-left: 4px solid var(--creditreform-accent);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 20px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+}
+
+.creditreform-info h4 {
+  color: var(--creditreform-text);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.creditreform-info h4::before {
+  content: "💡";
+  margin-right: 8px;
+}
+
+.creditreform-info p {
+  margin: 0.5rem 0 !important;
+  font-size: 0.95rem !important;
+}
+
+.creditreform-tip {
+  font-style: italic !important;
+  color: var(--creditreform-accent) !important;
+  margin-top: 0.75rem !important;
+  padding-left: 0.5rem !important;
+  border-left: 2px solid var(--creditreform-accent) !important;
+}
+
+/* Streaming-Indikator */
+.creditreform-streaming-indicator {
+  opacity: 0.7 !important;
+  font-size: 1.25rem !important;
+  margin-top: 0.5rem !important;
+  animation: blink 1s infinite !important;
+}
+
+@keyframes blink {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* Spezielle Link-Typen */
+.creditreform-tel-link::before {
+  content: "📞" !important;
+  margin-right: 4px !important;
+}
+
+.creditreform-mail-link::before {
+  content: "✉️" !important;
+  margin-right: 4px !important;
+} 

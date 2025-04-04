@@ -1,0 +1,11 @@
+/* Bot-Template Styles */
+@import "./theme-styles.css";
+@import "./bot-templates/mall-message-styles.css";
+@import "./bot-templates/aok-message-styles.css";
+@import "./bot-templates/creditreform-message-styles.css";
+@import "./bot-templates/brandenburg-message-styles.css";
+@import "./bot-templates/standard-message-styles.css";
+@import "./bot-templates/debug.css";
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities'; 

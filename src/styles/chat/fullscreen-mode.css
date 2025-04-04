@@ -1,0 +1,230 @@
+/* Fullscreen Mode Styles */
+.fullscreen-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--bot-bg-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Web-Modus: Alles außer dem Toggle ausblenden */
+.web-mode-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Toggle-Spezifische Stile */
+.web-mode-toggle {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 999 !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(8px) !important;
+  border-radius: 100px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dialog-mode-toggle {
+  z-index: 1000 !important;
+}
+
+/* Klassischer Fullscreen Mode (Web-Modus) */
+.fullscreen-classic {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  overflow: hidden;
+}
+
+/* Dialog Fullscreen Mode */
+.fullscreen-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 800px;
+  height: 80%;
+  max-height: 800px;
+  background: var(--bot-bg-color);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dialogAppear 0.3s ease-out forwards;
+  z-index: 100;
+}
+
+/* Dialog Overlay */
+.fullscreen-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 90;
+  animation: overlayAppear 0.3s ease-out forwards;
+}
+
+/* Dialog-Mode Body-Klasse */
+body.dialog-mode {
+  overflow: hidden;
+}
+
+html.dialog-mode {
+  overflow: hidden;
+}
+
+/* Message List Container im Fullscreen Mode */
+.fullscreen-mode .message-list-container,
+.fullscreen-classic .message-list-container,
+.fullscreen-dialog .message-list-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  max-height: calc(100% - 110px); /* Angepasst für größeres Eingabefeld */
+}
+
+/* Chat Input Container im Fullscreen Mode - veraltet */
+.fullscreen-mode .chat-input-container,
+.fullscreen-classic .chat-input-container,
+.fullscreen-dialog .chat-input-container {
+  padding: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+/* Formular im Fullscreen Mode */
+.fullscreen-mode form,
+.fullscreen-classic form,
+.fullscreen-dialog form {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+/* Dark Mode Anpassungen */
+.dark .fullscreen-mode {
+  background: var(--bot-bg-color);
+}
+
+.dark .fullscreen-classic {
+  background: transparent;
+}
+
+.dark .fullscreen-dialog {
+  background: var(--bot-bg-color);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .fullscreen-dialog-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.dark .fullscreen-mode .chat-input-container,
+.dark .fullscreen-classic .chat-input-container,
+.dark .fullscreen-dialog .chat-input-container,
+.dark .fullscreen-mode form,
+.dark .fullscreen-classic form,
+.dark .fullscreen-dialog form {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Animationen */
+@keyframes dialogAppear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes overlayAppear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Mobile Anpassungen */
+@media (max-width: 640px) {
+  .fullscreen-dialog {
+    width: 95%;
+    height: 90%;
+    max-width: none;
+    border-radius: 16px;
+  }
+  
+  .fullscreen-mode .message-list-container,
+  .fullscreen-classic .message-list-container,
+  .fullscreen-dialog .message-list-container {
+    padding: 0.75rem;
+  }
+  
+  .fullscreen-mode .chat-input-container,
+  .fullscreen-classic .chat-input-container,
+  .fullscreen-dialog .chat-input-container,
+  .fullscreen-mode form,
+  .fullscreen-classic form,
+  .fullscreen-dialog form {
+    padding: 0.75rem;
+  }
+}
+
+/* Toggle Button im Fullscreen Mode */
+.fullscreen-mode .mode-toggle-button,
+.fullscreen-classic .mode-toggle-button,
+.fullscreen-dialog .mode-toggle-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 60;
+  padding: 0.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fullscreen-mode .mode-toggle-button:hover,
+.fullscreen-classic .mode-toggle-button:hover,
+.fullscreen-dialog .mode-toggle-button:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: scale(1.05);
+}
+
+.dark .fullscreen-mode .mode-toggle-button,
+.dark .fullscreen-classic .mode-toggle-button,
+.dark .fullscreen-dialog .mode-toggle-button {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .fullscreen-mode .mode-toggle-button:hover,
+.dark .fullscreen-classic .mode-toggle-button:hover,
+.dark .fullscreen-dialog .mode-toggle-button:hover {
+  background: rgba(0, 0, 0, 0.3);
+} 

@@ -1,0 +1,389 @@
+/* Standard Message Styles - Modernes, universelles Design */
+:root {
+  --std-primary: #2563eb; /* Blau - Primärfarbe */
+  --std-secondary: #f97316; /* Orange - Akzentfarbe */
+  --std-success: #22c55e; /* Grün - Erfolg/Positiv */
+  --std-warning: #eab308; /* Gelb - Warnung */
+  --std-danger: #ef4444; /* Rot - Gefahr/Error */
+  --std-neutral: #6b7280; /* Grau - Neutral */
+  --std-light: #f8fafc; /* Helles Grau - Hintergründe */
+  --std-dark: #1e293b; /* Dunkelgrau - Text */
+  --std-surface: #ffffff; /* Weiß - Kartenoberfläche */
+  --std-border-radius: 8px; /* Abgerundete Ecken */
+  --std-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05); /* Kleiner Schatten */
+  --std-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Mittlerer Schatten */
+  --std-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Großer Schatten */
+  --std-transition: all 0.2s ease; /* Standard-Übergang */
+}
+
+.standard-message {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--std-dark);
+  max-width: 100%;
+  letter-spacing: -0.01em;
+}
+
+/* Grundlegende Typografie */
+.standard-message h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--std-dark);
+  margin: 1.5rem 0 1rem 0;
+  line-height: 1.3;
+}
+
+.standard-message h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--std-dark);
+  margin: 1.2rem 0 0.8rem 0;
+  line-height: 1.3;
+}
+
+.standard-message h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--std-dark);
+  margin: 1rem 0 0.6rem 0;
+  line-height: 1.3;
+}
+
+.standard-message p {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Hervorgehobene Antwort */
+.standard-short-answer {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+  color: var(--std-dark);
+}
+
+/* Links */
+.standard-message a {
+  color: var(--std-primary);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.3);
+  transition: var(--std-transition);
+  padding-bottom: 1px;
+  font-weight: 500;
+}
+
+.standard-message a:hover {
+  color: var(--std-secondary);
+  border-bottom: 1px solid var(--std-primary);
+}
+
+/* Listen */
+.standard-message ul, 
+.standard-message ol {
+  padding-left: 1.5rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.standard-message li {
+  margin-bottom: 0.5rem;
+}
+
+/* Standard-Karten für verschiedene Inhalte */
+.standard-card {
+  background-color: var(--std-surface);
+  border-radius: var(--std-border-radius);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--std-shadow);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: var(--std-transition);
+}
+
+.standard-card:hover {
+  box-shadow: var(--std-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.standard-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--std-dark);
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.standard-card-content {
+  margin: 0;
+}
+
+/* Info-Box */
+.standard-info {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-left: 4px solid var(--std-primary);
+  border-radius: var(--std-border-radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--std-shadow-sm);
+}
+
+.standard-warning {
+  background-color: rgba(234, 179, 8, 0.1);
+  border-left: 4px solid var(--std-warning);
+  border-radius: var(--std-border-radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--std-shadow-sm);
+}
+
+.standard-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-left: 4px solid var(--std-success);
+  border-radius: var(--std-border-radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--std-shadow-sm);
+}
+
+.standard-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid var(--std-danger);
+  border-radius: var(--std-border-radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--std-shadow-sm);
+}
+
+.standard-note-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+/* Fakten und Übersichten */
+.standard-facts {
+  background-color: var(--std-surface);
+  border-radius: var(--std-border-radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--std-shadow);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+
+.standard-facts-list {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.standard-facts-list li {
+  position: relative;
+  padding-left: 1.8rem;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.standard-facts-list li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--std-primary);
+  font-weight: bold;
+}
+
+/* Buttons */
+.standard-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--std-primary);
+  color: white !important;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--std-border-radius);
+  text-decoration: none !important;
+  border: none !important;
+  transition: var(--std-transition);
+  box-shadow: var(--std-shadow-sm);
+  margin: 0.5rem 0;
+  cursor: pointer;
+}
+
+.standard-button:hover {
+  background-color: #1d4ed8; /* Dunkleres Blau */
+  transform: translateY(-1px);
+  box-shadow: var(--std-shadow);
+  text-decoration: none !important;
+  border: none !important;
+  color: white !important;
+}
+
+.standard-button-secondary {
+  background-color: var(--std-secondary);
+}
+
+.standard-button-secondary:hover {
+  background-color: #ea580c; /* Dunkleres Orange */
+}
+
+.standard-button-success {
+  background-color: var(--std-success);
+}
+
+.standard-button-success:hover {
+  background-color: #16a34a; /* Dunkleres Grün */
+}
+
+/* Code-Block */
+.standard-code {
+  background-color: #f1f5f9;
+  padding: 1rem;
+  border-radius: var(--std-border-radius);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  white-space: pre;
+}
+
+/* Tabelle */
+.standard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  border-radius: var(--std-border-radius);
+  box-shadow: var(--std-shadow-sm);
+}
+
+.standard-table th,
+.standard-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.standard-table th {
+  background-color: rgba(37, 99, 235, 0.1);
+  font-weight: 600;
+  color: var(--std-dark);
+}
+
+.standard-table tr:last-child td {
+  border-bottom: none;
+}
+
+.standard-table tr:hover td {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+/* Zitate */
+.standard-quote {
+  border-left: 4px solid var(--std-primary);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: var(--std-neutral);
+}
+
+/* Abbildungsbezeichnung */
+.standard-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1.5rem 0;
+}
+
+.standard-figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--std-border-radius);
+  box-shadow: var(--std-shadow);
+}
+
+.standard-caption {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--std-neutral);
+  text-align: center;
+  max-width: 90%;
+}
+
+/* Accordion/Collapsible */
+.standard-accordion {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--std-border-radius);
+  margin: 1.5rem 0;
+  overflow: hidden;
+}
+
+.standard-accordion-header {
+  padding: 1rem 1.5rem;
+  background-color: var(--std-light);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--std-transition);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.standard-accordion-header:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.standard-accordion-content {
+  padding: 1.5rem;
+  background-color: var(--std-surface);
+}
+
+/* Tags/Badges */
+.standard-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--std-primary);
+}
+
+.standard-tag-warning {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: var(--std-warning);
+}
+
+.standard-tag-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--std-success);
+}
+
+.standard-tag-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--std-danger);
+}
+
+/* Streaming-Indikator */
+.standard-streaming-indicator {
+  opacity: 0.7;
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+} 

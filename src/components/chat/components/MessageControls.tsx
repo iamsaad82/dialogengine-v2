@@ -1,110 +1,83 @@
+'use client';
+
 import React, { useState } from 'react';
+import { Message } from '../types/common';
 import { CopyIcon, CheckIcon, ThumbsUpIcon, ThumbsDownIcon } from './ui/icons';
 import { LunaryClient } from '@/lib/lunary';
 
-interface MessageControlsProps {
+export interface MessageControlsProps {
+  showCopyButton?: boolean;
+  enableFeedback?: boolean;
+  message?: Message;
   isBot: boolean;
-  showCopyButton: boolean;
-  enableFeedback: boolean;
-  messageContent: string;
   botId?: string;
   isLastMessage?: boolean;
+  botAccentColor?: string;
 }
 
+/**
+ * Steuerelemente für Nachrichten (Kopieren, Feedback, etc.)
+ */
 export const MessageControls: React.FC<MessageControlsProps> = ({
+  showCopyButton = true,
+  enableFeedback = false,
+  message,
   isBot,
-  showCopyButton,
-  enableFeedback,
-  messageContent,
   botId = 'default',
-  isLastMessage = false
+  isLastMessage = false,
+  botAccentColor = '#3b82f6'
 }) => {
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
-  // Kopieren des Nachrichteninhalts
-  const copyToClipboard = async () => {
-    const plainText = messageContent.replace(/\*\*(.*?)\*\*/g, '$1') // Entferne Markdown-Formatierung
-    
-    // Tracking für Kopieren
-    LunaryClient.track({
-      message: 'Nachricht kopiert',
-      botId: botId,
-      metadata: { messageContent: plainText.slice(0, 100) }
-    })
+  // Kopiert den Nachrichteninhalt in die Zwischenablage
+  const handleCopy = () => {
+    if (!message?.content) return;
 
-    // Erstellt einen temporären DOM-Knoten um HTML-Tags aus dem Text zu entfernen
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = messageContent || ''
-    const plainTextFromContent = tempDiv.textContent || tempDiv.innerText || ''
+    // HTML-Tags entfernen für reinen Text
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = message.content;
+    const textContent = tempDiv.textContent || tempDiv.innerText || '';
 
-    // Versuche erst navigator.clipboard.writeText zu verwenden
-    const copyWithAPI = () => {
-      navigator.clipboard.writeText(plainTextFromContent).then(
-        () => {
-          setCopySuccess(true)
-          setTimeout(() => setCopySuccess(false), 2000)
-        },
-        (err) => {
-          console.error('Fehler beim Kopieren mit Clipboard API:', err)
-          // Fallback zu document.execCommand
-          copyWithExecCommand()
-        }
-      )
-    }
+    navigator.clipboard.writeText(textContent).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
-    // Fallback mit document.execCommand
-    const copyWithExecCommand = () => {
-      try {
-        // Erstelle temporäres Textarea-Element
-        const textArea = document.createElement('textarea')
-        textArea.value = plainTextFromContent
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-999999px'
-        textArea.style.top = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
+  // Positives Feedback senden
+  const sendPositiveFeedback = () => {
+    // API-Aufruf zum Speichern des Feedbacks
+    setFeedbackSent(true);
+    setTimeout(() => setFeedbackSent(false), 2000);
 
-        // Führe Kopier-Befehl aus
-        const successful = document.execCommand('copy')
-        if (successful) {
-          setCopySuccess(true)
-          setTimeout(() => setCopySuccess(false), 2000)
-        } else {
-          console.error('Fehler beim Kopieren mit execCommand')
-        }
-        
-        // Entferne temporäres Element
-        document.body.removeChild(textArea)
-      } catch (err) {
-        console.error('Fehler beim Kopieren mit Fallback-Methode:', err)
-      }
-    }
-
-    // Versuche erst die moderne API, dann den Fallback
-    try {
-      copyWithAPI()
-    } catch (err) {
-      console.error('Clipboard API nicht verfügbar, verwende Fallback:', err)
-      copyWithExecCommand()
-    }
-  }
-  
-  // Funktion zum Senden von Feedback
-  const sendFeedback = (isPositive: boolean) => {
-    setFeedbackGiven(isPositive ? 'positive' : 'negative')
-    
     // Tracking für Feedback
     LunaryClient.trackFeedback({
-      rating: isPositive ? 'positive' : 'negative',
+      rating: 'positive',
       conversationId: botId || 'unknown',
       botId: botId,
-      comment: `Feedback zu Nachricht: ${messageContent.slice(0, 50)}...` // Verwende comment statt metadata
-    })
-    
-    console.log(`Feedback gesendet: ${isPositive ? 'positiv' : 'negativ'} für Bot ${botId}`)
-  }
+      comment: `Feedback zu Nachricht: ${message?.content.slice(0, 50)}...`
+    });
+
+    console.log(`Feedback gesendet: positiv für Bot ${botId}`);
+  };
+
+  // Negatives Feedback senden
+  const sendNegativeFeedback = () => {
+    // API-Aufruf zum Speichern des Feedbacks
+    setFeedbackSent(true);
+    setTimeout(() => setFeedbackSent(false), 2000);
+
+    // Tracking für Feedback
+    LunaryClient.trackFeedback({
+      rating: 'negative',
+      conversationId: botId || 'unknown',
+      botId: botId,
+      comment: `Feedback zu Nachricht: ${message?.content.slice(0, 50)}...`
+    });
+
+    console.log(`Feedback gesendet: negativ für Bot ${botId}`);
+  };
 
   // Zeit-Anzeige im Footer der Nachricht
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -115,15 +88,16 @@ export const MessageControls: React.FC<MessageControlsProps> = ({
         <div className="flex items-center gap-2">
           {showCopyButton && (
             <button
-              onClick={copyToClipboard}
-              className="flex items-center gap-1 rounded px-1.5 py-0.5 opacity-0 hover:bg-muted/50 group-hover:opacity-100 focus:opacity-100"
+              onClick={handleCopy}
+              className="flex items-center gap-1 rounded px-1.5 py-0.5 opacity-100 hover:bg-muted/50"
               aria-label="Nachricht kopieren"
               title="Nachricht kopieren"
+              style={{ '--accent-color': botAccentColor } as React.CSSProperties}
             >
-              {copySuccess ? (
+              {copied ? (
                 <>
-                  <CheckIcon className="h-3.5 w-3.5" />
-                  <span>Kopiert</span>
+                  <CheckIcon className="h-3.5 w-3.5" style={{ color: botAccentColor }} />
+                  <span style={{ color: botAccentColor }}>Kopiert</span>
                 </>
               ) : (
                 <>
@@ -133,53 +107,48 @@ export const MessageControls: React.FC<MessageControlsProps> = ({
               )}
             </button>
           )}
-          
-          {enableFeedback && feedbackGiven === null && (
+
+          {enableFeedback && !feedbackSent && (
             <div className="flex items-center gap-1 ml-2">
               <button
-                onClick={() => sendFeedback(true)}
-                className="rounded p-1 opacity-0 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 group-hover:opacity-100 focus:opacity-100"
+                onClick={sendPositiveFeedback}
+                className="rounded p-1 opacity-100 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
                 aria-label="Positive Bewertung"
                 title="Diese Nachricht war hilfreich"
+                style={{ '--accent-color': botAccentColor } as React.CSSProperties}
               >
                 <ThumbsUpIcon className="h-3.5 w-3.5" />
               </button>
               <button
-                onClick={() => sendFeedback(false)}
-                className="rounded p-1 opacity-0 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-900/30 dark:hover:text-rose-400 group-hover:opacity-100 focus:opacity-100"
+                onClick={sendNegativeFeedback}
+                className="rounded p-1 opacity-100 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
                 aria-label="Negative Bewertung"
                 title="Diese Nachricht war nicht hilfreich"
+                style={{ '--accent-color': botAccentColor } as React.CSSProperties}
               >
                 <ThumbsDownIcon className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
-          
-          {enableFeedback && feedbackGiven === 'positive' && (
-            <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
-              Danke für Ihr positives Feedback!
-            </span>
-          )}
-          
-          {enableFeedback && feedbackGiven === 'negative' && (
-            <span className="ml-2 text-xs text-rose-600 dark:text-rose-400">
-              Danke für Ihr Feedback. Wir verbessern uns stetig.
+
+          {enableFeedback && feedbackSent && (
+            <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400" style={{ color: botAccentColor }}>
+              Danke für Ihr Feedback!
             </span>
           )}
         </div>
       )}
-      
-      
+
       {!isBot && isLastMessage && (
         <div className="flex items-center gap-1">
-          <CheckIcon className="h-3.5 w-3.5" />
-          <span>Gesendet</span>
+          <CheckIcon className="h-3.5 w-3.5" style={{ color: botAccentColor }} />
+          <span style={{ color: botAccentColor }}>Gesendet</span>
         </div>
       )}
-      
+
       <span suppressHydrationWarning>
         {currentTime}
       </span>
     </div>
   );
-}; 
+};

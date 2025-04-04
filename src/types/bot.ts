@@ -9,6 +9,7 @@ export interface BotSettings {
   enableAnalytics: boolean
   showSuggestions: boolean
   showCopyButton: boolean
+  messageTemplate: string
   avatarUrl?: string
   
   // Prompt-Konfiguration

@@ -7,16 +7,26 @@ export async function GET(request: Request) {
   const mode = searchParams.get('mode') || 'bubble'
   const position = searchParams.get('position') || 'bottom-right'
   const color = searchParams.get('color') || '#3b82f6'
-  const streaming = searchParams.get('streaming') !== 'false' // Standardmäßig true, außer bei explizitem "false"
-  
+  const streaming = searchParams.get('streaming') === 'true' || searchParams.get('streaming') === '1'
+
   // Zusätzliche Parameter für mehr Anpassungsmöglichkeiten
   const bubbleSize = searchParams.get('bubbleSize') || '60' // Größe der Chat-Bubble in px
   const offsetX = searchParams.get('offsetX') || '20' // Horizontaler Abstand in px
   const offsetY = searchParams.get('offsetY') || '20' // Vertikaler Abstand in px
-  const chatWidth = searchParams.get('chatWidth') || '480' // Standardbreite - etwas größer als typische Bots
-  const chatHeight = searchParams.get('chatHeight') || '700' // Standardhöhe - etwas größer als typische Bots
+  const chatWidth = searchParams.get('chatWidth') || '624' // Standardbreite - etwas größer als typische Bots
+  const chatHeight = searchParams.get('chatHeight') || '910' // Standardhöhe - etwas größer als typische Bots
   // Neue Parameter für verbesserte Anpassbarkeit
   const zIndex = searchParams.get('zIndex') || '' // Konfigurierbarer Z-Index
+  // Standardmäßig im Dialog-Modus starten (kann aber überschrieben werden)
+  const initialDialogMode = searchParams.get('initialDialogMode') === 'false' ? false : true
+  // Nachrichtentemplate für spezielle Designs wie AOK
+  const messageTemplate = searchParams.get('messageTemplate') || ''
+  // Vorschläge anzeigen (Standard: true)
+  const showSuggestions = searchParams.get('showSuggestions') === 'false' ? false : true
+  // Feedback aktivieren (Standard: false)
+  const enableFeedback = searchParams.get('enableFeedback') === 'true' ? true : false
+  // Kopieren-Button anzeigen (Standard: true)
+  const showCopyButton = searchParams.get('showCopyButton') === 'false' ? false : true
 
   if (!botId) {
     return new Response('Bot ID erforderlich', { status: 400 })
@@ -42,27 +52,46 @@ export async function GET(request: Request) {
     // Bestehenden Container finden statt neuen zu erstellen
     const targetContainerSelector = '#dialog-container';
     const targetContainer = document.querySelector(targetContainerSelector);
-    
+
     if (!targetContainer) {
       console.error('Target container ' + targetContainerSelector + ' not found');
       return;
     }
-    
+
     // Konfigurationsdaten aus Datenattributen auslesen
     const configMode = targetContainer.getAttribute('data-mode') || "${mode}";
     const configPosition = targetContainer.getAttribute('data-position') || "${position}";
     const configColor = targetContainer.getAttribute('data-color') || "${botColor}";
     const configBotId = targetContainer.getAttribute('data-bot-id') || "${botId}";
     const configZIndex = targetContainer.getAttribute('data-z-index') || "${zIndex}";
-    const configStreaming = targetContainer.getAttribute('data-streaming') !== "false" ? true : false; // Standardmäßig true
-    
+    const configStreaming = targetContainer.getAttribute('data-streaming') === "true";
+    // Initialer Dialog-Modus (standardmäßig true)
+    const configInitialDialogMode = targetContainer.getAttribute('data-initial-dialog-mode') === "false" ? false : ${initialDialogMode};
+    // Nachrichtentemplate
+    const configMessageTemplate = targetContainer.getAttribute('data-message-template') || "${messageTemplate}";
+    // Feedback aktivieren
+    const configEnableFeedback = targetContainer.getAttribute('data-enable-feedback') === "true" ? true : ${enableFeedback};
+    // Kopieren-Button anzeigen
+    const configShowCopyButton = targetContainer.getAttribute('data-show-copy-button') === "false" ? false : ${showCopyButton};
+
+    // Debugging-Info
+    console.log('Dialog Widget Config:', {
+      mode: configMode,
+      position: configPosition,
+      color: configColor,
+      botId: configBotId,
+      streaming: configStreaming ? 'aktiviert' : 'deaktiviert',
+      initialDialogMode: configInitialDialogMode ? 'Dialog-Modus' : 'Web-Modus',
+      messageTemplate: configMessageTemplate || 'Standard'
+    });
+
     // Erweiterte Einstellungen aus Datenattributen oder Standardwerten
     const configBubbleSize = parseInt(targetContainer.getAttribute('data-bubble-size') || "${bubbleSize}");
     const configOffsetX = parseInt(targetContainer.getAttribute('data-offset-x') || "${offsetX}");
     const configOffsetY = parseInt(targetContainer.getAttribute('data-offset-y') || "${offsetY}");
     const configChatWidth = parseInt(targetContainer.getAttribute('data-chat-width') || "${chatWidth}");
     const configChatHeight = parseInt(targetContainer.getAttribute('data-chat-height') || "${chatHeight}");
-    
+
     // Variablen für die Widget-Konfiguration
     const botId = configBotId;
     const mode = configMode;
@@ -136,7 +165,7 @@ export async function GET(request: Request) {
       .dialog-chat {
         position: fixed;
         width: \${chatWidth}px;
-        height: \${chatHeight}px; 
+        height: \${chatHeight}px;
         overflow: visible !important;
         background-color: transparent !important;
         border-radius: 12px !important;
@@ -145,7 +174,7 @@ export async function GET(request: Request) {
         transition: opacity 0.3s ease, transform 0.3s ease;
         z-index: 9999;
       }
-      
+
       .dialog-iframe {
         border: none !important;
         border-radius: 12px !important;
@@ -156,13 +185,38 @@ export async function GET(request: Request) {
         overflow: hidden !important;
         display: block !important;
       }
-      
+
       .dialog-inline-container {
         width: 100%;
         height: 100%;
         position: relative;
       }
-      
+
+      /* Web/Dialog Toggle Styles */
+      .dialog-web-toggle {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        padding: 3px;
+        width: 180px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border-radius: 100px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        z-index: 99999;
+        pointer-events: auto;
+        overflow: hidden;
+      }
+
+      /* Web-Modus: Chat ausblenden */
+      .web-mode-chat-hidden {
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+
       /* Responsive Anpassungen für den Chat */
       @media (max-width: 768px) {
         .dialog-chat {
@@ -173,7 +227,7 @@ export async function GET(request: Request) {
           right: 16px;
           bottom: 80px;
         }
-        
+
         .dialog-iframe {
           width: 100% !important;
           height: 100% !important;
@@ -186,7 +240,7 @@ export async function GET(request: Request) {
     const scriptElement = document.currentScript;
     const scriptUrl = scriptElement ? scriptElement.src : '';
     let baseUrl = '';
-    
+
     try {
       if (scriptUrl) {
         const urlObj = new URL(scriptUrl);
@@ -194,43 +248,61 @@ export async function GET(request: Request) {
       } else {
         baseUrl = window.location.origin;
       }
-      
+
       const chatPath = '/embed/chat';
       const widgetUrl = new URL(chatPath, baseUrl);
-      
+
       widgetUrl.searchParams.append('mode', mode);
       widgetUrl.searchParams.append('color', encodeURIComponent(color));
       widgetUrl.searchParams.append('botId', botId);
       widgetUrl.searchParams.append('streaming', streaming.toString()); // Streaming-Parameter hinzufügen
-      
+
+      // Dialog-Modus hinzufügen
+      widgetUrl.searchParams.append('initialDialogMode', configInitialDialogMode.toString());
+
       // Z-Index Parameter hinzufügen, wenn gesetzt
       if (configZIndex) {
         widgetUrl.searchParams.append('zIndex', configZIndex);
       }
-      
+
+      // Nachrichtentemplate hinzufügen, wenn gesetzt
+      if (configMessageTemplate) {
+        widgetUrl.searchParams.append('messageTemplate', configMessageTemplate);
+      }
+
+      // Vorschläge-Anzeige hinzufügen
+      const configShowSuggestions = targetContainer.getAttribute('data-show-suggestions');
+      widgetUrl.searchParams.append('showSuggestions', configShowSuggestions === 'false' ? 'false' : 'true');
+
+      // Feedback-Option hinzufügen
+      widgetUrl.searchParams.append('enableFeedback', configEnableFeedback.toString());
+
+      // Kopieren-Button-Option hinzufügen
+      widgetUrl.searchParams.append('showCopyButton', configShowCopyButton.toString());
+
       if (mode === 'bubble') {
         // Erstelle einen neuen Container für die Bubble
         const bubbleContainer = document.createElement('div');
         bubbleContainer.className = 'dialog-bubble';
         bubbleContainer.id = 'dialog-bubble-container';
-        
+
         // Farbe und Position explizit setzen
         bubbleContainer.style.backgroundColor = color;
         bubbleContainer.style.position = 'fixed';
-        
+
         // Positionierung
         if (position.includes('bottom')) {
           bubbleContainer.style.bottom = offsetY + 'px';
         } else {
           bubbleContainer.style.top = offsetY + 'px';
         }
-        
+
         if (position.includes('right')) {
           bubbleContainer.style.right = offsetX + 'px';
         } else {
           bubbleContainer.style.left = offsetX + 'px';
         }
-        
+
         // HTML für Bubble mit Chat und Close Icon
         bubbleContainer.innerHTML = \`
           <div class="dialog-bubble-icon dialog-chat-icon">
@@ -246,20 +318,20 @@ export async function GET(request: Request) {
           </div>
         \`;
         document.body.appendChild(bubbleContainer);
-        
+
         // Chat-Container erstellen
         const chat = document.createElement('div');
         chat.className = 'dialog-chat';
         chat.id = 'dialog-chat-container';
-        
+
         // Korrekte Positionierung des Chat-Fensters
         chat.style.position = 'fixed';
-        chat.style.boxSizing = 'border-box'; 
+        chat.style.boxSizing = 'border-box';
         chat.style.background = 'transparent';
         chat.style.border = 'none';
         chat.style.boxShadow = 'none';
         chat.style.overflow = 'hidden';
-        
+
         // Berechne Position basierend auf Bubble-Position
         const calcPosition = () => {
           if (window.innerWidth <= 768) {
@@ -275,7 +347,7 @@ export async function GET(request: Request) {
             chat.style.width = chatWidth + 'px';
             chat.style.height = chatHeight + 'px';
             chat.style.maxHeight = 'none'; // Kein MaxHeight auf Desktop
-            
+
             // Position relativ zur Bubble berechnen
             if (position.includes('bottom')) {
               chat.style.bottom = (parseInt(offsetY) + bubbleSize + 10) + 'px';
@@ -284,7 +356,7 @@ export async function GET(request: Request) {
               chat.style.top = (parseInt(offsetY) + bubbleSize + 10) + 'px';
               chat.style.bottom = 'auto'; // Bottom-Wert zurücksetzen
             }
-            
+
             if (position.includes('right')) {
               chat.style.right = offsetX + 'px';
               chat.style.left = 'auto';
@@ -294,24 +366,24 @@ export async function GET(request: Request) {
             }
           }
         };
-        
+
         chat.style.display = 'none'; // Initial verstecken
         chat.style.opacity = '0';
         chat.style.transform = 'translateY(10px)';
-        
+
         // Sorge für korrekte Anzeige des iframes - mit direkter Style-Anweisung
         const iframeSrc = widgetUrl.toString();
         chat.innerHTML = \`<iframe class="dialog-iframe" src="\${iframeSrc}" frameBorder="0" title="Chat" style="position:absolute; top:0; left:0; right:0; bottom:0; border:none; border-radius:12px; width:100%; height:100%; background:white; box-shadow:0 6px 30px rgba(0,0,0,0.2); overflow:hidden; display:block;"></iframe>\`;
         document.body.appendChild(chat);
-        
+
         // Initialisiere Position
         calcPosition();
-        
+
         // Event-Listener für Viewport-Änderungen
         window.addEventListener('resize', function() {
           calcPosition();
         });
-        
+
         // Größenanpassung des iframes, um Abschneiden zu verhindern
         const handleFrameLoad = function() {
           const chatFrame = chat.querySelector('iframe');
@@ -320,7 +392,7 @@ export async function GET(request: Request) {
               // Versuche, die Höhe dynamisch anzupassen
               chatFrame.style.height = '100%';
               chatFrame.style.minHeight = '100%';
-              
+
               // Optional: Nachrichtenweiterleitung für Größenänderungen
               window.addEventListener('message', function(event) {
                 if (event.data && event.data.type === 'dialog-resize') {
@@ -336,7 +408,7 @@ export async function GET(request: Request) {
             }
           }
         };
-        
+
         // Event-Listener für das Laden des iframes
         setTimeout(function() {
           const chatFrame = chat.querySelector('iframe');
@@ -344,24 +416,24 @@ export async function GET(request: Request) {
             chatFrame.addEventListener('load', handleFrameLoad);
           }
         }, 100);
-        
+
         // Referenzen zu den Icons
         const chatIcon = bubbleContainer.querySelector('.dialog-chat-icon');
         const closeIcon = bubbleContainer.querySelector('.dialog-close-icon');
-        
+
         // Toggle-Funktion für den Chat
         const toggleChat = function() {
           const isVisible = chat.style.display !== 'none';
-          
+
           if (!isVisible) {
             // Chat öffnen
             calcPosition(); // Position neu berechnen
             chat.style.display = 'block';
-            
+
             // Icons umschalten
             chatIcon.style.display = 'none';
             closeIcon.style.display = 'flex';
-            
+
             // Animation starten
             setTimeout(() => {
               chat.style.opacity = '1';
@@ -371,26 +443,26 @@ export async function GET(request: Request) {
             // Chat schließen
             chat.style.opacity = '0';
             chat.style.transform = 'translateY(10px)';
-            
+
             // Icons umschalten
             chatIcon.style.display = 'flex';
             closeIcon.style.display = 'none';
-            
+
             // Nach der Animation ausblenden
             setTimeout(() => {
               chat.style.display = 'none';
             }, 300);
           }
         };
-        
+
         // Click-Handler für die Bubble
         bubbleContainer.addEventListener('click', toggleChat);
-        
+
         // Beim Klick außerhalb des Chats diesen schließen (aber nicht bei Klick auf die Bubble)
         document.addEventListener('click', function(event) {
           const chatContainer = document.getElementById('dialog-chat-container');
           const bubbleContainer = document.getElementById('dialog-bubble-container');
-          
+
           if (chatContainer && chatContainer.style.display !== 'none') {
             if (!chatContainer.contains(event.target) && event.target !== bubbleContainer && !bubbleContainer.contains(event.target)) {
               toggleChat(); // Chat schließen
@@ -400,17 +472,17 @@ export async function GET(request: Request) {
       } else if (mode === 'inline') {
         // Inline-Modus: Embed direkt in den Container
         const targetContainer = document.getElementById('dialog-container');
-        
+
         // Passe den Container-Stil an
         targetContainer.style.position = 'relative';
         targetContainer.style.overflow = 'hidden';
         targetContainer.style.display = 'flex';
         targetContainer.style.flexDirection = 'column';
-        
+
         // Nehme die Dimensionen aus dem Container selbst
         targetContainer.style.width = targetContainer.getAttribute('data-width') || '100%';
         targetContainer.style.height = targetContainer.getAttribute('data-height') || '100%';
-        
+
         const iframeEl = document.createElement('iframe');
         iframeEl.className = 'dialog-iframe';
         iframeEl.src = widgetUrl.toString();
@@ -425,113 +497,102 @@ export async function GET(request: Request) {
         iframeEl.style.background = 'white';
         iframeEl.style.overflow = 'hidden';
         iframeEl.style.display = 'block';
-        
+
         targetContainer.innerHTML = '';
         targetContainer.appendChild(iframeEl);
       } else if (mode === 'fullscreen') {
+        // Erstelle zuerst den Web/Dialog-Toggle
+        const toggleContainer = document.createElement('div');
+        toggleContainer.id = 'dialog-web-toggle';
+        toggleContainer.className = 'dialog-web-toggle';
+
+        toggleContainer.innerHTML = \`
+          <div class="toggle-indicator" style="position: absolute; left: \${configInitialDialogMode ? '50%' : '0'}; top: 3px; width: 50%; height: calc(100% - 6px); border-radius: 100px; background-color: \${color}; z-index: 0; transition: left 0.3s ease;"></div>
+          <button id="web-toggle-btn" class="toggle-btn" style="z-index: 10; padding: 8px 12px; border-radius: 100px; border: none; background: transparent; color: \${configInitialDialogMode ? '#555' : 'white'}; font-weight: \${configInitialDialogMode ? 'normal' : 'bold'}; flex: 1; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Web</span>
+          </button>
+          <button id="dialog-toggle-btn" class="toggle-btn" style="z-index: 10; padding: 8px 12px; border-radius: 100px; border: none; background: transparent; color: \${configInitialDialogMode ? 'white' : '#555'}; font-weight: \${configInitialDialogMode ? 'bold' : 'normal'}; flex: 1; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <span>Dialog</span>
+          </button>
+        \`;
+
+        document.body.appendChild(toggleContainer);
+
+        // Chat-Container erstellen
         const fullscreenChat = document.createElement('div');
+        fullscreenChat.id = 'fullscreen-chat';
         fullscreenChat.style.position = 'fixed';
         fullscreenChat.style.top = '0';
         fullscreenChat.style.left = '0';
         fullscreenChat.style.width = '100%';
         fullscreenChat.style.height = '100%';
-        fullscreenChat.style.zIndex = configZIndex || '9999';
-        fullscreenChat.id = 'dialog-fullscreen-container';
-        
-        // Toggle-Button für den Wechsel zwischen Klassisch und Dialog hinzufügen
-        const toggleButton = document.createElement('div');
-        toggleButton.style.position = 'fixed';
-        toggleButton.style.bottom = '20px';
-        toggleButton.style.right = '20px';
-        toggleButton.style.width = 'auto';
-        toggleButton.style.minWidth = '120px';
-        toggleButton.style.height = '40px';
-        toggleButton.style.borderRadius = '20px';
-        toggleButton.style.backgroundColor = color;
-        toggleButton.style.color = 'white';
-        toggleButton.style.display = 'flex';
-        toggleButton.style.alignItems = 'center';
-        toggleButton.style.justifyContent = 'center';
-        toggleButton.style.cursor = 'pointer';
-        toggleButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-        toggleButton.style.zIndex = '10000';
-        toggleButton.style.fontSize = '14px';
-        toggleButton.style.fontWeight = 'bold';
-        toggleButton.style.padding = '0 15px';
-        toggleButton.innerHTML = \`
-          <div class="toggle-mode-container" style="display: flex; align-items: center; justify-content: center; width: 100%;">
-            <div class="dialog-mode active" style="display: flex; align-items: center; gap: 6px">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              <span>Dialog</span>
-            </div>
-            <div class="classic-mode" style="display: none; align-items: center; gap: 6px">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="9" y1="21" x2="9" y2="9"></line>
-              </svg>
-              <span>Klassisch</span>
-            </div>
-          </div>
-        \`;
-        
-        // Website-Container zum Anzeigen der ursprünglichen Website
-        const websiteContainer = document.createElement('div');
-        websiteContainer.style.position = 'fixed';
-        websiteContainer.style.top = '0';
-        websiteContainer.style.left = '0';
-        websiteContainer.style.width = '100%';
-        websiteContainer.style.height = '100%';
-        websiteContainer.style.zIndex = configZIndex ? (parseInt(configZIndex) - 1).toString() : '9998';
-        websiteContainer.style.display = 'none';
-        websiteContainer.style.backgroundColor = '#ffffff';
-        websiteContainer.style.overflow = 'auto';
-        websiteContainer.id = 'dialog-website-container';
-        
-        // Füge den originalen Seiteninhalt in den Website-Container ein
-        // Speichere den aktuellen Inhalt des Body, bevor wir das Chat-Widget einfügen
-        const originalBodyContent = document.body.innerHTML;
-        
-        // Kopiere den originalen Inhalt in den Website-Container
-        websiteContainer.innerHTML = originalBodyContent;
-        
-        // Entferne den Dialog-Container aus dem kopierten Inhalt, um Dopplungen zu vermeiden
-        const containerInWebsiteView = websiteContainer.querySelector('#dialog-container');
-        if (containerInWebsiteView) {
-          containerInWebsiteView.remove();
+        fullscreenChat.style.zIndex = '9999';
+        fullscreenChat.style.transition = 'opacity 0.3s ease';
+
+        // Im Web-Modus initial ausblenden
+        if (!configInitialDialogMode) {
+          fullscreenChat.classList.add('web-mode-chat-hidden');
         }
-        
-        // Chat-iframe erstellen
+
         fullscreenChat.innerHTML = \`<iframe class="dialog-iframe" src="\${widgetUrl.toString()}" title="Chat" style="border: none; width: 100%; height: 100%"></iframe>\`;
-        
-        // Elemente zum DOM hinzufügen
         document.body.appendChild(fullscreenChat);
-        document.body.appendChild(websiteContainer);
-        document.body.appendChild(toggleButton);
-        
-        // Toggle-Funktionalität
-        let dialogModeActive = true;
-        toggleButton.addEventListener('click', function() {
-          dialogModeActive = !dialogModeActive;
-          
-          if (dialogModeActive) {
-            // Zeige Dialog, verstecke Website
-            fullscreenChat.style.display = 'block';
-            websiteContainer.style.display = 'none';
-            document.querySelector('.dialog-mode').style.display = 'flex';
-            document.querySelector('.classic-mode').style.display = 'none';
-            document.querySelector('.dialog-mode').classList.add('active');
-            document.querySelector('.classic-mode').classList.remove('active');
-          } else {
-            // Verstecke Dialog, zeige Website
-            fullscreenChat.style.display = 'none';
-            websiteContainer.style.display = 'block';
-            document.querySelector('.dialog-mode').style.display = 'none';
-            document.querySelector('.classic-mode').style.display = 'flex';
-            document.querySelector('.dialog-mode').classList.remove('active');
-            document.querySelector('.classic-mode').classList.add('active');
+
+        // Event-Handler für Web/Dialog Toggle
+        const webBtn = document.getElementById('web-toggle-btn');
+        const dialogBtn = document.getElementById('dialog-toggle-btn');
+        const toggleIndicator = toggleContainer.querySelector('.toggle-indicator');
+
+        // Web-Modus aktivieren
+        webBtn.addEventListener('click', function() {
+          if (!fullscreenChat.classList.contains('web-mode-chat-hidden')) {
+            // In Web-Modus wechseln
+            fullscreenChat.classList.add('web-mode-chat-hidden');
+            toggleIndicator.style.left = '0';
+            webBtn.style.color = 'white';
+            webBtn.style.fontWeight = 'bold';
+            dialogBtn.style.color = '#555';
+            dialogBtn.style.fontWeight = 'normal';
+
+            // Hintergrund zurücksetzen
+            document.body.style.background = '';
+            document.body.classList.remove('dialog-mode');
+          }
+        });
+
+        // Dialog-Modus aktivieren
+        dialogBtn.addEventListener('click', function() {
+          if (fullscreenChat.classList.contains('web-mode-chat-hidden')) {
+            // In Dialog-Modus wechseln
+            fullscreenChat.classList.remove('web-mode-chat-hidden');
+            toggleIndicator.style.left = '50%';
+            dialogBtn.style.color = 'white';
+            dialogBtn.style.fontWeight = 'bold';
+            webBtn.style.color = '#555';
+            webBtn.style.fontWeight = 'normal';
+
+            // Hintergrund-Gradient für Dialog-Modus
+            document.body.style.background = \`linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))\`;
+            document.body.classList.add('dialog-mode');
+          }
+        });
+
+        // Chat-iframe-Kommunikation
+        window.addEventListener('message', function(event) {
+          // Kommunikation zwischen dem Chat-iframe und dem Parent-Fenster
+          if (event.data && event.data.type === 'toggle-dialog-mode') {
+            const isDialogMode = event.data.isDialogMode;
+
+            if (isDialogMode) {
+              dialogBtn.click(); // Dialog-Modus aktivieren
+            } else {
+              webBtn.click(); // Web-Modus aktivieren
+            }
           }
         });
       }
@@ -547,4 +608,4 @@ export async function GET(request: Request) {
       "Cache-Control": "public, max-age=3600",
     },
   })
-} 
+}

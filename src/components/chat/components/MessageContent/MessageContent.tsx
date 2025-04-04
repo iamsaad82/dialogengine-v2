@@ -5,12 +5,11 @@ import '../../styles/message-content.css';
 interface MessageContentProps {
   content: string;
   role: 'user' | 'assistant';
+  messageTemplate?: string | null;
 }
 
-export const MessageContent: React.FC<MessageContentProps> = ({ content, role }) => {
+export const MessageContent: React.FC<MessageContentProps> = ({ content, role, messageTemplate = 'default' }) => {
   const contentRef = useRef<HTMLDivElement>(null);
-  
-  // Lese zuerst den gesamten Inhalt, bevor Änderungen vorgenommen werden.
   
   // Verbesserte Verarbeitung aller speziellen Sektionen
   const enhanceSpecialSections = () => {
@@ -24,6 +23,46 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
     
     // 3. Tipps verbessern
     enhanceTips();
+    
+    // 4. Template-spezifische Verbesserungen hinzufügen
+    enhanceTemplateSpecific();
+  };
+  
+  // Anwendung von Template-spezifischen Transformationen
+  const enhanceTemplateSpecific = () => {
+    if (!contentRef.current) return;
+    
+    if (messageTemplate === 'aok') {
+      // Für AOK-Template: Buttons in das richtige Format bringen
+      const buttons = contentRef.current.querySelectorAll('a');
+      buttons.forEach(button => {
+        if (!button.parentElement?.classList.contains('aok-button-container')) {
+          button.classList.add('aok-button');
+          
+          // Wenn der Link nicht in einem Container ist, erstelle einen
+          if (button.parentElement?.tagName !== 'DIV' || 
+              !button.parentElement?.classList.contains('aok-button-container')) {
+            
+            // Finde heraus ob der Button bereits in einem Container ist
+            let container = button as HTMLElement;
+            while (container.parentElement && 
+                  container.parentElement !== contentRef.current && 
+                  container.parentElement.tagName !== 'DIV') {
+              container = container.parentElement;
+            }
+            
+            // Erstelle einen Container, wenn nötig
+            if (container.parentElement !== contentRef.current && 
+                !container.parentElement?.classList.contains('aok-button-container')) {
+              const buttonContainer = document.createElement('div');
+              buttonContainer.classList.add('aok-button-container');
+              button.parentNode?.insertBefore(buttonContainer, button);
+              buttonContainer.appendChild(button);
+            }
+          }
+        }
+      });
+    }
   };
   
   // Verarbeitung der Key Facts mit Icons und besserer Struktur
@@ -153,7 +192,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
       return (
         <div 
           ref={contentRef}
-          className="prose prose-sm break-words pointer-events-auto message-content"
+          className={`prose prose-sm break-words pointer-events-auto message-content ${messageTemplate !== 'default' ? messageTemplate + '-content' : ''}`}
           dangerouslySetInnerHTML={{ __html: safeContent }}
         />
       );
@@ -243,7 +282,10 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
     
     return (
       <div 
-        className="prose prose-sm break-words pointer-events-auto message-content"
+        ref={contentRef}
+        className={`prose prose-sm break-words pointer-events-auto message-content ${
+          messageTemplate !== 'default' ? `${messageTemplate}-message` : ''
+        }`}
         style={{
           minHeight: role === 'assistant' ? '24px' : 'auto', // Minimale Höhe für Assistenten-Nachrichten
           transition: 'height 0.1s ease-out', // Sanfte Höhenübergänge
@@ -275,10 +317,16 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
                 }
               };
               
+              // Füge Template-spezifische Klassen hinzu
+              let templateClassName = '';
+              if (messageTemplate === 'aok') {
+                templateClassName = ' aok-button';
+              }
+              
               return (
                 <a 
                   {...props} 
-                  className={className}
+                  className={`${className}${templateClassName}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={handleClick}
@@ -304,8 +352,16 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
               
               return (
                 <li 
-                  className={`${isNumbered ? 'numbered-item' : ''} ${isKeyFactItem ? 'key-fact-item' : ''}`}
+                  className={`compact-list-item ${isNumbered ? 'numbered-item' : ''} ${isKeyFactItem ? 'key-fact-item' : ''}`}
                   {...props}
+                  style={{
+                    margin: 0,
+                    padding: '0 0 0 20px',
+                    position: 'relative',
+                    minHeight: '20px',
+                    lineHeight: '1.1',
+                    marginBottom: 0
+                  }}
                 >
                   {children}
                 </li>
@@ -364,9 +420,9 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content, role })
   };
 
   return (
-    <div ref={contentRef}>
+    <>
       {processContent()}
-    </div>
+    </>
   );
 };
 

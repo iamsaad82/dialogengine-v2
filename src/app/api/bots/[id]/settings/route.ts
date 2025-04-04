@@ -34,6 +34,7 @@ export async function GET(
         enableAnalytics: true,
         showSuggestions: true,
         showCopyButton: true,
+        messageTemplate: 'default',
         botId
       })
     }
@@ -98,10 +99,21 @@ export async function PUT(
       enableAnalytics = true,
       showSuggestions = true,
       showCopyButton = true,
-      avatarUrl
+      messageTemplate: rawMessageTemplate = 'default',
+      avatarUrl,
+      // Prompt-Einstellungen für Flowise (noch nicht in DB)
+      botPersonality,
+      botContext,
+      botScope,
+      offerTip,
+      closedDays
     } = settingsData
 
+    // Stelle sicher, dass messageTemplate nicht leer ist
+    const messageTemplate = rawMessageTemplate === '' ? 'default' : rawMessageTemplate;
+
     // Erstelle ein Objekt mit allen Werten für den Upsert
+    // Nur die Werte, die in der Datenbank existieren
     const settingsToSave: any = {
       botId,
       primaryColor,
@@ -113,12 +125,21 @@ export async function PUT(
       enableFeedback,
       enableAnalytics,
       showSuggestions,
-      showCopyButton
+      showCopyButton,
+      messageTemplate
     }
     
     // Wenn ein Avatar-URL angegeben wurde, füge es hinzu
     if (avatarUrl !== undefined) {
       settingsToSave.avatarUrl = avatarUrl;
+    }
+    
+    // Speichere die Prompt-Einstellungen im Log für Entwicklungszwecke
+    // Diese werden später in der Datenbank integriert
+    if (botPersonality || botContext || botScope || offerTip || closedDays) {
+      console.log('Prompt-Einstellungen für zukünftige Verwendung:', { 
+        botPersonality, botContext, botScope, offerTip, closedDays 
+      });
     }
     
     console.log('Zu speichernde Einstellungen:', settingsToSave)

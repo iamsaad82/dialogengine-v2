@@ -73,6 +73,7 @@ model BotSettings {
   enableAnalytics   Boolean @default(true)
   showSuggestions   Boolean @default(true)
   showCopyButton    Boolean @default(true)
+  messageTemplate   String? @default("default") // Template für Nachrichten-Styles (default, aok, etc.)
   avatarUrl         String?
   botId            String   @unique
   bot              Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)

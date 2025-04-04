@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useRef, useCallback, RefObject, useEffect } from 'react'
-import { Message, ChatMode } from '../types'
+import { ChatMode, Message } from '../types/common'
 import { LunaryClient } from '@/lib/lunary-client'
 import { v4 as uuidv4 } from 'uuid'
 import { BotSettings } from '@/types/bot'
+import { useBotInfo } from './useBotInfo'
 
-// Typendefinition für Stream-Chat-Mode erweitern
-export type StreamChatMode = 'bubble' | 'fullscreen' | 'inline'; // Unterstützt jetzt auch inline-Modus
+// Typendefinition für Stream-Chat-Mode erweitern - verwende jetzt die gemeinsame Definition
+// export type StreamChatMode = 'bubble' | 'fullscreen' | 'inline'; // Unterstützt jetzt auch inline-Modus
 
 // DEBUG VERSION
 console.log("useStreamChat.ts geladen - Debug-Version 001");
@@ -27,7 +28,7 @@ function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (..
 
 interface UseStreamChatProps {
   initialMessages?: Message[]
-  initialMode?: StreamChatMode
+  initialMode?: ChatMode
   initialOpen?: boolean
   botId?: string
   onError?: (error: Error) => void
@@ -82,7 +83,7 @@ export function useStreamChat({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [mode, setMode] = useState<StreamChatMode>(initialMode)
+  const [mode, setMode] = useState<ChatMode>(initialMode)
   
   // Wenn embedded=true und mode nicht 'bubble' ist, dann soll der Chat initial geöffnet sein
   // Wenn embedded=true und mode 'bubble' ist, dann soll der Chat initial geschlossen sein
@@ -162,7 +163,7 @@ export function useStreamChat({
   }, [botId])
 
   // Direkt zu einem bestimmten Modus wechseln
-  const setCurrentMode = useCallback((newMode: StreamChatMode) => {
+  const setCurrentMode = useCallback((newMode: ChatMode) => {
     setMode(newMode)
     console.log("useStreamChat: setCurrentMode - neuer Modus:", newMode, "isOpen:", isOpen);
   }, [isOpen])
@@ -793,169 +794,20 @@ export function useStreamChat({
 
   // Lade Bot-Einstellungen und setze CSS-Variablen
   useEffect(() => {
-    // Load bot data and settings only if we have a botId
     if (!botId) return;
-
-    const loadBotSettings = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/bots/${botId}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch bot settings: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log("Bot data loaded:", data);
-
-        setBotSettings(data.settings);
-        
-        // CSS-Variablen für Farben setzen - zuerst aus initialSettings
-        if (initialSettings) {
-          console.log("Setting CSS colors from initialSettings", initialSettings);
-          console.log("WILLKOMMENS-DEBUG: Willkommensnachricht aus initialSettings:", 
-            initialSettings.welcomeMessage ? 
-            `"${initialSettings.welcomeMessage.substring(0, 50)}${initialSettings.welcomeMessage.length > 50 ? '...' : ''}"` : 
-            "NICHT VORHANDEN");
-          
-          // Willkommensnachricht setzen, wenn vorhanden
-          if (initialSettings.welcomeMessage) {
-            console.log("WILLKOMMENS-DEBUG: Setze Willkommensnachricht von initialSettings - Typ:", 
-              typeof initialSettings.welcomeMessage, 
-              "Länge:", initialSettings.welcomeMessage.length);
-            setWelcomeMessage(initialSettings.welcomeMessage);
-          } else {
-            console.log("WILLKOMMENS-DEBUG: Keine Willkommensnachricht in initialSettings gefunden");
-          }
-
-          // DOM-Manipulation und Farbeinstellungen
-          const root = document.documentElement;
-          
-          // Primärfarbe verarbeiten
-          const primaryColor = initialSettings.primaryColor || '#3b82f6';
-          root.style.setProperty('--primary', primaryColor);
-          root.style.setProperty('--primary-rgb', hexToRGB(primaryColor));
-          root.style.setProperty('--bot-primary-color', primaryColor);
-          root.style.setProperty('--bot-accent-color', initialSettings.botAccentColor || primaryColor);
-          
-          // Bot-Farben setzen - mit Fallbacks
-          const botBgColor = initialSettings.botBgColor || 'rgba(248, 250, 252, 0.8)';
-          root.style.setProperty('--bot-bg-color', botBgColor);
-          if (botBgColor.startsWith('#')) {
-            root.style.setProperty('--bot-bg-rgb', hexToRGB(botBgColor));
-          }
-          
-          const botTextColor = initialSettings.botTextColor || '#000000';
-          root.style.setProperty('--bot-text-color', botTextColor);
-          if (botTextColor.startsWith('#')) {
-            root.style.setProperty('--bot-text-rgb', hexToRGB(botTextColor));
-          }
-          
-          // User-Nachrichtenfarben
-          let userBgColor = initialSettings.userBgColor || '';
-          if (!userBgColor) {
-            // Fallback: Gradient mit Primärfarbe
-            userBgColor = `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`;
-          }
-          root.style.setProperty('--user-bg-color', userBgColor);
-          
-          // User-Textfarbe setzen mit !important
-          const userTextColor = initialSettings.userTextColor || '#ffffff';
-          root.style.setProperty('--user-text-color', `${userTextColor} !important`);
-          
-          // Style für bessere Spezifität
-          const styleId = 'user-text-color-style-streaming';
-          let style = document.getElementById(styleId) as HTMLStyleElement;
-          
-          if (!style) {
-            style = document.createElement('style');
-            style.id = styleId;
-            document.head.appendChild(style);
-          }
-          
-          style.textContent = `
-            .glassmorphism-user { color: ${userTextColor} !important; }
-            .glassmorphism-user * { color: ${userTextColor} !important; }
-          `;
-          
-          console.log(`Stream-CSS-Variablen gesetzt. Primärfarbe: ${primaryColor}, Bot-Hintergrund: ${botBgColor}, Bot-Text: ${botTextColor}, User-Text: ${userTextColor}`);
-        }
-
-        // Dann überschreibe mit Werten aus den Bot-Einstellungen
-        if (data.settings) {
-          console.log("Setting CSS colors from botData.settings", data.settings);
-          console.log("WILLKOMMENS-DEBUG: Willkommensnachricht aus data.settings:", 
-            data.settings.welcomeMessage ? 
-            `"${data.settings.welcomeMessage.substring(0, 50)}${data.settings.welcomeMessage.length > 50 ? '...' : ''}"` : 
-            "NICHT VORHANDEN");
-          
-          if (data.settings.welcomeMessage) {
-            console.log("WILLKOMMENS-DEBUG: Setze Willkommensnachricht von data.settings - Typ:", 
-              typeof data.settings.welcomeMessage, 
-              "Länge:", data.settings.welcomeMessage.length);
-            setWelcomeMessage(data.settings.welcomeMessage);
-          } else {
-            console.log("WILLKOMMENS-DEBUG: Keine Willkommensnachricht in data.settings gefunden");
-          }
-          
-          const root = document.documentElement;
-          
-          // Primärfarbe verarbeiten
-          const primaryColor = data.settings.primaryColor || '#3b82f6';
-          root.style.setProperty('--primary', primaryColor);
-          root.style.setProperty('--primary-rgb', hexToRGB(primaryColor));
-          root.style.setProperty('--bot-primary-color', primaryColor);
-          root.style.setProperty('--bot-accent-color', data.settings.botAccentColor || primaryColor);
-          
-          // Bot-Farben setzen - mit Fallbacks
-          const botBgColor = data.settings.botBgColor || 'rgba(248, 250, 252, 0.8)';
-          root.style.setProperty('--bot-bg-color', botBgColor);
-          if (botBgColor.startsWith('#')) {
-            root.style.setProperty('--bot-bg-rgb', hexToRGB(botBgColor));
-          }
-          
-          const botTextColor = data.settings.botTextColor || '#000000';
-          root.style.setProperty('--bot-text-color', botTextColor);
-          if (botTextColor.startsWith('#')) {
-            root.style.setProperty('--bot-text-rgb', hexToRGB(botTextColor));
-          }
-          
-          // User-Nachrichtenfarben
-          let userBgColor = data.settings.userBgColor || '';
-          if (!userBgColor) {
-            // Fallback: Gradient mit Primärfarbe
-            userBgColor = `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`;
-          }
-          root.style.setProperty('--user-bg-color', userBgColor);
-          
-          // User-Textfarbe setzen mit !important
-          const userTextColor = data.settings.userTextColor || '#ffffff';
-          root.style.setProperty('--user-text-color', `${userTextColor} !important`);
-          
-          // Style für bessere Spezifität
-          const styleId = 'user-text-color-style-streaming';
-          let style = document.getElementById(styleId) as HTMLStyleElement;
-          
-          if (!style) {
-            style = document.createElement('style');
-            style.id = styleId;
-            document.head.appendChild(style);
-          }
-          
-          style.textContent = `
-            .glassmorphism-user { color: ${userTextColor} !important; }
-            .glassmorphism-user * { color: ${userTextColor} !important; }
-          `;
-          
-          console.log(`Stream-CSS-Variablen gesetzt. Primärfarbe: ${primaryColor}, Bot-Hintergrund: ${botBgColor}, Bot-Text: ${botTextColor}, User-Text: ${userTextColor}`);
-        }
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error loading bot settings:", error);
-        setIsLoading(false);
+    
+    // Einfache Funktion zur Konvertierung von Hex zu RGB
+    const hexToRGB = (hex: string) => {
+      if (hex.startsWith('#')) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `${r}, ${g}, ${b}`;
       }
+      return '59, 130, 246'; // Fallback: RGB für #3b82f6
     };
-
-    loadBotSettings();
+    
+    console.log("STREAM-DEBUG-010: Bot-Einstellungen werden nun über useBotInfo geladen");
   }, [botId, initialSettings]);
 
   // Helfer-Funktion zum Hinzufügen einer Nachricht und Zurücksetzen des Stream-Status
@@ -1082,7 +934,7 @@ export function useStreamChat({
     cancelMessage,
     toggleChat,
     cycleMode,
-    setMode: setCurrentMode,
+    setMode,
     messagesEndRef,
     botSettings,
     welcomeMessage,

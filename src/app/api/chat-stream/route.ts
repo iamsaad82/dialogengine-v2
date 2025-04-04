@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       history: history?.slice(-20) || [], // Nur die letzten 20 Nachrichten senden
       streaming: true,
       overrideConfig: {
-        botName: bot?.name || 'Dialog Engine'
+        botName: bot?.name || 'Brandenburg Dialog'
       }
     };
     

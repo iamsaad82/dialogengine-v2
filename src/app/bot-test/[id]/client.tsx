@@ -29,11 +29,11 @@ export default function BotTestClient({ id }: { id: string }) {
     showSuggestions: true
   })
   const [showSuggestions, setShowSuggestions] = useState(true)
-  
+
   useEffect(() => {
     setOrigin(typeof window !== 'undefined' ? window.location.origin : '')
   }, [])
-  
+
   useEffect(() => {
     if (chatMode === 'bubble') {
       setShowChat(false)
@@ -41,13 +41,13 @@ export default function BotTestClient({ id }: { id: string }) {
       setShowChat(true)
     }
   }, [chatMode])
-  
+
   const toggleChatVisibility = () => {
     if (chatMode === 'bubble') {
       setShowChat(!showChat)
     }
   }
-  
+
   useEffect(() => {
     if (testSettings.darkMode) {
       document.documentElement.classList.add('dark')
@@ -55,22 +55,22 @@ export default function BotTestClient({ id }: { id: string }) {
       document.documentElement.classList.remove('dark')
     }
   }, [testSettings.darkMode])
-  
+
   const fetchBot = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/bots/${id}`)
-      
+
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Bot nicht gefunden')
         }
         throw new Error('Fehler beim Laden des Bots')
       }
-      
+
       const data = await response.json()
       setBot(data)
-      
+
       console.log("BOTTEST-DEBUG: Bot-Daten geladen:", {
         id: data.id,
         name: data.name,
@@ -78,17 +78,17 @@ export default function BotTestClient({ id }: { id: string }) {
         showSuggestions: data.settings?.showSuggestions,
         suggestionsCount: data.suggestions?.length || 0
       });
-      
+
       setShowSuggestions(data.settings?.showSuggestions === true);
-      
+
       if (data.suggestions && Array.isArray(data.suggestions)) {
         const activeSuggestions = data.suggestions
           .filter((suggestion: any) => suggestion.isActive)
           .sort((a: any, b: any) => a.order - b.order);
-        
+
         console.log("BOTTEST-DEBUG: Gefilterte aktive Vorschläge:", activeSuggestions.length);
       }
-      
+
       if (data.settings) {
         setTestSettings(prev => ({
           ...prev,
@@ -97,8 +97,8 @@ export default function BotTestClient({ id }: { id: string }) {
           userBgColor: data.settings.userBgColor || prev.userBgColor,
           botTextColor: data.settings.botTextColor || prev.botTextColor,
           userTextColor: data.settings.userTextColor || prev.userTextColor,
-          useStreaming: data.settings.useStreaming !== undefined 
-            ? data.settings.useStreaming 
+          useStreaming: data.settings.useStreaming !== undefined
+            ? data.settings.useStreaming
             : prev.useStreaming,
           showSuggestions: data.settings.showSuggestions !== undefined
             ? data.settings.showSuggestions
@@ -111,13 +111,13 @@ export default function BotTestClient({ id }: { id: string }) {
       setLoading(false)
     }
   }, [id])
-  
+
   useEffect(() => {
     if (id) {
       fetchBot()
     }
   }, [id, fetchBot])
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -128,14 +128,14 @@ export default function BotTestClient({ id }: { id: string }) {
       </div>
     )
   }
-  
+
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="bg-destructive/10 border border-destructive p-4 rounded-md max-w-md w-full">
           <h2 className="text-destructive text-lg font-semibold">Fehler</h2>
           <p>{error}</p>
-          <button 
+          <button
             onClick={() => router.push('/admin/bots')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
           >
@@ -145,14 +145,14 @@ export default function BotTestClient({ id }: { id: string }) {
       </div>
     )
   }
-  
+
   if (!bot) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="bg-muted p-4 rounded-md max-w-md w-full">
           <h2 className="text-lg font-semibold">Bot nicht gefunden</h2>
           <p>Der angeforderte Bot konnte nicht gefunden werden.</p>
-          <button 
+          <button
             onClick={() => router.push('/admin/bots')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
           >
@@ -162,15 +162,15 @@ export default function BotTestClient({ id }: { id: string }) {
       </div>
     )
   }
-  
+
   const renderChatBubble = () => {
     if (chatMode === 'bubble' && !showChat) {
       return (
-        <div 
+        <div
           onClick={toggleChatVisibility}
           className="fixed bottom-5 right-5 p-4 rounded-full bg-primary text-primary-foreground shadow-lg cursor-pointer flex items-center justify-center hover:opacity-90 transition-opacity z-50"
-          style={{ 
-            width: '60px', 
+          style={{
+            width: '60px',
             height: '60px',
             backgroundColor: bot.settings?.primaryColor || 'hsl(var(--primary))'
           }}
@@ -184,14 +184,14 @@ export default function BotTestClient({ id }: { id: string }) {
     console.log("renderChatBubble aufgerufen: chatMode =", chatMode, "showChat =", showChat, "Ergebnis = kein Rendering");
     return null
   }
-  
+
   const handleStreamingChange = (newValue: boolean) => {
     setTestSettings(prev => ({
       ...prev,
       useStreaming: newValue
     }))
   }
-  
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Fixed Header/Toolbar */}
@@ -207,21 +207,21 @@ export default function BotTestClient({ id }: { id: string }) {
               <path d="M19 12H5"/>
             </svg>
           </button>
-          
+
           <div>
             <h1 className="text-lg font-bold">{bot.name}</h1>
             <p className="text-sm text-muted-foreground truncate max-w-md">{bot.description}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {/* Mode Switcher */}
           <div className="flex items-center border rounded-md">
             <button
               onClick={() => setChatMode('bubble')}
               className={`px-3 py-1.5 text-sm rounded-l-md ${
-                chatMode === 'bubble' 
-                  ? 'bg-primary text-primary-foreground' 
+                chatMode === 'bubble'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
               }`}
               title="Bubble Modus"
@@ -233,8 +233,8 @@ export default function BotTestClient({ id }: { id: string }) {
             <button
               onClick={() => setChatMode('inline')}
               className={`px-3 py-1.5 text-sm border-x ${
-                chatMode === 'inline' 
-                  ? 'bg-primary text-primary-foreground' 
+                chatMode === 'inline'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
               }`}
               title="Inline Modus"
@@ -247,8 +247,8 @@ export default function BotTestClient({ id }: { id: string }) {
             <button
               onClick={() => setChatMode('fullscreen')}
               className={`px-3 py-1.5 text-sm rounded-r-md ${
-                chatMode === 'fullscreen' 
-                  ? 'bg-primary text-primary-foreground' 
+                chatMode === 'fullscreen'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
               }`}
               title="Fullscreen Modus"
@@ -260,7 +260,7 @@ export default function BotTestClient({ id }: { id: string }) {
               </svg>
             </button>
           </div>
-          
+
           <div className="flex items-center gap-2 ml-2">
             <label className="flex items-center gap-1 text-sm cursor-pointer">
               <input
@@ -290,13 +290,13 @@ export default function BotTestClient({ id }: { id: string }) {
               <span>Dark</span>
             </label>
           </div>
-          
+
           <div className="flex items-center gap-2 ml-2">
-            <button 
+            <button
               onClick={() => setDebugMode(!debugMode)}
               className={`p-1.5 rounded-md ${
-                debugMode 
-                  ? 'bg-primary text-primary-foreground' 
+                debugMode
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
               }`}
               title="Debug-Modus"
@@ -312,11 +312,11 @@ export default function BotTestClient({ id }: { id: string }) {
                 <path d="m16.24 7.76 2.83-2.83"/>
               </svg>
             </button>
-            <button 
+            <button
               onClick={() => setShowSidebar(!showSidebar)}
               className={`p-1.5 rounded-md ${
                 !showSidebar
-                  ? 'bg-muted/80 text-muted-foreground' 
+                  ? 'bg-muted/80 text-muted-foreground'
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted/80'
               }`}
               title={showSidebar ? "Sidebar ausblenden" : "Sidebar einblenden"}
@@ -329,7 +329,7 @@ export default function BotTestClient({ id }: { id: string }) {
           </div>
         </div>
       </div>
-      
+
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Chat Test Area - Flexible Width */}
@@ -338,7 +338,7 @@ export default function BotTestClient({ id }: { id: string }) {
           {(showChat || chatMode !== 'bubble') && (
             <div className={`h-[700px] relative ${testSettings.simulateMobile ? 'flex justify-center' : ''}`}>
               <div className={`h-full ${testSettings.simulateMobile ? 'w-[390px]' : 'w-full'} flex flex-col relative overflow-hidden`}>
-                <div className="flex-1 relative">
+                <div className="flex-1 relative embedded-chat" data-embedded="true" style={{ position: 'relative' }}>
                   {testSettings.useStreaming ? (
                     <StreamingChat
                       botId={id}
@@ -355,7 +355,8 @@ export default function BotTestClient({ id }: { id: string }) {
                         welcomeMessage: bot.welcomeMessage,
                         showCopyButton: bot.settings?.showCopyButton,
                         enableFeedback: bot.settings?.enableFeedback,
-                        avatarUrl: bot.settings?.avatarUrl || bot.avatarUrl
+                        avatarUrl: bot.settings?.avatarUrl || bot.avatarUrl,
+                        messageTemplate: testSettings.showDebugInfo ? 'mall' : bot.settings?.messageTemplate || 'brandenburg'
                       }}
                       suggestions={bot.suggestions}
                     />
@@ -375,7 +376,8 @@ export default function BotTestClient({ id }: { id: string }) {
                         welcomeMessage: bot.welcomeMessage,
                         showCopyButton: bot.settings?.showCopyButton,
                         enableFeedback: bot.settings?.enableFeedback,
-                        avatarUrl: bot.settings?.avatarUrl || bot.avatarUrl
+                        avatarUrl: bot.settings?.avatarUrl || bot.avatarUrl,
+                        messageTemplate: testSettings.showDebugInfo ? 'mall' : bot.settings?.messageTemplate || 'brandenburg'
                       }}
                       suggestions={bot.suggestions}
                     />
@@ -384,11 +386,11 @@ export default function BotTestClient({ id }: { id: string }) {
               </div>
             </div>
           )}
-          
+
           {/* Render Chat Bubble for Bubble Mode */}
           {renderChatBubble()}
         </div>
-        
+
         {/* Sidebar - Fixed Width - Collapsible */}
         {showSidebar && (
           <div className="w-80 border-l overflow-y-auto h-full p-3 flex flex-col gap-3 bg-card">
@@ -407,8 +409,8 @@ export default function BotTestClient({ id }: { id: string }) {
                 <div>
                   <span className="font-medium text-muted-foreground">Status:</span>
                   <p className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${
-                    bot.active 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400' 
+                    bot.active
+                      ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400'
                       : 'bg-gray-100 text-gray-600 dark:bg-gray-800/20 dark:text-gray-400'
                   }`}>
                     {bot.active ? 'Aktiv' : 'Inaktiv'}
@@ -416,7 +418,7 @@ export default function BotTestClient({ id }: { id: string }) {
                 </div>
               </div>
             </div>
-            
+
             {/* Debug Info Panel - Conditional */}
             {debugMode && (
               <div className="border rounded-lg bg-card p-3">
@@ -445,7 +447,7 @@ export default function BotTestClient({ id }: { id: string }) {
                 </div>
               </div>
             )}
-            
+
             {/* Embed Help Panel */}
             <div className="border rounded-lg bg-card p-3 mt-auto">
               <h2 className="text-sm font-semibold mb-2">Embed-Hilfe</h2>
@@ -453,9 +455,9 @@ export default function BotTestClient({ id }: { id: string }) {
                 Verwenden Sie den folgenden Code, um diesen Bot einzubetten:
               </p>
               <div className="bg-muted/50 p-2 rounded-md text-xs font-mono whitespace-pre-wrap overflow-x-auto text-[10px]">
-{`<div id="dialog-container" 
-  data-mode="${chatMode}" 
-  data-color="${bot.settings?.primaryColor || '#3b82f6'}" 
+{`<div id="dialog-container"
+  data-mode="${chatMode}"
+  data-color="${bot.settings?.primaryColor || '#3b82f6'}"
   data-position="bottom-right"
   data-bot-id="${id}"
   data-streaming="${testSettings.useStreaming}">
@@ -468,4 +470,4 @@ export default function BotTestClient({ id }: { id: string }) {
       </div>
     </div>
   )
-} 
+}

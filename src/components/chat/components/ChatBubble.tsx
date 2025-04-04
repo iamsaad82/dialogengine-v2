@@ -7,9 +7,10 @@ import type { MouseEvent as ReactMouseEvent } from 'react'
 
 interface ChatBubbleProps {
   onClick: () => void
+  className?: string
 }
 
-export function ChatBubble({ onClick }: ChatBubbleProps) {
+export function ChatBubble({ onClick, className }: ChatBubbleProps) {
   const prefersReducedMotion = useReducedMotion()
   
   // Physik-basierte Animation
@@ -61,7 +62,7 @@ export function ChatBubble({ onClick }: ChatBubbleProps) {
 
   return (
     <motion.button
-      className="fixed bottom-5 right-5 z-50 flex h-16 w-16 items-center justify-center rounded-full shadow-lg glassmorphism-dark overflow-hidden"
+      className={`fixed bottom-5 right-5 z-50 flex h-20 w-20 items-center justify-center rounded-full shadow-lg glassmorphism-dark overflow-hidden ${className || ''}`}
       style={{
         backgroundColor: 'hsla(var(--primary), 0.9)',
         color: 'hsl(var(--primary-foreground))',
@@ -113,7 +114,7 @@ export function ChatBubble({ onClick }: ChatBubbleProps) {
           }
         }}
       >
-        <MessageSquareIcon className="h-7 w-7" aria-hidden="true" />
+        <MessageSquareIcon className="h-9 w-9" aria-hidden="true" />
       </motion.div>
       
       {!prefersReducedMotion && (

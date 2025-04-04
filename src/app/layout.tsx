@@ -7,11 +7,21 @@ import AuthProvider from '@/providers/AuthProvider'
 // Lade die App-Einstellungen
 async function getAppSettings() {
   const settings = await prisma.appSettings.findUnique({
-    where: { id: 'global' }
+    where: { id: 'global' },
+    select: {
+      brandName: true,
+      lunaryEnabled: true,
+      lunaryProjectId: true,
+      enableDebugMode: true,
+      cacheTimeout: true
+    }
   })
   return settings || {
     brandName: 'Brandenburg Dialog',
-    defaultWelcomeMessage: 'Willkommen! Wie kann ich Ihnen mit Informationen zur Stadtverwaltung Brandenburg an der Havel helfen?'
+    lunaryEnabled: false,
+    lunaryProjectId: null,
+    enableDebugMode: false,
+    cacheTimeout: 3600
   }
 }
 

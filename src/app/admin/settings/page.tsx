@@ -97,7 +97,7 @@ export default function SettingsPage() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Anwendungseinstellungen</h1>
-        <p className="text-muted-foreground">Konfigurieren Sie globale Einstellungen für die Brandenburg Dialog-Anwendung</p>
+        <p className="text-muted-foreground">Konfigurieren Sie globale Einstellungen für das CMS und die Admin-Oberfläche</p>
       </div>
       
       {/* Fehlermeldung */}

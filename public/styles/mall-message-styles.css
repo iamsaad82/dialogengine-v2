@@ -1,0 +1,266 @@
+/* Shopping Mall Template Styles */
+
+.mall-message {
+  font-family: var(--mall-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif);
+  line-height: 1.6;
+  color: var(--mall-text, #333333);
+  background-color: var(--mall-background, #f8f8f8);
+  border-radius: var(--mall-border-radius, 12px);
+  overflow: hidden;
+  box-shadow: var(--mall-shadow, 0 4px 15px rgba(0, 0, 0, 0.08));
+  margin-bottom: 1rem;
+}
+
+/* Header */
+.mall-header {
+  background-color: var(--mall-primary, #3b1c60);
+  color: var(--mall-light-text, #ffffff);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.mall-logo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mall-subtitle {
+  font-size: 1rem;
+  margin: 0.5rem 0 0;
+  opacity: 0.9;
+}
+
+/* Intro */
+.mall-intro {
+  margin: 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+/* Sections */
+.mall-section {
+  margin: 1.5rem 0;
+}
+
+.mall-section-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--mall-primary, #3b1c60);
+  margin: 0 0 1.25rem 1.5rem;
+}
+
+/* Shop Slider */
+.mall-shops-slider {
+  margin: 0;
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  display: flex;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mall-primary, #3b1c60) #f1f1f1;
+}
+
+.mall-shops-slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.mall-shops-slider::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.mall-shops-slider::-webkit-scrollbar-thumb {
+  background: var(--mall-primary, #3b1c60);
+  border-radius: 10px;
+}
+
+/* Shop Card */
+.mall-shop-card {
+  flex: 0 0 auto;
+  width: 220px;
+  height: 280px;
+  margin-right: 1rem;
+  border-radius: var(--mall-border-radius, 12px);
+  box-shadow: var(--mall-shadow, 0 4px 15px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  background-color: white;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.mall-shop-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--mall-shadow, 0 8px 20px rgba(0, 0, 0, 0.12));
+}
+
+.mall-shop-image {
+  width: 100%;
+  height: 130px;
+  background-color: #eee;
+  object-fit: cover;
+}
+
+.mall-shop-content {
+  padding: 1rem;
+}
+
+.mall-shop-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--mall-primary, #3b1c60);
+}
+
+.mall-shop-category {
+  font-size: 0.85rem;
+  color: #777;
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-shop-floor {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mall-secondary, #ff5a5f);
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-shop-opening {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+}
+
+.mall-shop-description {
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0;
+}
+
+/* Restaurant/Food Cards */
+.mall-food-section {
+  background-color: rgba(0, 0, 0, 0.02);
+  padding: 1.5rem 0;
+  margin: 1.5rem 0;
+}
+
+.mall-food-slider {
+  margin: 0;
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  display: flex;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.mall-food-card {
+  flex: 0 0 auto;
+  width: 260px;
+  margin-right: 1rem;
+  border-radius: var(--mall-border-radius, 12px);
+  box-shadow: var(--mall-shadow, 0 4px 15px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  background-color: white;
+  transition: transform 0.2s ease-in-out;
+}
+
+.mall-food-card:hover {
+  transform: translateY(-5px);
+}
+
+.mall-food-image {
+  width: 100%;
+  height: 150px;
+  background-color: #eee;
+  object-fit: cover;
+}
+
+.mall-food-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mall-food-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--mall-primary, #3b1c60);
+}
+
+.mall-food-description {
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-food-floor {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mall-secondary, #ff5a5f);
+  margin: 0.5rem 0 0;
+}
+
+.mall-food-hours {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0.3rem 0 0;
+}
+
+/* Generic Sections */
+.mall-generic-section {
+  padding: 0 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Loading & Streaming States */
+.mall-loading {
+  padding: 1.5rem;
+  text-align: center;
+  color: #777;
+  font-style: italic;
+}
+
+.mall-streaming-indicator {
+  padding: 0.5rem 1.5rem;
+  text-align: center;
+  color: var(--mall-primary, #3b1c60);
+  font-size: 1.5rem;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* Animation */
+.mall-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .mall-shop-card {
+    width: 180px;
+    height: 250px;
+  }
+  
+  .mall-food-card {
+    width: 220px;
+  }
+  
+  .mall-logo {
+    font-size: 1.5rem;
+  }
+  
+  .mall-section-title {
+    font-size: 1.2rem;
+  }
+} 

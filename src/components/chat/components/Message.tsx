@@ -1,295 +1,155 @@
 'use client'
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { BotIcon, UserIcon, CopyIcon, CheckIcon, ThumbsUpIcon, ThumbsDownIcon } from './ui/icons'
-import ReactMarkdown from 'react-markdown'
-import classNames from 'classnames'
-import { LunaryClient } from '@/lib/lunary'
-import { BotAvatar, UserAvatar } from './ChatAvatars'
-import { MessageControls } from './MessageControls'
+import React, { useCallback, useState, useEffect } from 'react'
+import { Message as MessageType } from '../types/common'
 import '../styles/message-content.css'
-import Image from 'next/image'
-import MessageContent from './MessageContent/MessageContent'
 import StreamingContent from './StreamingContent'
+import { MessageContent } from './MessageContent/MessageContent'
+import { MessageHeader } from './MessageHeader'
+import { MessageControls } from './MessageControls'
+import { Suspense, lazy } from 'react'
+import { getTemplateComponents } from '../templates'
 
-// VERSION-MARKER: Message-Debug-Code - Version 010
-console.log("Message.tsx geladen - Debug-Version 010");
+// Hilfsfunktion für Gradienten aus der Primärfarbe
+const createGradientFromColor = (color: string | undefined): string => {
+  console.log("GRADIENT-DEBUG: Erstelle Gradient aus Farbe:", color);
 
-// VERSION-MARKER: Message-Debug-Code - Version 011
-console.log("Message.tsx geladen - Debug-Version 011 (Streaming-Optimierung)");
-
-interface MessageProps {
-  content: string;
-  role: 'user' | 'assistant';
-  botId?: string;
-  isLastMessage?: boolean;
-  showCopyButton?: boolean;
-  enableFeedback?: boolean;
-  botName?: string;
-  botAvatarUrl?: string;
-  streaming?: boolean;
-}
-
-const Message = ({ 
-  content, 
-  role, 
-  botId, 
-  isLastMessage = false,
-  showCopyButton = true,
-  enableFeedback = false,
-  botName = 'Dialog Engine',
-  botAvatarUrl,
-  streaming = false
-}: MessageProps) => {
-  const isBot = role === 'assistant';
-  
-  // Bestimme die Klasse für die Nachricht basierend auf der Rolle
-  const messageClass = isBot 
-    ? "rounded-lg p-3 mb-4 glassmorphism-bot" 
-    : "rounded-lg p-3 mb-4 glassmorphism-user";
-  
-  // Bestimme die Klasse für die Animation basierend auf Rolle und Streaming-Status
-  let animationClass = isBot 
-    ? "fade-in-from-left" 
-    : "fade-in-from-right";
-  
-  // Spezielle Animation für Streaming-Nachrichten
-  if (streaming && isBot) {
-    animationClass = "fade-in-static"; // Keine Einflug-Animation für Streaming
+  if (!color) {
+    console.log("GRADIENT-DEBUG: Keine Farbe übergeben, verwende Default-Gradient");
+    return 'linear-gradient(135deg, #3b82f6, #1e40af)'; // Default-Gradient
   }
 
-  // Verbesserten Anzeigenamen erzeugen
-  const displayName = isBot ? (
-    botName === 'creditreform' ? 'Creditreform Assistent' : 
-    botName === 'brandenburg' ? 'Brandenburg Dialog' : 
-    botName.includes('-') || botName.length < 4 ? `${botName} Assistent` : 
-    botName
-  ) : '';
-  
-  // Debug-Ausgabe für Props
-  console.log("MESSAGE-DEBUG-010: Nachricht wird gerendert:", {
-    role,
+  try {
+    // Ein hellerer Verlauf für die Benutzer-Nachrichten
+    console.log("GRADIENT-DEBUG: Erzeuge Gradient mit Primärfarbe:", color);
+
+    // Aus der Hex-Farbe die einzelnen RGB-Komponenten extrahieren
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+
+    // Hellere Version für den Start des Gradienten (10% heller)
+    const lighterColor = `#${Math.min(255, Math.floor(r * 1.1)).toString(16).padStart(2, '0')}${
+      Math.min(255, Math.floor(g * 1.1)).toString(16).padStart(2, '0')}${
+      Math.min(255, Math.floor(b * 1.1)).toString(16).padStart(2, '0')}`;
+
+    // Dunklere Version für das Ende des Gradienten (15% dunkler)
+    const darkerColor = `#${Math.floor(r * 0.85).toString(16).padStart(2, '0')}${
+      Math.floor(g * 0.85).toString(16).padStart(2, '0')}${
+      Math.floor(b * 0.85).toString(16).padStart(2, '0')}`;
+
+    console.log("GRADIENT-DEBUG: Gradient-Farben:", { original: color, lighter: lighterColor, darker: darkerColor });
+
+    return `linear-gradient(135deg, ${lighterColor}, ${darkerColor})`;
+  } catch (e) {
+    console.log("GRADIENT-DEBUG: Fehler beim Erstellen des Gradienten:", e);
+    return 'linear-gradient(135deg, #3b82f6, #1e40af)'; // Fallback
+  }
+};
+
+// Vereinfachte Message-Komponente ohne Animationen
+export const Message: React.FC<{
+  message: MessageType;
+  isLast: boolean;
+  botName?: string;
+  botAvatarUrl?: string;
+  isStreaming?: boolean;
+  colorStyle?: Record<string, string>;
+  settings?: {
+    messageTemplate?: string | null;
+    enableFeedback?: boolean;
+    showCopyButton?: boolean;
+    botId?: string;
+  };
+}> = ({
+  message,
+  isLast,
+  botName = 'Brandenburg-Dialog',
+  botAvatarUrl = '/logo.png',
+  isStreaming = false,
+  colorStyle,
+  settings
+}) => {
+  const { content, role } = message;
+  const isBot = role === 'assistant';
+  const messageTemplate = settings?.messageTemplate || 'default';
+
+  // Template-Komponenten laden
+  const TemplateComponents = getTemplateComponents(messageTemplate);
+
+  // Template-Klasse nur für Bot-Nachrichten, User-Nachrichten bleiben unverändert
+  const messageClass = isBot
+    ? `${messageTemplate}-message message assistant ${isStreaming && isLast ? 'streaming-message' : ''}`
+    : `message user`; // Keine Template-Klasse für User-Nachrichten
+
+  const contentClass = `message-content ${isStreaming && isBot && isLast ? 'streaming-content' : ''}`;
+
+  // Inline-Styles - Minimal und effektiv
+  const messageStyles = {
+    background: isBot
+      ? colorStyle?.botBgColor || 'var(--bot-bg-color)'
+      : colorStyle?.userBgColor ||
+        (colorStyle?.primaryColor ? createGradientFromColor(colorStyle.primaryColor) : 'var(--user-bg-color, var(--bot-primary-color, #3b82f6))'),
+    color: isBot
+      ? colorStyle?.botTextColor || 'var(--bot-text-color)'
+      : '#ffffff', // Immer weiß für Benutzer-Nachrichten, unabhängig von den Einstellungen
+    width: 'fit-content', // Begrenze die Breite auf den Inhalt
+    maxWidth: isBot ? '80%' : '70%', // User-Nachrichten etwas schmaler als Bot-Nachrichten
+  };
+
+  // Debug-Ausgabe für Farben
+  console.log("MESSAGE-COLOR-DEBUG:", {
     isBot,
-    botId,
-    isLastMessage,
-    showCopyButton,
-    enableFeedback,
-    contentLength: content?.length || 0,
-    botName,
-    displayName
+    userTextColor: colorStyle?.userTextColor,
+    userBgColor: colorStyle?.userBgColor,
+    primaryColor: colorStyle?.primaryColor,
+    finalColor: messageStyles.color,
+    ignoreUserTextColor: true // Wir ignorieren userTextColor und verwenden immer weiß
   });
 
-  if (role === 'assistant') {
-    // Streaming-Variante der Komponente als Memo-Wrapper
-    if (streaming) {
-      return (
-        <StableAssistantMessage 
-          content={content} 
-          role={role} 
-          botName={botName} 
-          botAvatarUrl={botAvatarUrl} 
-        />
-      );
-    }
-    
-    // Normale Komponente (wird vollständig gerendert, nur wenn nicht streaming)
+  // Bot-Nachricht mit Template-Komponente rendern
+  if (isBot) {
     return (
-      <motion.div
-        className={`group relative mb-4 flex items-start justify-start max-w-full`}
-        initial={{ opacity: 0, y: 10, x: -10 }}
-        animate={{ opacity: 1, y: 0, x: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div 
-          className={`max-w-3xl rounded-lg p-4 glassmorphism-bot mb-2`}
-          style={{
-            backgroundColor: 'var(--bot-bg-color)', 
-            color: 'var(--bot-text-color)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-          }}
-        >
-          <div className="pb-1 flex flex-col items-center gap-1 text-xs text-gray-500 border-b border-gray-200 mb-2">
-            <div className="inline-flex items-center justify-center overflow-hidden" style={{ width: '200px', height: '40px' }}>
-              {botAvatarUrl ? (
-                <Image 
-                  src={botAvatarUrl} 
-                  width={200} 
-                  height={40} 
-                  alt={`${botName} Logo`} 
-                  className="h-auto max-h-full w-full object-contain"
-                />
-              ) : (
-                <svg 
-                  viewBox="0 0 24 24" 
-                  width="40" 
-                  height="40"
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  className="text-primary"
-                  style={{ aspectRatio: '1' }}
-                >
-                  <rect width="18" height="10" x="3" y="11" rx="2" />
-                  <circle cx="12" cy="5" r="2" />
-                  <path d="M12 7v4" />
-                  <line x1="8" x2="8" y1="16" y2="16" />
-                  <line x1="16" x2="16" y1="16" y2="16" />
-                </svg>
-              )}
-            </div>
-            <span className="text-sm font-semibold text-center leading-none">
-              {botName}
-            </span>
+      <div className={`${messageTemplate}-message message assistant ${isStreaming && isLast ? 'streaming-message' : ''}`} style={messageStyles}>
+        <MessageHeader botName={botName} botAvatarUrl={botAvatarUrl} />
+        <div className="message-content-wrapper">
+          <Suspense fallback={<div className="message-loading">Lade Nachricht...</div>}>
+            <TemplateComponents.Message
+              content={content}
+              isStreaming={isStreaming && isLast}
+              colorStyle={colorStyle}
+              isComplete={!isStreaming || !isLast}
+              messageControls={null} // Keine MessageControls mehr an das Template übergeben
+            />
+          </Suspense>
+
+          {/* MessageControls am Ende der Nachricht platzieren */}
+          <div className="message-controls-container">
+            <MessageControls
+              isBot={true}
+              showCopyButton={settings?.showCopyButton !== undefined ? settings.showCopyButton : true}
+              enableFeedback={settings?.enableFeedback !== undefined ? settings.enableFeedback : false}
+              botAccentColor={colorStyle?.botAccentColor}
+              isLastMessage={isLast}
+              message={{ content, role }}
+              botId={settings?.botId}
+            />
           </div>
-          
-          <MessageContent content={content} role={role} />
-          
-          <MessageControls 
-            isBot={isBot}
-            showCopyButton={showCopyButton}
-            enableFeedback={enableFeedback}
-            messageContent={content}
-            botId={botId}
-            isLastMessage={isLastMessage}
-          />
         </div>
-      </motion.div>
+      </div>
     );
   }
 
+  // User-Nachricht bleibt unverändert, Textfarbe wird durch CSS-Regel erzwungen
   return (
-    <motion.div
-      className={`group relative mb-4 flex items-start justify-end max-w-full`}
-      initial={{ opacity: 0, y: 10, x: 10 }}
-      animate={{ opacity: 1, y: 0, x: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div 
-        className={`max-w-3xl ${messageClass} ${streaming ? 'streaming-message pulse-subtle' : ''}`}
-        style={{
-          backgroundColor: 'var(--user-bg-color)', 
-          color: 'var(--user-text-color)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-        }}
-      >
-        {streaming ? (
-          <StreamingContent content={content} role={role} />
-        ) : (
-          <MessageContent content={content} role={role} />
-        )}
-        
-        {/* Zeige Kontrollelemente nur für nicht-streaming Nachrichten */}
-        {!streaming && (
-          <MessageControls 
-            isBot={isBot}
-            showCopyButton={showCopyButton}
-            enableFeedback={enableFeedback}
-            messageContent={content}
-            botId={botId}
-            isLastMessage={isLastMessage}
-          />
-        )}
+    <div className="message user" style={messageStyles}>
+      <div className="message-content-wrapper">
+        <div className={contentClass}>
+          <MessageContent content={content} role={role} messageTemplate={null} />
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-// Komplett stabilisierte Komponente für Streaming
-const StableAssistantMessage = React.memo(({ content, role, botName, botAvatarUrl }: { 
-  content: string; 
-  role: 'user' | 'assistant';
-  botName: string;
-  botAvatarUrl?: string;
-}) => {
-  // Diese Komponente wird einmal gerendert und ändert sich nicht mehr
-  return (
-    <motion.div
-      className="group relative mb-4 flex items-start justify-start max-w-full stable-message"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.15 }}
-      style={{
-        willChange: 'opacity',
-        transform: 'translateZ(0)'
-      }}
-    >
-      <div 
-        className="max-w-3xl rounded-lg p-4 glassmorphism-bot mb-2 streaming-message"
-        style={{
-          backgroundColor: 'var(--bot-bg-color)', 
-          color: 'var(--bot-text-color)',
-          boxShadow: '0 8px 32px rgba(59, 130, 246, 0.3), 0 0 0 2px rgba(59, 130, 246, 0.3)',
-          borderLeft: '4px solid #3b82f6',
-          minHeight: '120px',
-          overflowAnchor: 'auto',
-          contain: 'paint layout',
-          willChange: 'contents',
-          position: 'relative'
-        }}
-      >
-        <div className="absolute top-0 right-0 px-2 py-1 text-xs text-white bg-blue-500 rounded-tr-lg rounded-bl-lg">
-          Streaming...
-        </div>
-        
-        <div className="pb-1 flex flex-col items-center gap-1 text-xs text-gray-500 border-b border-gray-200 mb-2">
-          <div className="inline-flex items-center justify-center overflow-hidden"
-            style={{ 
-              width: '200px', 
-              height: '40px',
-              willChange: 'transform', 
-              transform: 'translateZ(0)' 
-            }}
-          >
-            {botAvatarUrl ? (
-              <img 
-                src={botAvatarUrl} 
-                width={200} 
-                height={40} 
-                alt={`${botName} Logo`} 
-                className="h-auto max-h-full w-full object-contain"
-                style={{ 
-                  willChange: 'transform', 
-                  transform: 'translateZ(0)',
-                  position: 'relative',
-                  zIndex: 10
-                }}
-              />
-            ) : (
-              <svg 
-                viewBox="0 0 24 24" 
-                width="40" 
-                height="40"
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                className="text-primary"
-                style={{ aspectRatio: '1' }}
-              >
-                <rect width="18" height="10" x="3" y="11" rx="2" />
-                <circle cx="12" cy="5" r="2" />
-                <path d="M12 7v4" />
-                <line x1="8" x2="8" y1="16" y2="16" />
-                <line x1="16" x2="16" y1="16" y2="16" />
-              </svg>
-            )}
-          </div>
-          <span className="text-sm font-semibold text-center leading-none">
-            {botName}
-            <span className="ml-2 inline-flex items-center">
-              <span className="typing-dot"></span>
-              <span className="typing-dot"></span>
-              <span className="typing-dot"></span>
-            </span>
-          </span>
-        </div>
-        
-        <StreamingContent content={content} role={role} />
-      </div>
-    </motion.div>
-  );
-}, () => true); // Immer true zurückgeben, damit React diese Komponente niemals neu rendert
-
-StableAssistantMessage.displayName = 'StableAssistantMessage';
-
-export default Message; 
+export default Message;

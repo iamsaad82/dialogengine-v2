@@ -2,29 +2,17 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useChat } from './hooks/useChat'
-import { ChatBubble } from './components/ChatBubble'
-import { ChatHeader } from './components/ChatHeader'
-import { ChatInput } from './components/ChatInput'
-import { MessageList } from './components/MessageList'
-import { ChatMode } from './types'
-import type { BotSettings, BotSuggestion } from '@/types/bot'
-import { SuggestionsBar } from './SuggestionsBar'
+import { BaseChatLayout } from './components/BaseChatLayout'
+import { ChatMode, CommonChatProps } from './types/common'
+import { useBotInfo } from './hooks/useBotInfo'
+import { BotSettings } from '@/types/bot'
 
-// VERSION-MARKER: Chat-Debug-Code - Version 004
-console.log("Chat.tsx geladen - Debug-Version 004");
+// VERSION-MARKER: Chat-Debug-Code - Version 005
+console.log("Chat.tsx geladen - Debug-Version 005");
 
 // Tracking-Mechanismus für Bot-Informationsabrufe und Willkommensnachrichten
 const loadedBots = new Set<string>();
 const loadedWelcomeMessages = new Set<string>();
-
-interface ChatProps {
-  initialMode?: ChatMode;
-  embedded?: boolean;
-  botId?: string;
-  className?: string;
-  initialSettings?: any;
-  suggestions?: BotSuggestion[];
-}
 
 export function Chat({ 
   initialMode = 'bubble', 
@@ -33,14 +21,24 @@ export function Chat({
   className, 
   initialSettings,
   suggestions = []
-}: ChatProps) {
-  const [botName, setBotName] = useState<string>('Dialog Engine')
-  const [botPrimaryColor, setBotPrimaryColor] = useState<string>('#3b82f6')
-  const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
-  const [enableFeedback, setEnableFeedback] = useState<boolean>(false)
+}: CommonChatProps) {
   const [isDialogMode, setIsDialogMode] = useState<boolean>(false)
-  const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null)
-  const [botAvatarUrl, setBotAvatarUrl] = useState<string | undefined>(undefined)
+  
+  // Bot-Informationen über den gemeinsamen Hook laden
+  const {
+    botName,
+    botPrimaryColor,
+    botBgColor,
+    botTextColor,
+    botAccentColor,
+    userBgColor,
+    userTextColor,
+    showCopyButton,
+    enableFeedback,
+    showSuggestions,
+    botAvatarUrl,
+    welcomeMessage,
+  } = useBotInfo({ botId, initialSettings: initialSettings as BotSettings | undefined })
   
   const { 
     messages, 
@@ -61,7 +59,7 @@ export function Chat({
     initialMode,
     initialOpen: embedded, // Wenn eingebettet, dann direkt öffnen
     botId, // Bot-ID an useChat übergeben
-    initialSettings // Bot-Einstellungen direkt übergeben
+    initialSettings: initialSettings as BotSettings | undefined // Korrekte Typisierung
   })
 
   // Wenn der Modus von außen geändert wird, aktualisiere den internen Modus
@@ -88,95 +86,39 @@ export function Chat({
     }
   };
   
-  // Bot-Informationen laden
+  // Effekt für das Laden der Bot-Informationen
   useEffect(() => {
-    if (botId) {
-      // Prüfen, ob dieser Bot bereits geladen wurde
-      const botKey = `bot-${botId}`;
-      const welcomeKey = `welcome-${botId}`;
-      
-      if (loadedBots.has(botKey)) {
-        console.log(`CHAT-DEBUG-004: Bot ${botId} wurde bereits geladen, überspringe Abruf`);
-        return;
-      }
-      
-      // Prüfen, ob die Willkommensnachricht bereits angezeigt wurde
-      const hasWelcomeMessageShown = loadedWelcomeMessages.has(welcomeKey);
-      
-      // Bot als geladen markieren
-      loadedBots.add(botKey);
-      
-      const fetchBotInfo = async () => {
-        try {
-          console.log(`CHAT-DEBUG-004: Lade Bot-Informationen für ${botId}`);
-          const response = await fetch(`/api/bots/${botId}`)
-          if (response.ok) {
-            const botData = await response.json()
-            console.log("CHAT-DEBUG-004: Bot-Informationen geladen:", {
-              id: botData.id,
-              name: botData.name,
-              welcomeMessage: botData.welcomeMessage ? 'vorhanden' : 'nicht vorhanden'
-            });
-            
-            if (botData) {
-              // Bot-Name setzen
-              setBotName(botData.name || 'Dialog Engine')
-              
-              // Bot-Einstellungen setzen, wenn vorhanden
-              if (botData.settings) {
-                if (botData.settings.primaryColor) {
-                  setBotPrimaryColor(botData.settings.primaryColor)
-                }
-                
-                // Kopier-Button-Einstellung übernehmen
-                setShowCopyButton(typeof botData.settings.showCopyButton === 'boolean' 
-                  ? botData.settings.showCopyButton 
-                  : true)
-                
-                // Feedback-Button-Einstellung übernehmen
-                setEnableFeedback(typeof botData.settings.enableFeedback === 'boolean' 
-                  ? botData.settings.enableFeedback
-                  : false)
-                  
-                // Avatar-URL setzen, zuerst aus den Settings, dann aus dem Bot-Objekt
-                setBotAvatarUrl(botData.settings.avatarUrl || botData.avatarUrl || undefined)
-              } else if (botData.avatarUrl) {
-                // Fallback: Avatar-URL direkt aus dem Bot-Objekt
-                setBotAvatarUrl(botData.avatarUrl)
-              }
-              
-              // Nur wenn Willkommensnachricht noch nicht gesetzt wurde UND wenn es eine gibt
-              if (!hasWelcomeMessageShown && botData.welcomeMessage) {
-                console.log("CHAT-DEBUG-004: Setze Willkommensnachricht", welcomeKey);
-                loadedWelcomeMessages.add(welcomeKey);
-                
-                // Willkommensnachricht setzen
-                setWelcomeMessage(botData.welcomeMessage);
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Fehler beim Laden der Bot-Informationen:", error)
-          // Bei Fehler den Bot aus dem Tracking entfernen, damit ein erneuter Versuch möglich ist
-          loadedBots.delete(botKey);
-        }
-      }
-      
-      fetchBotInfo()
-    }
+    if (!botId) return
+    
+    // Bot-Informationen werden nun vom useBotInfo-Hook geladen
+    console.log("CHAT-DEBUG-005: Bot-ID für API-Aufruf:", botId);
   }, [botId])
 
   // Debug-Ausgabe für die Chat-Komponente
   useEffect(() => {
-    console.log("CHAT-DEBUG-004: Chat-Komponente gerendert");
-    console.log("CHAT-DEBUG-004: messages:", messages);
-    console.log("CHAT-DEBUG-004: isLoading:", isLoading);
-    console.log("CHAT-DEBUG-004: botId:", botId || "Standard-Bot");
-    console.log("CHAT-DEBUG-004: botName:", botName);
-    console.log("CHAT-DEBUG-004: botPrimaryColor:", botPrimaryColor);
-    console.log("CHAT-DEBUG-004: showCopyButton:", showCopyButton);
-    console.log("CHAT-DEBUG-004: enableFeedback:", enableFeedback);
-  }, [messages, isLoading, botId, botName, botPrimaryColor, showCopyButton, enableFeedback]);
+    console.log("CHAT-DEBUG-005: Chat-Komponente gerendert");
+    console.log("CHAT-DEBUG-005: messages:", messages);
+    console.log("CHAT-DEBUG-005: isLoading:", isLoading);
+    console.log("CHAT-DEBUG-005: botId:", botId || "Standard-Bot");
+    console.log("CHAT-DEBUG-005: botName:", botName);
+    console.log("CHAT-DEBUG-005: botPrimaryColor:", botPrimaryColor);
+    console.log("CHAT-DEBUG-005: showCopyButton:", showCopyButton);
+    console.log("CHAT-DEBUG-005: enableFeedback:", enableFeedback);
+    console.log("CHAT-DEBUG-005: showSuggestions:", showSuggestions);
+  }, [messages, isLoading, botId, botName, botPrimaryColor, showCopyButton, enableFeedback, showSuggestions]);
+
+  // Debug-Ausgabe für Bot-Einstellungen
+  useEffect(() => {
+    console.log("CHAT-DEBUG-005: Bot-Einstellungen geladen:", {
+      botName,
+      botPrimaryColor,
+      showCopyButton,
+      enableFeedback,
+      showSuggestions,
+      botAvatarUrl: botAvatarUrl ? "vorhanden" : "nicht vorhanden",
+      welcomeMessage: welcomeMessage ? `${welcomeMessage.substring(0, 30)}...` : "nicht vorhanden"
+    });
+  }, [botName, botPrimaryColor, showCopyButton, enableFeedback, showSuggestions, botAvatarUrl, welcomeMessage]);
 
   // Beim Unmount Dialog-Modus zurücksetzen
   useEffect(() => {
@@ -185,270 +127,42 @@ export function Chat({
     };
   }, []);
 
-  // Hilfsfunktion zur Behandlung von Vorschlagsklicks
-  const handleSuggestionClick = (text: string) => {
-    if (sendMessage) {
-      sendMessage(text);
-    }
-  };
-
-  // Bubble-Modus: Wenn nicht geöffnet, zeige nur die Bubble
-  if (mode === 'bubble' && !isOpen) {
-    return (
-      <button
-        onClick={toggleChat}
-        className={`${embedded ? 'absolute' : 'fixed'} bottom-4 right-4 w-16 h-16 rounded-full flex items-center justify-center bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary`}
-        style={{ backgroundColor: botPrimaryColor }}
-        aria-label="Chat öffnen"
-      >
-        <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-      </button>
-    );
-  }
-
-  // Fullscreen-Modus
-  if (mode === 'fullscreen') {
-    // Umschalten der Dialog/Web CSS-Klassen - nur im nicht-eingebetteten Modus
-    useEffect(() => {
-      if (!embedded) {
-        if (isDialogMode) {
-          document.body.classList.add('dialog-mode');
-          document.documentElement.classList.add('dialog-mode');
-          document.body.style.background = `linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))`;
-          console.log("Dialog-Modus aktiviert. Body-Klassen:", document.body.className);
-        } else {
-          document.body.classList.remove('dialog-mode');
-          document.documentElement.classList.remove('dialog-mode');
-          document.body.style.background = 'transparent';
-          console.log("Dialog-Modus deaktiviert. Body-Klassen:", document.body.className);
-        }
-      }
-      
-      // Cleanup beim Unmounten
-      return () => {
-        if (!embedded) {
-          document.body.classList.remove('dialog-mode');
-          document.documentElement.classList.remove('dialog-mode');
-          document.body.style.background = '';
-        }
-      };
-    }, [isDialogMode, embedded]);
-    
-    return (
-      <div className={`transparent-container ${embedded ? 'embedded-chat fullscreen-mode' : ''}`}
-           style={{ 
-             background: 'transparent', 
-             position: embedded ? 'absolute' : 'fixed',
-             inset: 0,
-             height: embedded ? '100%' : '100vh',
-             width: embedded ? '100%' : '100vw',
-             pointerEvents: 'auto',
-             opacity: isDialogMode ? 1 : 0.01,
-             transition: 'opacity 0.3s ease'
-           }}>
-        {/* Segment-Control Toggle für Dialog/Klassisch */}
-        <div
-          className="fixed z-60 overflow-hidden font-medium neumorphic"
-          style={{
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '3px',
-            display: 'flex',
-            position: 'relative',
-            width: '180px',
-            pointerEvents: 'auto',
-          }}
-        >
-          {/* Hintergrund-Indikator mit 3D-Effekt */}
-          <div
-            className="absolute toggle-indicator"
-            style={{
-              left: isDialogMode ? '50%' : '0',
-              top: '3px',
-              width: '50%',
-              height: 'calc(100% - 6px)',
-              borderRadius: '100px',
-              backgroundColor: botPrimaryColor || 'hsl(var(--primary))',
-              zIndex: 0,
-              transform: isDialogMode ? 'translateX(0)' : 'translateX(0)',
-            }}
-          >
-            {/* Oberer Highlight-Effekt */}
-            <div 
-              className="absolute opacity-80" 
-              style={{
-                top: '0',
-                left: '10%',
-                right: '10%',
-                height: '1px',
-                background: 'rgba(255,255,255,0.8)',
-                borderRadius: '100px',
-              }}
-            />
-          </div>
-          
-          <button
-            className={`py-2 px-3 z-10 transition-all duration-300 relative flex items-center justify-center gap-1.5 neumorphic-btn ${!isDialogMode ? 'text-white font-bold' : 'text-gray-600 hover:text-gray-800'}`}
-            style={{
-              borderRadius: '100px',
-              flex: 1,
-              transform: !isDialogMode ? 'scale(1.02)' : 'scale(1)',
-            }}
-            onClick={() => {
-              if (isDialogMode) toggleDialogMode();
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-sm">Web</span>
-          </button>
-          
-          <button
-            className={`py-2 px-3 z-10 transition-all duration-300 relative flex items-center justify-center gap-1.5 neumorphic-btn ${isDialogMode ? 'text-white font-bold' : 'text-gray-600 hover:text-gray-800'}`}
-            style={{
-              borderRadius: '100px',
-              flex: 1,
-              transform: isDialogMode ? 'scale(1.02)' : 'scale(1)',
-            }}
-            onClick={() => {
-              if (!isDialogMode) toggleDialogMode();
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            <span className="text-sm">Dialog</span>
-          </button>
-        </div>
-
-        {/* Dialog-Modus: Vollbild-Chat ohne Header */}
-        {isDialogMode && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="chat-dialog-title"
-            className="z-40 fixed inset-0 flex flex-col overflow-hidden pointer-events-auto"
-            style={{ paddingTop: '70px' }}
-          >
-            <div className="flex flex-col flex-1 overflow-hidden min-h-0 glassmorphism-chat">
-              {error && (
-                <div 
-                  className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
-                  role="alert"
-                  aria-live="assertive"
-                >
-                  {error}
-                </div>
-              )}
-              
-              <div className="flex-1 overflow-y-auto min-h-0">
-                <MessageList 
-                  messages={messages} 
-                  isLoading={isLoading} 
-                  messagesEndRef={messagesEndRef}
-                  botName={botName}
-                  showCopyButton={showCopyButton}
-                  enableFeedback={enableFeedback}
-                  botId={botId}
-                  botPrimaryColor={botPrimaryColor}
-                  welcomeMessage={welcomeMessage}
-                  botAvatarUrl={botAvatarUrl}
-                />
-                
-                {/* Vorschlagsleiste im Fullscreen-Modus */}
-                {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
-                  <div className="px-4 mb-3 max-w-3xl mx-auto w-full">
-                    <SuggestionsBar 
-                      suggestions={suggestions} 
-                      onSuggestionClick={handleSuggestionClick} 
-                    />
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex-shrink-0 h-[70px]">
-                <ChatInput 
-                  isLoading={isLoading} 
-                  onSend={sendMessage} 
-                  onCancel={cancelMessage} 
-                  botPrimaryColor={botPrimaryColor}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Bubble (geöffnet) oder Inline Modus
   return (
-    <div 
-      className={`${embedded ? 'absolute' : 'fixed'} inset-0 flex flex-col z-50 bg-white rounded-lg overflow-hidden ${className || ''}`}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="chat-dialog-title"
-    >
-      <div className="flex-shrink-0">
-        <ChatHeader 
-          mode={mode} 
-          onClose={toggleChat} 
-          onModeChange={cycleMode}
-          setMode={setMode as any}
-          botName={botName}
-          botPrimaryColor={botPrimaryColor}
-        />
-      </div>
+    <BaseChatLayout
+      // UI-Zustände
+      isOpen={isOpen}
+      mode={mode}
+      isLoading={isLoading}
+      isDialogMode={isDialogMode}
       
-      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-        {error && (
-          <div 
-            className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
-            role="alert"
-            aria-live="assertive"
-          >
-            {error}
-          </div>
-        )}
-        
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <MessageList 
-            messages={messages} 
-            isLoading={isLoading} 
-            messagesEndRef={messagesEndRef}
-            botName={botName}
-            showCopyButton={showCopyButton}
-            enableFeedback={enableFeedback}
-            botId={botId}
-            botPrimaryColor={botPrimaryColor}
-            welcomeMessage={welcomeMessage}
-            botAvatarUrl={botAvatarUrl}
-          />
-          
-          {/* Vorschlagsleiste hinzufügen */}
-          {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
-            <div className="px-4 mb-1">
-              <SuggestionsBar 
-                suggestions={suggestions} 
-                onSuggestionClick={handleSuggestionClick} 
-              />
-            </div>
-          )}
-        </div>
-        
-        <div className="flex-shrink-0 h-[70px]">
-          <ChatInput 
-            isLoading={isLoading} 
-            onSend={sendMessage} 
-            onCancel={cancelMessage} 
-            botPrimaryColor={botPrimaryColor}
-          />
-        </div>
-      </div>
-    </div>
-  );
+      // Bot/Chat-Info
+      botName={botName}
+      botPrimaryColor={botPrimaryColor}
+      botBgColor={botBgColor}
+      botTextColor={botTextColor}
+      botAccentColor={botAccentColor}
+      userBgColor={userBgColor}
+      userTextColor={userTextColor}
+      showCopyButton={showCopyButton}
+      enableFeedback={enableFeedback}
+      showSuggestions={showSuggestions}
+      botAvatarUrl={botAvatarUrl}
+      welcomeMessage={(welcomeMessage || useChatWelcomeMessage) || undefined}
+      className={className}
+      embedded={embedded}
+      
+      // Nachrichten und Suggestions
+      messages={messages}
+      suggestions={suggestions}
+      messagesEndRef={messagesEndRef}
+      
+      // Handler
+      toggleChat={toggleChat}
+      cycleMode={cycleMode}
+      setMode={setMode}
+      toggleDialogMode={toggleDialogMode}
+      sendMessage={sendMessage}
+      cancelMessage={cancelMessage}
+    />
+  )
 } 

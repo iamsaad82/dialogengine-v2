@@ -10,6 +10,10 @@ interface ChatHeaderProps {
   setMode?: (mode: 'bubble' | 'inline' | 'fullscreen') => void
   botName?: string
   botPrimaryColor?: string
+  botAccentColor?: string
+  botTextColor?: string
+  userTextColor?: string
+  embedded?: boolean
 }
 
 export function ChatHeader({ 
@@ -17,13 +21,20 @@ export function ChatHeader({
   onClose, 
   onModeChange, 
   setMode, 
-  botName = 'SMG Dialog Engine', 
-  botPrimaryColor 
+  botName,
+  botPrimaryColor,
+  botAccentColor,
+  botTextColor = '#ffffff',
+  userTextColor = '#ffffff',
+  embedded = false
 }: ChatHeaderProps) {
+  // Fallback für fehlenden Bot-Namen
+  botName = botName || 'Brandenburg Dialog';
+
   // Vereinfachte Stile ohne absolute Positionierung
   const headerStyle = {
     backgroundColor: botPrimaryColor || 'hsl(var(--primary))',
-    color: 'white',
+    color: botTextColor,
     borderRadius: mode === 'bubble' ? '12px 12px 0 0' : undefined,
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
     height: '48px',
@@ -43,8 +54,8 @@ export function ChatHeader({
       role="banner"
     >
       <div className="flex items-center gap-2">
-        <MessageSquareIcon className="h-5 w-5" aria-hidden="true" />
-        <h2 className="text-lg font-medium" id="chat-dialog-title">{botName}</h2>
+        <MessageSquareIcon className="h-5 w-5" aria-hidden="true" style={{ color: '#ffffff' }} />
+        <h2 className="text-lg font-medium" id="chat-dialog-title" style={{ color: userTextColor }}>{botName}</h2>
       </div>
       
       <div className="flex items-center gap-3" role="toolbar" aria-label="Chat-Steuerung">
@@ -52,11 +63,11 @@ export function ChatHeader({
           className="p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-foreground focus:ring-opacity-50"
           style={{
             backgroundColor: 'transparent',
-            color: 'hsl(var(--primary-foreground) / 0.8)',
+            color: '#ffffff',
           }}
           whileHover={{
             backgroundColor: 'hsla(var(--primary-foreground) / 0.15)',
-            color: 'hsl(var(--primary-foreground))',
+            color: '#ffffff',
           }}
           whileTap={{ scale: 0.9 }}
           onClick={onClose}

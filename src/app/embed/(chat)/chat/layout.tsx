@@ -1,4 +1,16 @@
 import { Metadata } from 'next'
+import '../../../../styles/chat/base.css'
+import '../../../../styles/chat/bubble-mode.css'
+import '../../../../styles/chat/fullscreen-mode.css'
+import '../../../../styles/chat/inline-mode.css'
+import '../../../../components/chat/styles/message-content.css'
+
+// Bot-Template-Styles
+import '../../../../styles/bot-templates/aok-message-styles.css'
+import '../../../../styles/bot-templates/brandenburg-message-styles.css'
+import '../../../../styles/bot-templates/mall-message-styles.css'
+import '../../../../styles/bot-templates/standard-message-styles.css'
+import '../../../../styles/bot-templates/creditreform-message-styles.css'
 
 // SEO-Metadaten
 export const metadata: Metadata = {
@@ -25,4 +37,4 @@ export default function EmbedChatLayout({
       </body>
     </html>
   )
-} 
+}

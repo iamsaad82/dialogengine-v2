@@ -1,0 +1,56 @@
+/* Embedded-Modus Basis */
+.embedded-chat {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Embedded-Fullscreen Anpassungen */
+.embedded-fullscreen {
+  padding-top: 70px !important;
+}
+
+/* Mobile Anpassungen */
+@media (max-width: 640px) {
+  .embedded-chat {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+  }
+  
+  /* Verhindern von pinch-zoom */
+  .embedded-chat * {
+    touch-action: pan-x pan-y;
+  }
+  
+  /* Optimierung für Eingabefelder */
+  .embedded-chat input, 
+  .embedded-chat textarea, 
+  .embedded-chat select, 
+  .embedded-chat button {
+    font-size: 16px !important;
+  }
+  
+  /* Chat-Eingabefeld Optimierung */
+  .embedded-chat .chat-input-field {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    height: auto !important;
+    min-height: 46px !important;
+  }
+  
+  .embedded-chat .chat-input-field::placeholder {
+    font-size: 16px !important;
+  }
+}
+
+/* Dark Mode Anpassungen */
+.dark .embedded-chat {
+  background: hsl(var(--background));
+} 

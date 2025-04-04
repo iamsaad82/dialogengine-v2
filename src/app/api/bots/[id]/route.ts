@@ -63,7 +63,20 @@ export async function PUT(
   }
 
   try {
-    const { name, description, welcomeMessage, flowiseId, active, settings, suggestions } = await req.json()
+    const { name, description, welcomeMessage, flowiseId, active, settings, suggestions, avatarUrl } = await req.json()
+
+    // Entferne Prompt-Einstellungsfelder, die noch nicht in der Datenbank existieren
+    let cleanedSettings = settings;
+    if (settings) {
+      // Für die Datenbank-Operationen nur die existierenden Felder verwenden
+      const { botPersonality, botContext, botScope, offerTip, closedDays, ...dbSettings } = settings;
+      cleanedSettings = dbSettings;
+      
+      console.log('Bereinigte Einstellungen für DB-Update:', cleanedSettings);
+      console.log('Entfernte Einstellungen (für zukünftige Verwendung):', { 
+        botPersonality, botContext, botScope, offerTip, closedDays 
+      });
+    }
 
     // Aktualisieren des Bots in der Datenbank
     const updatedBot = await prisma.bot.update({
@@ -71,35 +84,35 @@ export async function PUT(
         id: botId
       },
       data: {
-        name,
-        description,
-        welcomeMessage,
-        flowiseId,
-        active,
-        settings: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(welcomeMessage !== undefined && { welcomeMessage }),
+        ...(flowiseId !== undefined && { flowiseId }),
+        ...(active !== undefined && { active }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        settings: cleanedSettings ? {
           update: {
-            primaryColor: settings?.primaryColor || '#3b82f6',
-            // Überprüfe jedes Feld, bevor es aktualisiert wird
-            ...(settings?.chatBgColor !== undefined && { chatBgColor: settings?.chatBgColor }),
-            ...(settings?.botBgColor !== undefined && { botBgColor: settings?.botBgColor }),
-            ...(settings?.userBgColor !== undefined && { userBgColor: settings?.userBgColor }),
-            ...(settings?.botTextColor !== undefined && { botTextColor: settings?.botTextColor }),
-            ...(settings?.userTextColor !== undefined && { userTextColor: settings?.userTextColor }),
-            ...(settings?.showSuggestions !== undefined && { showSuggestions: settings?.showSuggestions }),
-            ...(settings?.position !== undefined && { position: settings?.position }),
-            ...(settings?.maxWidth !== undefined && { maxWidth: settings?.maxWidth }),
-            ...(settings?.botAvatarUrl !== undefined && { botAvatarUrl: settings?.botAvatarUrl }),
-            ...(settings?.userAvatarUrl !== undefined && { userAvatarUrl: settings?.userAvatarUrl }),
-            ...(settings?.useStreaming !== undefined && { useStreaming: settings?.useStreaming }),
+            ...(cleanedSettings.primaryColor !== undefined && { primaryColor: cleanedSettings.primaryColor }),
+            ...(cleanedSettings.botBgColor !== undefined && { botBgColor: cleanedSettings.botBgColor }),
+            ...(cleanedSettings.botTextColor !== undefined && { botTextColor: cleanedSettings.botTextColor }),
+            ...(cleanedSettings.botAccentColor !== undefined && { botAccentColor: cleanedSettings.botAccentColor }),
+            ...(cleanedSettings.userBgColor !== undefined && { userBgColor: cleanedSettings.userBgColor }),
+            ...(cleanedSettings.userTextColor !== undefined && { userTextColor: cleanedSettings.userTextColor }),
+            ...(cleanedSettings.enableFeedback !== undefined && { enableFeedback: cleanedSettings.enableFeedback }),
+            ...(cleanedSettings.enableAnalytics !== undefined && { enableAnalytics: cleanedSettings.enableAnalytics }),
+            ...(cleanedSettings.showSuggestions !== undefined && { showSuggestions: cleanedSettings.showSuggestions }),
+            ...(cleanedSettings.showCopyButton !== undefined && { showCopyButton: cleanedSettings.showCopyButton }),
+            ...(cleanedSettings.avatarUrl !== undefined && { avatarUrl: cleanedSettings.avatarUrl }),
+            ...(cleanedSettings.messageTemplate !== undefined && { messageTemplate: cleanedSettings.messageTemplate }),
           },
-        },
+        } : undefined
       },
       include: {
         settings: true
       }
     })
 
-    // Aktualisiere Vorschläge
+    // Aktualisiere Vorschläge getrennt vom Bot-Update
     if (suggestions && Array.isArray(suggestions)) {
       // Lösche vorhandene Vorschläge
       await prisma.botSuggestion.deleteMany({
@@ -108,37 +121,16 @@ export async function PUT(
         }
       });
 
-      // Füge neue Vorschläge hinzu
-      for (const suggestion of suggestions) {
-        // Ignoriere temporäre IDs, die mit "temp-" beginnen
-        if (suggestion.id && suggestion.id.startsWith('temp-')) {
-          await prisma.botSuggestion.create({
-            data: {
-              text: suggestion.text,
-              order: suggestion.order,
-              isActive: suggestion.isActive,
-              botId: botId
-            }
-          });
-        } else if (suggestion.id) {
-          // Bestehende Vorschläge aktualisieren falls vorhanden (sollte nicht vorkommen, da wir alle gelöscht haben)
-          await prisma.botSuggestion.upsert({
-            where: {
-              id: suggestion.id
-            },
-            update: {
-              text: suggestion.text,
-              order: suggestion.order,
-              isActive: suggestion.isActive
-            },
-            create: {
-              text: suggestion.text,
-              order: suggestion.order,
-              isActive: suggestion.isActive,
-              botId: botId
-            }
-          });
-        }
+      // Füge neue Vorschläge hinzu in einer separaten Transaktion
+      if (suggestions.length > 0) {
+        await prisma.botSuggestion.createMany({
+          data: suggestions.map(suggestion => ({
+            text: suggestion.text,
+            order: suggestion.order || 0,
+            isActive: suggestion.isActive !== undefined ? suggestion.isActive : true,
+            botId: botId
+          }))
+        });
       }
     }
 

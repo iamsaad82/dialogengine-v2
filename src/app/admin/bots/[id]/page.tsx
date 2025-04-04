@@ -13,6 +13,7 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false)
   const botId = params.id
   
   // Formular-Zustand
@@ -35,6 +36,7 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
     enableAnalytics: true,
     showSuggestions: true,
     showCopyButton: true,
+    messageTemplate: 'default',
     botPersonality: 'Du bist der Assistent des Einkaufscenters ORO Schwabach',
     botContext: 'Center',
     botScope: 'das Center, die Shops und die Produkte',
@@ -73,6 +75,16 @@ Feiertage:
         
         // Design-Einstellungen
         if (botData.settings) {
+          console.log('Geladene Bot-Einstellungen:', botData.settings);
+          
+          // Prüfe, ob messageTemplate vorhanden und nicht leer ist
+          const messageTemplate = botData.settings.messageTemplate === null || botData.settings.messageTemplate === '' 
+            ? 'default'
+            : botData.settings.messageTemplate;
+            
+          console.log('MessageTemplate aus Datenbank:', botData.settings.messageTemplate);
+          console.log('Verwendetes MessageTemplate:', messageTemplate);
+          
           setSettings({
             primaryColor: botData.settings.primaryColor || '#3b82f6',
             botBgColor: botData.settings.botBgColor || 'rgba(248, 250, 252, 0.8)',
@@ -84,6 +96,7 @@ Feiertage:
             enableAnalytics: botData.settings.enableAnalytics,
             showSuggestions: botData.settings.showSuggestions,
             showCopyButton: botData.settings.showCopyButton,
+            messageTemplate: messageTemplate, // Explizit den verarbeiteten Wert setzen
             avatarUrl: botData.settings.avatarUrl || botData.avatarUrl || undefined,
             botPersonality: botData.settings.botPersonality || 'Du bist der Assistent des Einkaufscenters ORO Schwabach',
             botContext: botData.settings.botContext || 'Center',
@@ -114,10 +127,37 @@ Feiertage:
     fetchBot()
   }, [botId])
   
+  // Erfolgsmeldung nach dem Speichern zurücksetzen
+  useEffect(() => {
+    if (saveSuccess) {
+      const timer = setTimeout(() => {
+        setSaveSuccess(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveSuccess]);
+  
   // Bot speichern
   const saveBot = async () => {
     try {
       setSaving(true)
+      setError(null)
+      
+      console.log('Zu speichernde Einstellungen:', settings);
+      
+      // Extrahiere die Prompt-Einstellungen für zukünftige Verwendung
+      const { 
+        botPersonality, 
+        botContext, 
+        botScope, 
+        offerTip, 
+        closedDays, 
+        ...dbSettings 
+      } = settings;
+      
+      console.log('Prompt-Einstellungen (werden lokal gespeichert):', { 
+        botPersonality, botContext, botScope, offerTip, closedDays 
+      });
       
       // Allgemeine Bot-Einstellungen speichern
       const generalRes = await fetch(`/api/bots/${botId}`, {
@@ -131,7 +171,7 @@ Feiertage:
           welcomeMessage,
           flowiseId,
           active,
-          settings,
+          settings: dbSettings, // Nur die Einstellungen, die in der DB existieren
           suggestions
         }),
       })
@@ -149,7 +189,7 @@ Feiertage:
         },
         body: JSON.stringify({
           welcomeMessage,
-          settings
+          settings: dbSettings // Nur die Einstellungen, die in der DB existieren
         }),
       })
       
@@ -180,8 +220,29 @@ Feiertage:
       if (updatedBotRes.ok) {
         const updatedBot = await updatedBotRes.json()
         setBot(updatedBot)
+        
+        // Nach dem Neuladen die Prompt-Einstellungen wieder zufügen, 
+        // da sie nicht in der Datenbank gespeichert werden
+        const updatedMessageTemplate = updatedBot.settings?.messageTemplate === null || updatedBot.settings?.messageTemplate === '' 
+          ? 'default'
+          : updatedBot.settings?.messageTemplate;
+
+        console.log('MessageTemplate nach Update:', updatedBot.settings?.messageTemplate);
+        console.log('Verwendetes MessageTemplate nach Update:', updatedMessageTemplate);
+
+        setSettings(prevSettings => ({
+          ...updatedBot.settings,
+          messageTemplate: updatedMessageTemplate, // Explizit setzen
+          botPersonality: prevSettings.botPersonality,
+          botContext: prevSettings.botContext,
+          botScope: prevSettings.botScope,
+          offerTip: prevSettings.offerTip,
+          closedDays: prevSettings.closedDays
+        }));
       }
       
+      // Erfolgsmeldung anzeigen
+      setSaveSuccess(true)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten')
@@ -233,6 +294,15 @@ Feiertage:
         </button>
       </div>
       
+      {saveSuccess && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>Änderungen erfolgreich gespeichert!</span>
+        </div>
+      )}
+      
       <BotSettingsTabs
         name={name}
         description={description}
@@ -261,9 +331,17 @@ Feiertage:
         <button
           onClick={saveBot}
           disabled={saving}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${saving ? 'opacity-50 cursor-not-allowed' : ''} bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2`}
         >
-          {saving ? 'Speichern...' : 'Speichern'}
+          {saving ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Speichern...
+            </>
+          ) : 'Speichern'}
         </button>
       </div>
     </div>

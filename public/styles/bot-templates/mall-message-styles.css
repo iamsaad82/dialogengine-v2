@@ -1,0 +1,267 @@
+/* Shopping Mall Template Styles - Isolierte Version */
+
+/* Basisstil für das gesamte Mall-Template */
+.mall-message {
+  font-family: var(--mall-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif);
+  line-height: 1.6;
+  color: var(--mall-text, #333333);
+  background-color: var(--mall-background, #f8f8f8);
+  border-radius: var(--mall-border-radius, 12px);
+  overflow: hidden;
+  box-shadow: var(--mall-shadow, 0 4px 15px rgba(0, 0, 0, 0.08));
+  margin-bottom: 1rem;
+}
+
+/* Header - mit Präfix zum Vermeiden von Überschreibungen */
+.mall-message .mall-header {
+  background-color: var(--mall-primary, #3b1c60);
+  color: var(--mall-light-text, #ffffff);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.mall-message .mall-logo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mall-message .mall-subtitle {
+  font-size: 1rem;
+  margin: 0.5rem 0 0;
+  opacity: 0.9;
+}
+
+/* Intro - mit Präfix */
+.mall-message .mall-intro {
+  margin: 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+/* Sections - mit Präfix */
+.mall-message .mall-section {
+  margin: 1.5rem 0;
+}
+
+.mall-message .mall-section-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--mall-primary, #3b1c60);
+  margin: 0 0 1.25rem 1.5rem;
+}
+
+/* Shop Slider - mit Präfix */
+.mall-message .mall-shops-slider {
+  margin: 0;
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  display: flex;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mall-primary, #3b1c60) #f1f1f1;
+}
+
+.mall-message .mall-shops-slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.mall-message .mall-shops-slider::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.mall-message .mall-shops-slider::-webkit-scrollbar-thumb {
+  background: var(--mall-primary, #3b1c60);
+  border-radius: 10px;
+}
+
+/* Shop Card - mit Präfix */
+.mall-message .mall-shop-card {
+  flex: 0 0 auto;
+  width: 220px;
+  height: 280px;
+  margin-right: 1rem;
+  border-radius: var(--mall-border-radius, 12px);
+  box-shadow: var(--mall-shadow, 0 4px 15px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  background-color: white;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.mall-message .mall-shop-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--mall-shadow, 0 8px 20px rgba(0, 0, 0, 0.12));
+}
+
+.mall-message .mall-shop-image {
+  width: 100%;
+  height: 130px;
+  background-color: #eee;
+  object-fit: cover;
+}
+
+.mall-message .mall-shop-content {
+  padding: 1rem;
+}
+
+.mall-message .mall-shop-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--mall-primary, #3b1c60);
+}
+
+.mall-message .mall-shop-category {
+  font-size: 0.85rem;
+  color: #777;
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-message .mall-shop-floor {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mall-secondary, #ff5a5f);
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-message .mall-shop-opening {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+}
+
+.mall-message .mall-shop-description {
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0;
+}
+
+/* Restaurant/Food Cards - mit Präfix */
+.mall-message .mall-food-section {
+  background-color: rgba(0, 0, 0, 0.02);
+  padding: 1.5rem 0;
+  margin: 1.5rem 0;
+}
+
+.mall-message .mall-food-slider {
+  margin: 0;
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  display: flex;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.mall-message .mall-food-card {
+  flex: 0 0 auto;
+  width: 260px;
+  margin-right: 1rem;
+  border-radius: var(--mall-border-radius, 12px);
+  box-shadow: var(--mall-shadow, 0 4px 15px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  background-color: white;
+  transition: transform 0.2s ease-in-out;
+}
+
+.mall-message .mall-food-card:hover {
+  transform: translateY(-5px);
+}
+
+.mall-message .mall-food-image {
+  width: 100%;
+  height: 150px;
+  background-color: #eee;
+  object-fit: cover;
+}
+
+.mall-message .mall-food-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mall-message .mall-food-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--mall-primary, #3b1c60);
+}
+
+.mall-message .mall-food-description {
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-message .mall-food-floor {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mall-secondary, #ff5a5f);
+  margin: 0.5rem 0 0;
+}
+
+.mall-message .mall-food-hours {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0.3rem 0 0;
+}
+
+/* Generic Sections - mit Präfix */
+.mall-message .mall-generic-section {
+  padding: 0 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Loading & Streaming States - mit Präfix */
+.mall-message .mall-loading {
+  padding: 1.5rem;
+  text-align: center;
+  color: #777;
+  font-style: italic;
+}
+
+.mall-message .mall-streaming-indicator {
+  padding: 0.5rem 1.5rem;
+  text-align: center;
+  color: var(--mall-primary, #3b1c60);
+  font-size: 1.5rem;
+  animation: mall-pulse 1.5s infinite ease-in-out;
+}
+
+/* Umbenannte Animationen, um Konflikte zu vermeiden */
+@keyframes mall-pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+.mall-message .mall-fade-in {
+  animation: mall-fadeIn 0.5s ease-in-out;
+}
+
+@keyframes mall-fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Adjustments - mit Präfix */
+@media (max-width: 768px) {
+  .mall-message .mall-shop-card {
+    width: 180px;
+    height: 250px;
+  }
+  
+  .mall-message .mall-food-card {
+    width: 220px;
+  }
+  
+  .mall-message .mall-logo {
+    font-size: 1.5rem;
+  }
+  
+  .mall-message .mall-section-title {
+    font-size: 1.2rem;
+  }
+} 

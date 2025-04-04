@@ -22,7 +22,8 @@ export default function BotSettings({ params }: { params: { id: string } }) {
     enableFeedback: true,
     enableAnalytics: true,
     showSuggestions: true,
-    showCopyButton: true
+    showCopyButton: true,
+    messageTemplate: 'default'
   })
   
   // UseEffect um die ID zu setzen
@@ -59,7 +60,8 @@ export default function BotSettings({ params }: { params: { id: string } }) {
             enableFeedback: botData.settings.enableFeedback || true,
             enableAnalytics: botData.settings.enableAnalytics || true,
             showSuggestions: botData.settings.showSuggestions || true,
-            showCopyButton: botData.settings.showCopyButton || true
+            showCopyButton: botData.settings.showCopyButton || true,
+            messageTemplate: botData.settings.messageTemplate === null ? 'default' : botData.settings.messageTemplate
           })
         } else {
           setSettings(prev => ({
@@ -85,62 +87,35 @@ export default function BotSettings({ params }: { params: { id: string } }) {
       
       console.log('Speichere Einstellungen:', settings)
       
-      // Zuerst die Bot-Daten aktualisieren
-      const botResponse = await fetch(`/api/bots/${botId}`, {
+      // Alle Einstellungen in einem API-Aufruf senden
+      const response = await fetch(`/api/bots/${botId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          welcomeMessage: settings.welcomeMessage
+          welcomeMessage: settings.welcomeMessage,
+          settings: {
+            primaryColor: settings.primaryColor,
+            botBgColor: settings.botBgColor,
+            botTextColor: settings.botTextColor,
+            botAccentColor: settings.botAccentColor,
+            userBgColor: settings.userBgColor,
+            userTextColor: settings.userTextColor,
+            enableFeedback: settings.enableFeedback,
+            enableAnalytics: settings.enableAnalytics,
+            showSuggestions: settings.showSuggestions,
+            showCopyButton: settings.showCopyButton,
+            messageTemplate: settings.messageTemplate
+          }
         })
       })
       
-      if (!botResponse.ok) {
-        throw new Error(`Speichern der Bot-Daten fehlgeschlagen: ${botResponse.status}`)
+      if (!response.ok) {
+        throw new Error(`Speichern der Einstellungen fehlgeschlagen: ${response.status}`)
       }
       
-      const botUpdateResult = await botResponse.json()
-      console.log('Bot-Update Ergebnis:', botUpdateResult)
-      
-      // Dann die Einstellungen aktualisieren
-      const settingsObj = {
-        primaryColor: settings.primaryColor,
-        botBgColor: settings.botBgColor,
-        botTextColor: settings.botTextColor,
-        botAccentColor: settings.botAccentColor,
-        userBgColor: settings.userBgColor,
-        userTextColor: settings.userTextColor,
-        enableFeedback: settings.enableFeedback,
-        enableAnalytics: settings.enableAnalytics,
-        showSuggestions: settings.showSuggestions,
-        showCopyButton: settings.showCopyButton
-      }
-      
-      console.log('Sende Einstellungen an API:', settingsObj)
-      
-      const settingsResponse = await fetch(`/api/bots/${botId}/settings`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(settingsObj)
-      })
-      
-      if (!settingsResponse.ok) {
-        throw new Error(`Speichern der Einstellungen fehlgeschlagen: ${settingsResponse.status}`)
-      }
-      
-      const settingsUpdateResult = await settingsResponse.json()
-      console.log('Settings-Update Ergebnis:', settingsUpdateResult)
-      
-      // Lade die aktualisierten Daten
-      const updatedBotResponse = await fetch(`/api/bots/${botId}`)
-      if (!updatedBotResponse.ok) {
-        throw new Error(`Laden der aktualisierten Daten fehlgeschlagen: ${updatedBotResponse.status}`)
-      }
-      
-      const updatedBotData = await updatedBotResponse.json()
+      const updatedBotData = await response.json()
       console.log('Aktualisierte Bot-Daten:', updatedBotData)
       setBot(updatedBotData)
       
@@ -157,7 +132,8 @@ export default function BotSettings({ params }: { params: { id: string } }) {
           enableFeedback: updatedBotData.settings.enableFeedback || true,
           enableAnalytics: updatedBotData.settings.enableAnalytics || true,
           showSuggestions: updatedBotData.settings.showSuggestions || true,
-          showCopyButton: updatedBotData.settings.showCopyButton || true
+          showCopyButton: updatedBotData.settings.showCopyButton || true,
+          messageTemplate: updatedBotData.settings.messageTemplate === null ? 'default' : updatedBotData.settings.messageTemplate
         }
         console.log('Setze neue Einstellungen:', newSettings)
         setSettings(newSettings)

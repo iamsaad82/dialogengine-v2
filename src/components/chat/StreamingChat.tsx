@@ -1,204 +1,150 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStreamChat } from './hooks/useStreamChat'
-import { ChatHeader } from './components/ChatHeader'
-import { ChatInput } from './components/ChatInput'
-import { MessageList } from './components/MessageList'
-import { MessageContent } from './components/MessageContent/MessageContent'
-import { Message } from './types'
-import dynamic from 'next/dynamic'
-import type { BotSettings } from '@/types/bot'
-import type { StreamChatMode } from './hooks/useStreamChat'
-import { SuggestionsBar } from './SuggestionsBar'
-import type { BotSuggestion } from '@/types/bot'
+import { BaseChatLayout } from './components/BaseChatLayout'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
+import { v4 as uuidv4 } from 'uuid'
+import { ChatMode, CommonChatProps, Message } from './types/common'
+import { BotSuggestion } from '@/types/bot'
+import { useBotInfo } from './hooks/useBotInfo'
+import { BotSettings } from '@/types/bot'
+import { cn } from '@/lib/utils'
 
-// VERSION-MARKER: StreamingChat-Debug-Code - Version 001
-console.log("StreamingChat.tsx geladen - Debug-Version 001");
+// VERSION-MARKER: StreamingChat-Debug-Code - Version 006
+console.log("StreamingChat.tsx geladen - Debug-Version 006");
 
 interface StreamingChatProps {
-  initialMode?: 'bubble' | 'fullscreen' | 'inline'; // Unterstützt jetzt auch inline-Modus
-  embedded?: boolean;
-  botId?: string;
-  className?: string;
-  initialSettings?: any;
-  suggestions?: BotSuggestion[];
+  botId?: string
+  initialMode?: 'bubble' | 'inline' | 'fullscreen'
+  className?: string
+  initialSettings?: Partial<BotSettings>
+  embedded?: boolean
+  suggestions?: BotSuggestion[]
 }
 
-export function StreamingChat({ 
-  initialMode = 'bubble', 
-  embedded = false, 
-  botId, 
-  className, 
+export function StreamingChat({
+  botId,
+  initialMode = 'bubble',
+  className = '',
   initialSettings,
-  suggestions = []
+  embedded = false,
+  suggestions: initialSuggestions = []
 }: StreamingChatProps) {
-  const [botName, setBotName] = useState<string>('Dialog Engine')
-  const [botPrimaryColor, setBotPrimaryColor] = useState<string>('#3b82f6')
-  const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
-  const [enableFeedback, setEnableFeedback] = useState<boolean>(false)
-  const [botAvatarUrl, setBotAvatarUrl] = useState<string | undefined>(undefined)
-  
-  // Debug-Ausgabe für initialMode
-  console.log("StreamingChat: initialMode =", initialMode, "embedded =", embedded);
+  const [isDialogMode, setIsDialogMode] = useState<boolean>(false)
 
-  const { 
-    messages, 
-    isLoading, 
-    error, 
-    isOpen, 
-    mode,
-    sendMessage, 
-    cancelMessage, 
-    toggleChat, 
-    cycleMode,
-    setMode, 
-    messagesEndRef,
-    botSettings,
+  // Bot-Einstellungen abrufen
+  const {
+    botName,
+    botPrimaryColor,
+    botBgColor,
+    botTextColor,
+    botAccentColor,
+    userBgColor,
+    userTextColor,
+    showCopyButton,
+    enableFeedback,
+    showSuggestions,
+    botAvatarUrl,
     welcomeMessage,
+    messageTemplate,
+  } = useBotInfo({ botId, initialSettings: initialSettings as BotSettings | undefined })
+
+  // Debug-Ausgabe für Einstellungen
+  useEffect(() => {
+    console.log("STREAMING-CHAT-DEBUG-001: Einstellungen:", {
+      botName,
+      botPrimaryColor,
+      botTextColor,
+      userBgColor,
+      userTextColor,
+      showSuggestions,
+      welcomeMessage: welcomeMessage ? 'vorhanden' : 'nicht vorhanden',
+      messageTemplate,
+      botAvatarUrl: botAvatarUrl ? 'vorhanden' : 'nicht vorhanden'
+    });
+  }, [botName, botPrimaryColor, botTextColor, userBgColor, userTextColor, showSuggestions, welcomeMessage, messageTemplate, botAvatarUrl]);
+
+  const {
+    messages,
+    isLoading,
+    error,
+    isOpen,
+    mode,
+    sendMessage,
+    cancelMessage,
+    toggleChat,
+    cycleMode,
+    setMode,
+    messagesEndRef,
     currentStreamedMessage
   } = useStreamChat({
     initialMessages: [],
     initialMode,
     initialOpen: embedded,
     botId,
-    initialSettings
+    initialSettings: initialSettings as BotSettings | undefined
   })
 
-  // Wenn der Modus von außen geändert wird, aktualisiere den internen Modus
-  useEffect(() => {
-    if (setMode) {
-      setMode(initialMode);
-    }
-  }, [initialMode, setMode]);
-  
-  // Bot-Informationen laden
-  useEffect(() => {
-    if (botId) {
-      const fetchBotInfo = async () => {
-        try {
-          console.log(`STREAMINGCHAT-DEBUG-001: Lade Bot-Informationen für ${botId}`);
-          const response = await fetch(`/api/bots/${botId}`)
-          if (response.ok) {
-            const botData = await response.json()
-            
-            if (botData) {
-              // Bot-Name setzen
-              setBotName(botData.name || 'Dialog Engine')
-              
-              // Bot-Einstellungen setzen, wenn vorhanden
-              if (botData.settings) {
-                if (botData.settings.primaryColor) {
-                  setBotPrimaryColor(botData.settings.primaryColor)
-                }
-                
-                // Kopier-Button-Einstellung übernehmen
-                setShowCopyButton(typeof botData.settings.showCopyButton === 'boolean' 
-                  ? botData.settings.showCopyButton 
-                  : true)
-                
-                // Feedback-Button-Einstellung übernehmen
-                setEnableFeedback(typeof botData.settings.enableFeedback === 'boolean' 
-                  ? botData.settings.enableFeedback
-                  : false)
-                  
-                // Avatar-URL setzen, zuerst aus den Settings, dann aus dem Bot-Objekt
-                setBotAvatarUrl(botData.settings.avatarUrl || botData.avatarUrl || undefined)
-              } else if (botData.avatarUrl) {
-                // Fallback: Avatar-URL direkt aus dem Bot-Objekt
-                setBotAvatarUrl(botData.avatarUrl)
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Fehler beim Laden der Bot-Informationen:", error)
-        }
-      }
-      
-      fetchBotInfo()
-    }
-  }, [botId])
+  const toggleDialogMode = () => {
+    setIsDialogMode(!isDialogMode)
+  }
 
-  // Hilfsfunktion, um Modus-spezifische Klassen zu erhalten
-  const getModeClass = (currentMode: StreamChatMode): string => {
-    switch(currentMode) {
-      case 'bubble': return 'embedded-chat bubble-mode';
-      case 'fullscreen': return 'embedded-chat fullscreen-mode';
-      case 'inline': return 'embedded-chat inline-mode';
-      default: return '';
-    }
-  };
-  
-  // Hilfsfunktion für Modus-spezifisches Styling
-  const getModeStyle = (currentMode: StreamChatMode) => {
-    switch(currentMode) {
-      case 'bubble':
-        return {
-          borderRadius: '0',
-          boxShadow: '0 6px 30px rgba(0, 0, 0, 0.2)',
-          overflow: 'hidden'
-        };
-      case 'inline':
-        return {
-          borderRadius: '12px',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden',
-          height: '100%'
-        };
-      case 'fullscreen':
-        return {
-          overflow: 'hidden'
-        };
-      default:
-        return {
-          overflow: 'hidden'
-        };
-    }
-  };
+  // Effekt für das Laden der Bot-Informationen
+  useEffect(() => {
+    if (!botId) return
+
+    // Bot-Informationen werden nun vom useBotInfo-Hook geladen
+    console.log("STREAMING-CHAT-DEBUG-006: Bot-ID für API-Aufruf:", botId);
+    console.log("STREAMING-CHAT-DEBUG-006: Vorhandene Vorschläge:", initialSuggestions ? initialSuggestions.length : 0);
+    console.log("STREAMING-CHAT-DEBUG-006: showSuggestions aktiviert:", showSuggestions);
+    console.log("STREAMING-CHAT-DEBUG-006: welcomeMessage:", welcomeMessage ? `vorhanden (${welcomeMessage.substring(0, 20)}...)` : "nicht vorhanden");
+    console.log("STREAMING-CHAT-DEBUG-006: botAvatarUrl:", botAvatarUrl ? "vorhanden" : "nicht vorhanden");
+  }, [botId, initialSuggestions, showSuggestions, welcomeMessage, botAvatarUrl])
 
   // Kombinierte Nachrichtenliste mit der aktuell gestreamten Nachricht
   const allMessages = () => {
-    console.log("STREAMINGCHAT-DEBUG-005: allMessages aufgerufen, isLoading:", isLoading, 
+    console.log("STREAMINGCHAT-DEBUG-006: allMessages aufgerufen, isLoading:", isLoading,
       "currentStreamedMessage:", currentStreamedMessage ? "vorhanden" : "nicht vorhanden",
       "Nachrichten:", messages.length);
-    
+
     // Wenn keine gestreamte Nachricht vorhanden ist, zeige nur die normalen Nachrichten
     if (!currentStreamedMessage) {
-      console.log("STREAMINGCHAT-DEBUG-005: Nur normale Nachrichten anzeigen:", messages.length);
+      console.log("STREAMINGCHAT-DEBUG-006: Nur normale Nachrichten anzeigen:", messages.length);
       return messages;
     }
-    
+
     // Streamed-Message nur anzeigen, wenn sie Inhalt hat
     if (!currentStreamedMessage.content || currentStreamedMessage.content.trim() === '') {
-      console.log("STREAMINGCHAT-DEBUG-005: Leerer Streaming-Inhalt, zeige nur normale Nachrichten");
+      console.log("STREAMINGCHAT-DEBUG-006: Leerer Streaming-Inhalt, zeige nur normale Nachrichten");
       return messages;
     }
-    
+
     // Suche nach einer bereits vorhandenen gestreamten Nachricht
     const existingStreamingMessage = messages.find(message => message.streaming === true);
-    
+
     // Suche nach einer Assistenten-Nachricht mit genau dem gleichen Inhalt
     const exactMatchMessage = messages.find(
-      message => message.role === 'assistant' && 
+      message => message.role === 'assistant' &&
                  message.content.trim() === currentStreamedMessage.content.trim()
     );
-    
+
     // Wenn es eine exakte Übereinstimmung gibt, gib die Originalnachrichten zurück
     if (exactMatchMessage) {
-      console.log("STREAMINGCHAT-DEBUG-005: Exakte Übereinstimmung in der Liste gefunden");
+      console.log("STREAMINGCHAT-DEBUG-006: Exakte Übereinstimmung in der Liste gefunden");
       return messages;
     }
-    
+
     // Array für die finalen Nachrichten
     let finalMessages = [...messages];
-    
+
     // Wenn es bereits eine Streaming-Nachricht gibt, ersetze sie
     if (existingStreamingMessage) {
-      console.log("STREAMINGCHAT-DEBUG-005: Aktualisiere bestehende Streaming-Nachricht");
+      console.log("STREAMINGCHAT-DEBUG-006: Aktualisiere bestehende Streaming-Nachricht");
       finalMessages = messages.map(message => {
         if (message.streaming) {
-          return { 
-            ...message, 
+          return {
+            ...message,
             content: currentStreamedMessage.content,
             timestamp: Date.now()
           };
@@ -207,380 +153,55 @@ export function StreamingChat({
       });
     } else {
       // Ansonsten füge eine neue Streaming-Nachricht hinzu
-      console.log("STREAMINGCHAT-DEBUG-005: Füge neue Streaming-Nachricht hinzu, Länge:", currentStreamedMessage.content.length);
-      
+      console.log("STREAMINGCHAT-DEBUG-006: Füge neue Streaming-Nachricht hinzu, Länge:", currentStreamedMessage.content.length);
+
       // Erzeuge eine eindeutige ID für die gestreamte Nachricht
-      const streamedMessage: Message = { 
+      const streamedMessage: Message = {
         id: `streaming-msg-${Date.now()}`,
-        role: 'assistant', 
+        role: 'assistant',
         content: currentStreamedMessage.content,
         streaming: true,
         timestamp: Date.now()
       };
-      
+
       finalMessages = [...messages, streamedMessage];
     }
-    
+
     return finalMessages;
   };
 
-  // Funktion zum Behandeln von Vorschlagsklicks
-  const handleSuggestionClick = (text: string) => {
-    if (sendMessage) {
-      sendMessage(text);
-    }
-  };
-
-  // Debug-Ausgabe für Vorschläge
-  useEffect(() => {
-    console.log("SUGGESTIONS-DEBUG: Vorschläge nach Initialisierung:", { 
-      suggestions, 
-      showSuggestions: botSettings?.showSuggestions,
-      messagesCount: messages.length,
-      shouldShow: botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0
-    });
-  }, [suggestions, botSettings, messages.length]);
-
-  // Bubble-Modus: Wenn nicht geöffnet und im Bubble-Modus, zeige nur die Bubble
-  if (mode === 'bubble' && !isOpen) {
-    return (
-      <button
-        onClick={toggleChat}
-        className={`${embedded ? 'absolute' : 'fixed'} bottom-4 right-4 w-16 h-16 rounded-full flex items-center justify-center bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary`}
-        style={{ backgroundColor: botPrimaryColor }}
-        aria-label="Chat öffnen"
-      >
-        <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-      </button>
-    );
-  }
-
-  // Fullscreen-Modus: Verwende eine einheitliche Implementierung
-  if (mode === 'fullscreen') {
-    // Dialog-Modus State für Fullscreen
-    const [isDialogMode, setIsDialogMode] = useState(true);
-    console.log("SUGGESTIONS-DEBUG: Im Fullscreen-Modus, botSettings:", botSettings, "Vorschläge:", suggestions.length, "DialogMode:", isDialogMode);
-
-    // Umschalten zwischen Dialog und Web Modus
-    const toggleDialogMode = () => {
-      setIsDialogMode(prev => !prev);
-    };
-    
-    // Dialog-Modus CSS-Klasse zum body und html hinzufügen/entfernen
-    useEffect(() => {
-      if (!embedded) {
-        // Nur im nicht-eingebetteten Modus die globalen Styles anwenden
-        if (isDialogMode) {
-          document.body.classList.add('dialog-mode');
-          document.documentElement.classList.add('dialog-mode');
-          document.body.style.background = `linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))`;
-        } else {
-          document.body.classList.remove('dialog-mode');
-          document.documentElement.classList.remove('dialog-mode');
-          document.body.style.background = 'transparent';
-        }
-      }
-      
-      // Cleanup beim Unmounten
-      return () => {
-        if (!embedded) {
-          document.body.classList.remove('dialog-mode');
-          document.documentElement.classList.remove('dialog-mode');
-          document.body.style.background = '';
-        }
-      };
-    }, [isDialogMode, embedded]);
-
-    return (
-      <div 
-        className={`
-          ${embedded ? 'absolute' : 'fixed'} inset-0 flex flex-col z-50
-          fullscreen-chat ${embedded ? 'embedded-fullscreen' : ''}
-          ${isDialogMode ? 'glassmorphism-chat' : 'bg-transparent'} 
-          ${className || ''}
-        `}
-        style={{ 
-          pointerEvents: 'auto', // Immer aktivieren, damit der Chat bedienbar bleibt
-          paddingTop: '70px',
-          // Bei eingebettetem Modus keinen fixed-Stil verwenden
-          position: embedded ? 'absolute' : 'fixed',
-          height: embedded ? '100%' : '100vh',
-          width: embedded ? '100%' : '100vw',
-          opacity: isDialogMode ? 1 : 0.01, // Im Web-Modus fast unsichtbar statt pointer-events zu deaktivieren
-          transition: 'opacity 0.3s ease'
-        }}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="chat-dialog-title"
-      >
-        {/* Dialog/Web Toggle hinzufügen */}
-        <DialogWebToggle 
-          botPrimaryColor={botPrimaryColor} 
-          suggestions={suggestions}
-          botSettings={botSettings}
-          embedded={embedded}
-        />
-        
-        <div className="flex-shrink-0">
-          <ChatHeader 
-            mode={mode}
-            onClose={toggleChat} 
-            onModeChange={cycleMode}
-            setMode={setMode as any}
-            botName={botName}
-            botPrimaryColor={botPrimaryColor}
-          />
-        </div>
-        
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-          {error && (
-            <div 
-              className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
-              role="alert"
-              aria-live="assertive"
-            >
-              {error}
-            </div>
-          )}
-          
-          <div className="flex-1 overflow-y-auto min-h-0">
-            <MessageList 
-              messages={allMessages()} 
-              isLoading={isLoading} 
-              messagesEndRef={messagesEndRef}
-              botName={botName}
-              showCopyButton={showCopyButton}
-              enableFeedback={enableFeedback}
-              botId={botId}
-              botPrimaryColor={botPrimaryColor}
-              welcomeMessage={welcomeMessage}
-              botAvatarUrl={botAvatarUrl}
-            />
-            
-            {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
-              <div className="px-4 mb-1">
-                <SuggestionsBar 
-                  suggestions={suggestions} 
-                  onSuggestionClick={handleSuggestionClick} 
-                />
-              </div>
-            )}
-          </div>
-          
-          <div className="flex-shrink-0 h-[70px]">
-            <ChatInput 
-              isLoading={isLoading} 
-              onSend={sendMessage} 
-              onCancel={cancelMessage} 
-              botPrimaryColor={botPrimaryColor}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Bubble (geöffnet) oder Inline Modus
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="chat-dialog-title"
-      className={`
-        ${embedded ? 'absolute' : 'fixed'} inset-0 w-full h-full flex flex-col
-        ${getModeClass(mode)}
-        ${className || ''}
-      `}
-      style={getModeStyle(mode)}
-    >
-      <div className="flex-shrink-0">
-        <ChatHeader 
-          mode={mode} 
-          onClose={toggleChat} 
-          onModeChange={cycleMode}
-          setMode={setMode as any}
-          botName={botName}
-          botPrimaryColor={botPrimaryColor}
-        />
-      </div>
-      
-      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-        {error && (
-          <div 
-            className="p-3 m-3 bg-destructive/10 border border-destructive text-destructive text-sm rounded-md flex-shrink-0" 
-            role="alert"
-            aria-live="assertive"
-          >
-            {error}
-          </div>
-        )}
-        
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <MessageList 
-            messages={allMessages()} 
-            isLoading={isLoading} 
-            messagesEndRef={messagesEndRef}
-            botName={botName}
-            showCopyButton={showCopyButton}
-            enableFeedback={enableFeedback}
-            botId={botId}
-            botPrimaryColor={botPrimaryColor}
-            welcomeMessage={welcomeMessage}
-            botAvatarUrl={botAvatarUrl}
-          />
-          
-          {botSettings?.showSuggestions && suggestions.length > 0 && messages.length === 0 && (
-            <div className="px-4 mb-1">
-              <SuggestionsBar 
-                suggestions={suggestions} 
-                onSuggestionClick={handleSuggestionClick} 
-              />
-            </div>
-          )}
-        </div>
-        
-        <div className="flex-shrink-0 h-[70px]">
-          <ChatInput 
-            isLoading={isLoading} 
-            onSend={sendMessage} 
-            onCancel={cancelMessage} 
-            botPrimaryColor={botPrimaryColor}
-          />
-        </div>
-      </div>
+    <div className={cn("relative overflow-hidden h-full", className)}>
+      <BaseChatLayout
+        isOpen={isOpen}
+        mode={mode}
+        isLoading={isLoading}
+        isDialogMode={isDialogMode}
+        botName={botName}
+        botPrimaryColor={botPrimaryColor}
+        botBgColor={botBgColor}
+        botTextColor={botTextColor}
+        botAccentColor={botAccentColor}
+        userBgColor={userBgColor}
+        userTextColor={userTextColor}
+        showCopyButton={showCopyButton}
+        enableFeedback={enableFeedback}
+        showSuggestions={showSuggestions}
+        messageTemplate={messageTemplate}
+        botAvatarUrl={botAvatarUrl}
+        welcomeMessage={welcomeMessage}
+        messages={allMessages()}
+        suggestions={initialSuggestions}
+        messagesEndRef={messagesEndRef}
+        toggleChat={toggleChat}
+        cycleMode={cycleMode}
+        setMode={setMode}
+        toggleDialogMode={toggleDialogMode}
+        sendMessage={sendMessage}
+        cancelMessage={cancelMessage}
+        className={className}
+        embedded={embedded}
+      />
     </div>
-  );
+  )
 }
-
-// Dialog/Web Toggle Komponente für die Fullscreen-Ansicht
-const DialogWebToggle = ({ 
-  botPrimaryColor,
-  suggestions, 
-  botSettings,
-  embedded = false
-}: { 
-  botPrimaryColor: string | null | undefined,
-  suggestions: any[],
-  botSettings: any,
-  embedded?: boolean
-}) => {
-  // Standardmäßig mit Klassisch/Dialog starten
-  const [isDialogMode, setIsDialogMode] = useState(true);
-  
-  // Dialog-Modus CSS-Klasse zum body und html hinzufügen/entfernen
-  useEffect(() => {
-    if (!embedded) {
-      if (isDialogMode) {
-        document.body.classList.add('dialog-mode');
-        document.documentElement.classList.add('dialog-mode');
-        document.body.style.background = `linear-gradient(135deg, rgba(36, 59, 85, 0.8), rgba(20, 30, 48, 0.95))`;
-        console.log("Dialog-Modus aktiviert. Body-Klassen:", document.body.className);
-      } else {
-        document.body.classList.remove('dialog-mode');
-        document.documentElement.classList.remove('dialog-mode');
-        document.body.style.background = 'transparent';
-        console.log("Dialog-Modus deaktiviert. Body-Klassen:", document.body.className);
-      }
-    }
-    
-    // Cleanup beim Unmounten
-    return () => {
-      if (!embedded) {
-        document.body.classList.remove('dialog-mode');
-        document.documentElement.classList.remove('dialog-mode');
-        document.body.style.background = '';
-      }
-    };
-  }, [isDialogMode, embedded]);
-  
-  // Debug-Ausgaben
-  useEffect(() => {
-    console.log("SUGGESTIONS-DEBUG: Im regulären Fullscreen-Modus, botSettings:", botSettings, "Vorschläge:", suggestions.length, "isDialogMode:", isDialogMode);
-  }, [botSettings, suggestions, isDialogMode]);
-  
-  // Umschalten zwischen Dialog und Web Modus
-  const toggleDialogMode = () => {
-    setIsDialogMode(prev => !prev);
-  };
-  
-  return (
-    <div
-      className="overflow-hidden font-medium neumorphic"
-      style={{
-        top: embedded ? '10px' : '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        padding: '3px',
-        display: 'flex',
-        position: 'absolute',
-        width: '180px',
-        pointerEvents: 'auto',
-        zIndex: 60
-      }}
-    >
-      {/* Hintergrund-Indikator mit 3D-Effekt */}
-      <div
-        className="absolute toggle-indicator"
-        style={{
-          left: isDialogMode ? '50%' : '0',
-          top: '3px',
-          width: '50%',
-          height: 'calc(100% - 6px)',
-          borderRadius: '100px',
-          backgroundColor: botPrimaryColor || 'hsl(var(--primary))',
-          zIndex: 0,
-          transform: isDialogMode ? 'translateX(0)' : 'translateX(0)',
-        }}
-      >
-        {/* Oberer Highlight-Effekt */}
-        <div 
-          className="absolute opacity-80" 
-          style={{
-            top: '0',
-            left: '10%',
-            right: '10%',
-            height: '1px',
-            background: 'rgba(255,255,255,0.8)',
-            borderRadius: '100px',
-          }}
-        />
-      </div>
-      
-      <button
-        className={`py-2 px-3 z-10 transition-all duration-300 relative flex items-center justify-center gap-1.5 neumorphic-btn ${!isDialogMode ? 'text-white font-bold' : 'text-gray-600 hover:text-gray-800'}`}
-        style={{
-          borderRadius: '100px',
-          flex: 1,
-          transform: !isDialogMode ? 'scale(1.02)' : 'scale(1)',
-        }}
-        onClick={() => {
-          if (isDialogMode) toggleDialogMode();
-        }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span className="text-sm">Web</span>
-      </button>
-      
-      <button
-        className={`py-2 px-3 z-10 transition-all duration-300 relative flex items-center justify-center gap-1.5 neumorphic-btn ${isDialogMode ? 'text-white font-bold' : 'text-gray-600 hover:text-gray-800'}`}
-        style={{
-          borderRadius: '100px',
-          flex: 1,
-          transform: isDialogMode ? 'scale(1.02)' : 'scale(1)',
-        }}
-        onClick={() => {
-          if (!isDialogMode) toggleDialogMode();
-        }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-        <span className="text-sm">Dialog</span>
-      </button>
-    </div>
-  );
-}; 
