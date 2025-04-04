@@ -29,13 +29,13 @@ function ChatBubblePreview({ settings, welcomeMessage }: { settings: BotSettings
     borderColor: settings.botAccentColor || settings.primaryColor || '#3b82f6',
     boxShadow: `0 4px 12px rgba(0, 0, 0, 0.08)`
   }
-  
+
   const userBubbleStyle = {
     background: settings.userBgColor || createGradientFromColor(settings.primaryColor),
     color: settings.userTextColor || '#ffffff',
     boxShadow: `0 4px 12px rgba(${parseInt(settings.primaryColor.slice(1, 3), 16)}, ${parseInt(settings.primaryColor.slice(3, 5), 16)}, ${parseInt(settings.primaryColor.slice(5, 7), 16)}, 0.2)`
   }
-  
+
   // Hilfsfunktion für Gradienten aus der Primärfarbe
   function createGradientFromColor(color: string): string {
     try {
@@ -43,23 +43,23 @@ function ChatBubblePreview({ settings, welcomeMessage }: { settings: BotSettings
       const r = parseInt(color.slice(1, 3), 16);
       const g = parseInt(color.slice(3, 5), 16);
       const b = parseInt(color.slice(5, 7), 16);
-      
+
       // Hellere Version für den Start des Gradienten (10% heller)
       const lighterColor = `#${Math.min(255, Math.floor(r * 1.1)).toString(16).padStart(2, '0')}${
         Math.min(255, Math.floor(g * 1.1)).toString(16).padStart(2, '0')}${
         Math.min(255, Math.floor(b * 1.1)).toString(16).padStart(2, '0')}`;
-      
+
       // Dunklere Version für das Ende des Gradienten (15% dunkler)
       const darkerColor = `#${Math.floor(r * 0.85).toString(16).padStart(2, '0')}${
         Math.floor(g * 0.85).toString(16).padStart(2, '0')}${
         Math.floor(b * 0.85).toString(16).padStart(2, '0')}`;
-      
+
       return `linear-gradient(135deg, ${lighterColor}, ${darkerColor})`;
     } catch (e) {
       return `linear-gradient(135deg, ${color}, ${color}cc)`;
     }
   }
-  
+
   return (
     <div className="preview-container border rounded-lg p-4 bg-background/50 mb-6">
       <h3 className="text-sm font-medium mb-3">Vorschau</h3>
@@ -72,7 +72,7 @@ function ChatBubblePreview({ settings, welcomeMessage }: { settings: BotSettings
             <p className="text-sm">{welcomeMessage || "Willkommen! Wie kann ich Ihnen helfen?"}</p>
           </div>
         </div>
-        
+
         <div className="flex items-start gap-2 justify-end">
           <div className="max-w-[80%] rounded-lg p-3" style={userBubbleStyle}>
             <p className="text-sm">Können Sie mir bei einer Frage helfen?</p>
@@ -103,15 +103,15 @@ export function BotSettingsTabs({
   onSuggestionsChange
 }: BotSettingsTabsProps) {
   const [newSuggestion, setNewSuggestion] = useState("")
-  
+
   // Funktion zum Hinzufügen eines neuen Vorschlags
   const addSuggestion = () => {
     if (!newSuggestion.trim() || !onSuggestionsChange) return;
-    
-    const nextOrder = suggestions.length > 0 
-      ? Math.max(...suggestions.map(s => s.order)) + 1 
+
+    const nextOrder = suggestions.length > 0
+      ? Math.max(...suggestions.map(s => s.order)) + 1
       : 0;
-      
+
     const newSuggestionItem: BotSuggestion = {
       id: `temp-${Date.now()}`, // temporäre ID, wird vom Server ersetzt
       text: newSuggestion,
@@ -121,17 +121,17 @@ export function BotSettingsTabs({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    
+
     onSuggestionsChange([...suggestions, newSuggestionItem]);
     setNewSuggestion("");
   };
-  
+
   // Funktion zum Löschen eines Vorschlags
   const removeSuggestion = (id: string) => {
     if (!onSuggestionsChange) return;
     onSuggestionsChange(suggestions.filter(s => s.id !== id));
   };
-  
+
   // Funktion zum Ändern der Aktivität eines Vorschlags
   const toggleSuggestionActive = (id: string) => {
     if (!onSuggestionsChange) return;
@@ -139,45 +139,45 @@ export function BotSettingsTabs({
       suggestions.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s)
     );
   };
-  
+
   // Funktion zum Ändern der Reihenfolge der Vorschläge
   const moveSuggestion = (id: string, direction: 'up' | 'down') => {
     if (!onSuggestionsChange || suggestions.length < 2) return;
-    
+
     const currentIndex = suggestions.findIndex(s => s.id === id);
     if (currentIndex === -1) return;
-    
+
     const newSuggestions = [...suggestions];
-    
+
     if (direction === 'up' && currentIndex > 0) {
       // Tausche mit dem vorherigen Element
       const temp = { ...newSuggestions[currentIndex - 1] };
-      newSuggestions[currentIndex - 1] = { 
-        ...newSuggestions[currentIndex], 
-        order: temp.order 
+      newSuggestions[currentIndex - 1] = {
+        ...newSuggestions[currentIndex],
+        order: temp.order
       };
-      newSuggestions[currentIndex] = { 
-        ...temp, 
-        order: newSuggestions[currentIndex].order 
+      newSuggestions[currentIndex] = {
+        ...temp,
+        order: newSuggestions[currentIndex].order
       };
     } else if (direction === 'down' && currentIndex < suggestions.length - 1) {
       // Tausche mit dem nächsten Element
       const temp = { ...newSuggestions[currentIndex + 1] };
-      newSuggestions[currentIndex + 1] = { 
-        ...newSuggestions[currentIndex], 
-        order: temp.order 
+      newSuggestions[currentIndex + 1] = {
+        ...newSuggestions[currentIndex],
+        order: temp.order
       };
-      newSuggestions[currentIndex] = { 
-        ...temp, 
-        order: newSuggestions[currentIndex].order 
+      newSuggestions[currentIndex] = {
+        ...temp,
+        order: newSuggestions[currentIndex].order
       };
     }
-    
+
     // Sortiere nach order-Attribut
     newSuggestions.sort((a, b) => a.order - b.order);
     onSuggestionsChange(newSuggestions);
   };
-  
+
   return (
     <Tabs defaultValue="allgemein" className="w-full">
       <TabsList className="grid w-full grid-cols-4">
@@ -186,7 +186,7 @@ export function BotSettingsTabs({
         <TabsTrigger value="prompt">Prompt-Einstellungen</TabsTrigger>
         <TabsTrigger value="suggestions">Vorschläge</TabsTrigger>
       </TabsList>
-      
+
       <TabsContent value="allgemein">
         <div className="border rounded-lg bg-card text-card-foreground shadow-sm">
           <div className="flex flex-col space-y-1.5 p-6">
@@ -207,7 +207,7 @@ export function BotSettingsTabs({
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium">Beschreibung</label>
               <textarea
@@ -217,15 +217,15 @@ export function BotSettingsTabs({
                 placeholder="Beschreibung des Bots"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium">Bot-Logo</label>
               <div className="flex items-center gap-4">
                 {settings.avatarUrl && (
                   <div className="w-32 h-24 rounded-lg border overflow-hidden flex items-center justify-center bg-background">
-                    <img 
-                      src={settings.avatarUrl} 
-                      alt="Bot-Logo" 
+                    <img
+                      src={settings.avatarUrl}
+                      alt="Bot-Logo"
                       className="max-w-full max-h-full object-contain"
                     />
                   </div>
@@ -240,18 +240,18 @@ export function BotSettingsTabs({
                         // Statt Base64-Codierung direkt einen Form-Upload zum Server machen
                         const formData = new FormData();
                         formData.append('file', file);
-                        
+
                         try {
                           const response = await fetch('/api/upload', {
                             method: 'POST',
                             body: formData,
                           });
-                          
+
                           if (response.ok) {
                             const data = await response.json();
                             // URL des hochgeladenen Bildes speichern
                             onSettingsChange({
-                              ...settings, 
+                              ...settings,
                               avatarUrl: data.url
                             });
                           } else {
@@ -278,7 +278,7 @@ export function BotSettingsTabs({
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium">Flowise Chatflow ID</label>
               <input
@@ -290,7 +290,7 @@ export function BotSettingsTabs({
                 required
               />
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -304,7 +304,7 @@ export function BotSettingsTabs({
           </div>
         </div>
       </TabsContent>
-      
+
       <TabsContent value="design">
         <div className="border rounded-lg bg-card text-card-foreground shadow-sm">
           <div className="flex flex-col space-y-1.5 p-6">
@@ -315,7 +315,7 @@ export function BotSettingsTabs({
           </div>
           <div className="p-6 pt-0 space-y-4">
             <ChatBubblePreview settings={settings} welcomeMessage={welcomeMessage} />
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium">Willkommensnachricht</label>
               <textarea
@@ -325,7 +325,7 @@ export function BotSettingsTabs({
                 placeholder="Willkommensnachricht, die angezeigt wird, wenn der Chat geöffnet wird"
               />
             </div>
-            
+
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Nachrichten-Template</label>
@@ -345,7 +345,7 @@ export function BotSettingsTabs({
                 </p>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Primärfarbe</label>
@@ -364,7 +364,7 @@ export function BotSettingsTabs({
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Bot-Hintergrundfarbe</label>
                 <div className="flex gap-2">
@@ -383,7 +383,7 @@ export function BotSettingsTabs({
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Bot-Textfarbe</label>
                 <div className="flex gap-2">
@@ -401,7 +401,7 @@ export function BotSettingsTabs({
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Bot-Akzentfarbe</label>
                 <div className="flex gap-2">
@@ -419,7 +419,7 @@ export function BotSettingsTabs({
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Benutzer-Hintergrundfarbe (optional)</label>
                 <div className="flex gap-2">
@@ -438,7 +438,7 @@ export function BotSettingsTabs({
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Benutzer-Textfarbe</label>
                 <div className="flex gap-2">
@@ -457,7 +457,7 @@ export function BotSettingsTabs({
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center space-x-2">
                 <input
@@ -469,7 +469,7 @@ export function BotSettingsTabs({
                 />
                 <label htmlFor="enableFeedback" className="text-sm font-medium">Feedback-Buttons anzeigen</label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -480,7 +480,7 @@ export function BotSettingsTabs({
                 />
                 <label htmlFor="enableAnalytics" className="text-sm font-medium">Analytics aktivieren</label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -491,7 +491,7 @@ export function BotSettingsTabs({
                 />
                 <label htmlFor="showSuggestions" className="text-sm font-medium">Vorschläge anzeigen</label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -502,11 +502,22 @@ export function BotSettingsTabs({
                 />
                 <label htmlFor="showCopyButton" className="text-sm font-medium">Kopier-Button anzeigen</label>
               </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showNameInHeader"
+                  checked={settings.showNameInHeader !== undefined ? settings.showNameInHeader : true}
+                  onChange={(e) => onSettingsChange({...settings, showNameInHeader: e.target.checked})}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="showNameInHeader" className="text-sm font-medium">Bot-Namen im Header anzeigen</label>
+              </div>
             </div>
           </div>
         </div>
       </TabsContent>
-      
+
       <TabsContent value="prompt">
         <div className="border rounded-lg bg-card text-card-foreground shadow-sm">
           <div className="flex flex-col space-y-1.5 p-6">
@@ -525,7 +536,7 @@ export function BotSettingsTabs({
                 placeholder="Beschreibung der Bot-Persönlichkeit (z.B. 'Du bist der Assistent des...')"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium">Bot-Kontext</label>
               <input
@@ -536,7 +547,7 @@ export function BotSettingsTabs({
                 placeholder="Der Kontext, zu dem der Bot Fragen beantwortet (z.B. 'Center')"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium">Bot-Themenbereich</label>
               <input
@@ -547,7 +558,7 @@ export function BotSettingsTabs({
                 placeholder="Themenbereich des Bots (z.B. 'das Center, die Shops und die Produkte')"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium">Angebots-Hinweis</label>
               <input
@@ -558,7 +569,7 @@ export function BotSettingsTabs({
                 placeholder="Anweisung für Angebote (z.B. 'Wenn du einen Shop findest...')"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium">Geschlossene Tage</label>
               <textarea
@@ -586,7 +597,7 @@ Feiertage:
           </div>
         </div>
       </TabsContent>
-      
+
       <TabsContent value="suggestions">
         <div className="border rounded-lg bg-card text-card-foreground shadow-sm">
           <div className="flex flex-col space-y-1.5 p-6">
@@ -595,7 +606,7 @@ Feiertage:
               Verwalten Sie die Vorschläge, die Nutzern im Chat angezeigt werden. Diese Vorschläge können angeklickt werden, um schnell häufige Fragen zu stellen.
             </p>
           </div>
-          
+
           <div className="px-6">
             <div className="bg-muted p-3 rounded-md text-sm flex items-center gap-2 mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -606,7 +617,7 @@ Feiertage:
               Die Anzeige der Vorschläge kann unter "Design &amp; Erscheinungsbild" aktiviert oder deaktiviert werden (Option "Vorschläge anzeigen").
             </div>
           </div>
-          
+
           <div className="p-6 pt-0 space-y-4">
             <div className="flex gap-2 items-start">
               <div className="flex-1">
@@ -634,16 +645,16 @@ Feiertage:
                 Hinzufügen
               </button>
             </div>
-            
+
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Vorhandene Vorschläge</h4>
-              
+
               {suggestions.length === 0 && (
                 <div className="text-sm text-muted-foreground py-4 text-center bg-muted/30 rounded-md">
                   Noch keine Vorschläge vorhanden. Fügen Sie oben Ihren ersten Vorschlag hinzu.
                 </div>
               )}
-              
+
               <ul className="space-y-2">
                 {suggestions.map((suggestion, index) => (
                   <li key={suggestion.id} className="flex items-center gap-2 p-3 rounded-lg border bg-card">
@@ -652,7 +663,7 @@ Feiertage:
                         {suggestion.text}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => moveSuggestion(suggestion.id, 'up')}
@@ -664,7 +675,7 @@ Feiertage:
                           <path d="m18 15-6-6-6 6"/>
                         </svg>
                       </button>
-                      
+
                       <button
                         onClick={() => moveSuggestion(suggestion.id, 'down')}
                         disabled={index === suggestions.length - 1 || !onSuggestionsChange}
@@ -675,13 +686,13 @@ Feiertage:
                           <path d="m6 9 6 6 6-6"/>
                         </svg>
                       </button>
-                      
+
                       <button
                         onClick={() => toggleSuggestionActive(suggestion.id)}
                         disabled={!onSuggestionsChange}
                         className={`p-1 rounded-md hover:bg-muted ${
-                          suggestion.isActive 
-                            ? "text-green-600 hover:text-green-700" 
+                          suggestion.isActive
+                            ? "text-green-600 hover:text-green-700"
                             : "text-muted-foreground"
                         }`}
                         title={suggestion.isActive ? "Deaktivieren" : "Aktivieren"}
@@ -699,7 +710,7 @@ Feiertage:
                           </svg>
                         )}
                       </button>
-                      
+
                       <button
                         onClick={() => removeSuggestion(suggestion.id)}
                         disabled={!onSuggestionsChange}
@@ -722,4 +733,4 @@ Feiertage:
       </TabsContent>
     </Tabs>
   )
-} 
+}

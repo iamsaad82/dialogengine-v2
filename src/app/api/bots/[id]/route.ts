@@ -71,10 +71,10 @@ export async function PUT(
       // Für die Datenbank-Operationen nur die existierenden Felder verwenden
       const { botPersonality, botContext, botScope, offerTip, closedDays, ...dbSettings } = settings;
       cleanedSettings = dbSettings;
-      
+
       console.log('Bereinigte Einstellungen für DB-Update:', cleanedSettings);
-      console.log('Entfernte Einstellungen (für zukünftige Verwendung):', { 
-        botPersonality, botContext, botScope, offerTip, closedDays 
+      console.log('Entfernte Einstellungen (für zukünftige Verwendung):', {
+        botPersonality, botContext, botScope, offerTip, closedDays
       });
     }
 
@@ -102,6 +102,7 @@ export async function PUT(
             ...(cleanedSettings.enableAnalytics !== undefined && { enableAnalytics: cleanedSettings.enableAnalytics }),
             ...(cleanedSettings.showSuggestions !== undefined && { showSuggestions: cleanedSettings.showSuggestions }),
             ...(cleanedSettings.showCopyButton !== undefined && { showCopyButton: cleanedSettings.showCopyButton }),
+            ...(cleanedSettings.showNameInHeader !== undefined && { showNameInHeader: cleanedSettings.showNameInHeader }),
             ...(cleanedSettings.avatarUrl !== undefined && { avatarUrl: cleanedSettings.avatarUrl }),
             ...(cleanedSettings.messageTemplate !== undefined && { messageTemplate: cleanedSettings.messageTemplate }),
           },
@@ -171,7 +172,7 @@ export async function DELETE(
   // ID aus den Parametern extrahieren, bevor sie verwendet werden
   const params = await context.params;
   const botId = params.id
-  
+
   if (!botId) {
     return NextResponse.json({ error: 'Bot ID erforderlich' }, { status: 400 })
   }
@@ -181,7 +182,7 @@ export async function DELETE(
     await prisma.botSettings.deleteMany({
       where: { botId }
     })
-    
+
     // Löschen des Bots aus der Datenbank
     await prisma.bot.delete({
       where: {
@@ -201,4 +202,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-} 
+}

@@ -9,9 +9,10 @@ export interface BotSettings {
   enableAnalytics: boolean
   showSuggestions: boolean
   showCopyButton: boolean
+  showNameInHeader: boolean
   messageTemplate: string
   avatarUrl?: string
-  
+
   // Prompt-Konfiguration
   botPersonality: string
   botContext: string
@@ -42,4 +43,4 @@ export interface BotSuggestion {
   botId: string
   createdAt: string
   updatedAt: string
-} 
+}

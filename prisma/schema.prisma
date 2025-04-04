@@ -73,6 +73,7 @@ model BotSettings {
   enableAnalytics   Boolean @default(true)
   showSuggestions   Boolean @default(true)
   showCopyButton    Boolean @default(true)
+  showNameInHeader  Boolean @default(true) // Option, um den Bot-Namen im Header anzuzeigen/auszublenden
   messageTemplate   String? @default("default") // Template für Nachrichten-Styles (default, aok, etc.)
   avatarUrl         String?
   botId            String   @unique

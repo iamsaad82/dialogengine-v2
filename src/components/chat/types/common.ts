@@ -29,6 +29,7 @@ export interface CommonBotSettings {
   showCopyButton?: boolean;
   enableFeedback?: boolean;
   showSuggestions?: boolean;
+  showNameInHeader?: boolean;
   messageTemplate?: string | null;
   avatarUrl?: string | null;
 }
@@ -71,4 +72,4 @@ export interface ChatInputProps {
   botPrimaryColor?: string;
   botAccentColor?: string;
   botTextColor?: string;
-} 
+}

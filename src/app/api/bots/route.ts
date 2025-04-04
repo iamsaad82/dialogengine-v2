@@ -9,7 +9,7 @@ export async function GET() {
         settings: true
       }
     })
-    
+
     return NextResponse.json(bots)
   } catch (error) {
     console.error('Fehler beim Abrufen der Bots:', error)
@@ -24,7 +24,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    
+
     // Überprüfen der erforderlichen Felder
     if (!body.name || !body.flowiseId) {
       return NextResponse.json(
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-    
+
     // Bot und Standardeinstellungen in einer Transaktion erstellen
     const newBot = await prisma.$transaction(async (tx) => {
       // Bot erstellen
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
           active: body.active !== undefined ? body.active : true,
         }
       })
-      
+
       // Standardeinstellungen erstellen
       await tx.botSettings.create({
         data: {
@@ -56,16 +56,17 @@ export async function POST(request: Request) {
           enableAnalytics: body.enableAnalytics !== undefined ? body.enableAnalytics : true,
           showSuggestions: body.showSuggestions !== undefined ? body.showSuggestions : true,
           showCopyButton: body.showCopyButton !== undefined ? body.showCopyButton : true,
+          showNameInHeader: body.showNameInHeader !== undefined ? body.showNameInHeader : true,
         }
       })
-      
+
       // Bot mit Einstellungen zurückgeben
       return await tx.bot.findUnique({
         where: { id: bot.id },
         include: { settings: true }
       })
     })
-    
+
     return NextResponse.json(newBot)
   } catch (error) {
     console.error('Fehler beim Erstellen des Bots:', error)
@@ -74,4 +75,4 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
-} 
+}

@@ -59,6 +59,7 @@ export const Message: React.FC<{
     messageTemplate?: string | null;
     enableFeedback?: boolean;
     showCopyButton?: boolean;
+    showNameInHeader?: boolean;
     botId?: string;
   };
 }> = ({
@@ -111,7 +112,11 @@ export const Message: React.FC<{
   if (isBot) {
     return (
       <div className={`${messageTemplate}-message message assistant ${isStreaming && isLast ? 'streaming-message' : ''}`} style={messageStyles}>
-        <MessageHeader botName={botName} botAvatarUrl={botAvatarUrl} />
+        <MessageHeader
+          botName={botName}
+          botAvatarUrl={botAvatarUrl}
+          showName={settings?.showNameInHeader !== undefined ? settings.showNameInHeader : true}
+        />
         <div className="message-content-wrapper">
           <Suspense fallback={<div className="message-loading">Lade Nachricht...</div>}>
             <TemplateComponents.Message

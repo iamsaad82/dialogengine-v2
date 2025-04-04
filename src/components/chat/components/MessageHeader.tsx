@@ -5,12 +5,13 @@ import React from 'react';
 interface MessageHeaderProps {
   botName: string;
   botAvatarUrl?: string;
+  showName?: boolean;
 }
 
 /**
  * Header für Bot-Nachrichten mit Avatar und Namen
  */
-export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatarUrl }) => {
+export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatarUrl, showName = true }) => {
   return (
     <div className="message-header">
       {botAvatarUrl && (
@@ -28,9 +29,11 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatar
           }}
         />
       )}
-      <span style={{ color: 'var(--bot-primary-color, var(--bot-accent-color))' }}>
-        {botName}
-      </span>
+      {showName && (
+        <span style={{ color: 'var(--bot-primary-color, var(--bot-accent-color))' }}>
+          {botName}
+        </span>
+      )}
     </div>
   );
-}; 
+};
