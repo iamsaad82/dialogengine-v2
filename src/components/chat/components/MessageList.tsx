@@ -48,14 +48,16 @@ function LoadingMessage({
   botBgColor,
   botTextColor,
   botAccentColor,
-  botAvatarUrl
+  botAvatarUrl,
+  showNameInHeader = true
 }: {
   botName?: string,
   botPrimaryColor?: string,
   botBgColor?: string,
   botTextColor?: string,
   botAccentColor?: string,
-  botAvatarUrl?: string
+  botAvatarUrl?: string,
+  showNameInHeader?: boolean
 }) {
   // Den Anzeigenamen verbessern, wenn es sich um einen technischen Namen handelt
   const displayName = botName === 'creditreform' ? 'Creditreform Assistent' :
@@ -128,7 +130,7 @@ function LoadingMessage({
               </svg>
             )}
           </div>
-          <span className="text-sm font-semibold text-center leading-none" style={{ color: botTextColor }}>{botName}</span>
+          {showNameInHeader && <span className="text-sm font-semibold text-center leading-none" style={{ color: botTextColor }}>{botName}</span>}
         </div>
 
         <div className="py-1">
@@ -328,6 +330,7 @@ export function MessageList({
             botTextColor={botTextColor}
             botAccentColor={botAccentColor}
             botAvatarUrl={botAvatarUrl}
+            showNameInHeader={settings?.showNameInHeader !== undefined ? settings.showNameInHeader : showNameInHeader}
           />
         )}
 
