@@ -246,6 +246,13 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
             console.log("USEBOTINFO-DEBUG-001: Setze enableFeedback aus API:", enableFeed);
             setEnableFeedback(enableFeed);
 
+            // Bot-Namen im Header anzeigen
+            const showNameHeader = typeof botData.settings.showNameInHeader === 'boolean'
+              ? botData.settings.showNameInHeader
+              : true;
+            console.log("USEBOTINFO-DEBUG-001: Setze showNameInHeader aus API:", showNameHeader);
+            setShowNameInHeader(showNameHeader);
+
             // Avatar-URL setzen, zuerst aus den Settings, dann aus dem Bot-Objekt
             const avatarUrl = botData.settings.avatarUrl || botData.avatarUrl || undefined;
             console.log("USEBOTINFO-DEBUG-001: Setze avatarUrl:", avatarUrl ? "vorhanden" : "nicht vorhanden");
@@ -317,6 +324,7 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
       setShowCopyButton(cachedBot.showCopyButton);
       setEnableFeedback(cachedBot.enableFeedback);
       setShowSuggestions(cachedBot.showSuggestions);
+      setShowNameInHeader(cachedBot.showNameInHeader !== undefined ? cachedBot.showNameInHeader : true);
       setBotAvatarUrl(cachedBot.avatarUrl);
       setWelcomeMessage(cachedBot.welcomeMessage);
       setMessageTemplate(cachedBot.messageTemplate || 'default');
