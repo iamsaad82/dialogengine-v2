@@ -25,6 +25,7 @@ interface MessageListProps {
   botName?: string
   showCopyButton?: boolean
   enableFeedback?: boolean
+  showNameInHeader?: boolean
   botId?: string
   botPrimaryColor?: string
   botBgColor?: string
@@ -207,6 +208,7 @@ export function MessageList({
   botName,
   showCopyButton = true,
   enableFeedback = false,
+  showNameInHeader = true,
   botId,
   botPrimaryColor,
   botBgColor,
@@ -310,6 +312,7 @@ export function MessageList({
               messageTemplate: settings?.messageTemplate || null,
               enableFeedback: enableFeedback,
               showCopyButton: showCopyButton,
+              showNameInHeader: settings?.showNameInHeader !== undefined ? settings.showNameInHeader : showNameInHeader,
               botId: botId
             }}
           />

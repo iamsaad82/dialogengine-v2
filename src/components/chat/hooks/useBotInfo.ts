@@ -15,6 +15,7 @@ const botCache: Record<string, {
   showCopyButton: boolean;
   enableFeedback: boolean;
   showSuggestions: boolean;
+  showNameInHeader?: boolean;
   avatarUrl?: string;
   welcomeMessage?: string;
   messageTemplate?: string;
@@ -40,6 +41,7 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
   const [showCopyButton, setShowCopyButton] = useState<boolean>(true);
   const [enableFeedback, setEnableFeedback] = useState<boolean>(false);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
+  const [showNameInHeader, setShowNameInHeader] = useState<boolean>(true);
   const [botAvatarUrl, setBotAvatarUrl] = useState<string | undefined>(undefined);
   const [welcomeMessage, setWelcomeMessage] = useState<string | undefined>(undefined);
   const [messageTemplate, setMessageTemplate] = useState<string>('default');
@@ -58,76 +60,81 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
 
     console.log("USEBOTINFO-DEBUG-001: Verwende initialSettings:", initialSettings);
     setDataSource('initialSettings');
-    
+
     // Bot-Name aus initialSettings setzen, falls vorhanden (z.B. aus Embed-Code)
     if ('name' in initialSettings && initialSettings.name && typeof initialSettings.name === 'string') {
       console.log("USEBOTINFO-DEBUG-001: Setze botName aus initialSettings:", initialSettings.name);
       setBotName(initialSettings.name);
     }
-    
+
     // Welcome Message aus initialSettings setzen
     if ('welcomeMessage' in initialSettings && initialSettings.welcomeMessage && typeof initialSettings.welcomeMessage === 'string') {
       console.log("USEBOTINFO-DEBUG-001: Setze welcomeMessage aus initialSettings");
       setWelcomeMessage(initialSettings.welcomeMessage);
     }
-    
+
     // Avatar URL aus initialSettings setzen
     if ('avatarUrl' in initialSettings && initialSettings.avatarUrl) {
       console.log("USEBOTINFO-DEBUG-001: Setze avatarUrl aus initialSettings");
       setBotAvatarUrl(initialSettings.avatarUrl);
     }
-    
+
     // Spezielle Debug-Ausgabe für Vorschläge und deren Anzeige
-    console.log("USEBOTINFO-DEBUG-001: initialSettings.showSuggestions:", 
-      initialSettings.showSuggestions === true ? "true" : 
+    console.log("USEBOTINFO-DEBUG-001: initialSettings.showSuggestions:",
+      initialSettings.showSuggestions === true ? "true" :
       initialSettings.showSuggestions === false ? "false" : "nicht gesetzt");
-    
+
     // Bot-Einstellungen aus initialSettings setzen
     if (initialSettings.primaryColor) {
       console.log("USEBOTINFO-DEBUG-001: Setze primaryColor aus initialSettings:", initialSettings.primaryColor);
       setBotPrimaryColor(initialSettings.primaryColor);
     }
-    
+
     if (initialSettings.botBgColor) {
       console.log("USEBOTINFO-DEBUG-001: Setze botBgColor aus initialSettings:", initialSettings.botBgColor);
       setBotBgColor(initialSettings.botBgColor);
     }
-    
+
     if (initialSettings.botTextColor) {
       console.log("USEBOTINFO-DEBUG-001: Setze botTextColor aus initialSettings:", initialSettings.botTextColor);
       setBotTextColor(initialSettings.botTextColor);
     }
-    
+
     if (initialSettings.botAccentColor) {
       console.log("USEBOTINFO-DEBUG-001: Setze botAccentColor aus initialSettings:", initialSettings.botAccentColor);
       setBotAccentColor(initialSettings.botAccentColor);
     }
-    
+
     if (initialSettings.userBgColor) {
       console.log("USEBOTINFO-DEBUG-001: Setze userBgColor aus initialSettings:", initialSettings.userBgColor);
       setUserBgColor(initialSettings.userBgColor);
     }
-    
+
     if (initialSettings.userTextColor) {
       console.log("USEBOTINFO-DEBUG-001: Setze userTextColor aus initialSettings:", initialSettings.userTextColor);
       setUserTextColor(initialSettings.userTextColor);
     }
-    
+
     if (typeof initialSettings.showCopyButton === 'boolean') {
       console.log("USEBOTINFO-DEBUG-001: Setze showCopyButton aus initialSettings:", initialSettings.showCopyButton);
       setShowCopyButton(initialSettings.showCopyButton);
     }
-    
+
     if (typeof initialSettings.enableFeedback === 'boolean') {
       console.log("USEBOTINFO-DEBUG-001: Setze enableFeedback aus initialSettings:", initialSettings.enableFeedback);
       setEnableFeedback(initialSettings.enableFeedback);
     }
-    
+
     if (typeof initialSettings.showSuggestions === 'boolean') {
       console.log("USEBOTINFO-DEBUG-001: Setze showSuggestions aus initialSettings:", initialSettings.showSuggestions);
       setShowSuggestions(initialSettings.showSuggestions);
     }
-    
+
+    if (typeof initialSettings.showNameInHeader === 'boolean') {
+      console.log("USEBOTINFO-DEBUG-001: Setze showNameInHeader aus initialSettings:", initialSettings.showNameInHeader);
+      setShowNameInHeader(initialSettings.showNameInHeader);
+    }
+
     // Messagetemplate setzen, wenn vorhanden
     if (initialSettings.messageTemplate !== undefined && initialSettings.messageTemplate !== null) {
       console.log("USEBOTINFO-DEBUG-001: Setze messageTemplate aus initialSettings:", initialSettings.messageTemplate);
@@ -149,10 +156,11 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
         showCopyButton: initialSettings.showCopyButton ?? existingCache.showCopyButton ?? true,
         enableFeedback: initialSettings.enableFeedback ?? existingCache.enableFeedback ?? false,
         showSuggestions: initialSettings.showSuggestions ?? existingCache.showSuggestions ?? true,
+        showNameInHeader: initialSettings.showNameInHeader ?? existingCache.showNameInHeader ?? true,
         avatarUrl: initialSettings.avatarUrl || existingCache.avatarUrl,
         welcomeMessage: existingCache.welcomeMessage,
-        messageTemplate: initialSettings.messageTemplate === null || initialSettings.messageTemplate === '' 
-          ? 'default' 
+        messageTemplate: initialSettings.messageTemplate === null || initialSettings.messageTemplate === ''
+          ? 'default'
           : initialSettings.messageTemplate || existingCache.messageTemplate || 'default'
       };
     }
@@ -169,11 +177,11 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
       try {
         console.log("USEBOTINFO-DEBUG-001: Lade Bot-Daten von API für ID:", botId);
         const response = await fetch(`/api/bots/${botId}`);
-        
+
         if (!response.ok) {
           throw new Error(`API-Fehler: ${response.status}`);
         }
-        
+
         const botData = await response.json();
         console.log("USEBOTINFO-DEBUG-001: API-Antwort erhalten:", {
           id: botData.id,
@@ -181,16 +189,16 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
           hasSettings: !!botData.settings,
           settingsKeys: botData.settings ? Object.keys(botData.settings) : []
         });
-        
+
         if (botData) {
           setDataSource('api');
-          
+
           // Bot-Name setzen
           if (botData.name) {
             console.log("USEBOTINFO-DEBUG-001: Setze botName aus API:", botData.name);
             setBotName(botData.name);
           }
-          
+
           // Bot-Einstellungen setzen, wenn vorhanden
           if (botData.settings) {
             // Farben setzen
@@ -198,73 +206,73 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
               console.log("USEBOTINFO-DEBUG-001: Setze primaryColor aus API:", botData.settings.primaryColor);
               setBotPrimaryColor(botData.settings.primaryColor);
             }
-            
+
             if (botData.settings.botBgColor) {
               console.log("USEBOTINFO-DEBUG-001: Setze botBgColor aus API:", botData.settings.botBgColor);
               setBotBgColor(botData.settings.botBgColor);
             }
-            
+
             if (botData.settings.botTextColor) {
               console.log("USEBOTINFO-DEBUG-001: Setze botTextColor aus API:", botData.settings.botTextColor);
               setBotTextColor(botData.settings.botTextColor);
             }
-            
+
             if (botData.settings.botAccentColor) {
               console.log("USEBOTINFO-DEBUG-001: Setze botAccentColor aus API:", botData.settings.botAccentColor);
               setBotAccentColor(botData.settings.botAccentColor);
             }
-            
+
             if (botData.settings.userBgColor) {
               console.log("USEBOTINFO-DEBUG-001: Setze userBgColor aus API:", botData.settings.userBgColor);
               setUserBgColor(botData.settings.userBgColor);
             }
-            
+
             if (botData.settings.userTextColor) {
               console.log("USEBOTINFO-DEBUG-001: Setze userTextColor aus API:", botData.settings.userTextColor);
               setUserTextColor(botData.settings.userTextColor);
             }
-            
+
             // Kopier-Button-Einstellung übernehmen
-            const showCopy = typeof botData.settings.showCopyButton === 'boolean' 
-              ? botData.settings.showCopyButton 
+            const showCopy = typeof botData.settings.showCopyButton === 'boolean'
+              ? botData.settings.showCopyButton
               : true;
             console.log("USEBOTINFO-DEBUG-001: Setze showCopyButton aus API:", showCopy);
             setShowCopyButton(showCopy);
-            
+
             // Feedback-Button-Einstellung übernehmen
-            const enableFeed = typeof botData.settings.enableFeedback === 'boolean' 
+            const enableFeed = typeof botData.settings.enableFeedback === 'boolean'
               ? botData.settings.enableFeedback
               : false;
             console.log("USEBOTINFO-DEBUG-001: Setze enableFeedback aus API:", enableFeed);
             setEnableFeedback(enableFeed);
-              
+
             // Avatar-URL setzen, zuerst aus den Settings, dann aus dem Bot-Objekt
             const avatarUrl = botData.settings.avatarUrl || botData.avatarUrl || undefined;
             console.log("USEBOTINFO-DEBUG-001: Setze avatarUrl:", avatarUrl ? "vorhanden" : "nicht vorhanden");
             setBotAvatarUrl(avatarUrl);
 
             // Neue Einstellung: messageTemplate
-            const messageTempl = botData.settings.messageTemplate === null || botData.settings.messageTemplate === '' 
-              ? 'default' 
+            const messageTempl = botData.settings.messageTemplate === null || botData.settings.messageTemplate === ''
+              ? 'default'
               : botData.settings.messageTemplate;
             console.log("USEBOTINFO-DEBUG-001: Setze messageTemplate aus API:", messageTempl);
             setMessageTemplate(messageTempl);
           } else {
             console.log("USEBOTINFO-DEBUG-001: Keine settings in API-Daten gefunden!");
-            
+
             // Fallback: Avatar-URL direkt aus dem Bot-Objekt
             if (botData.avatarUrl) {
               console.log("USEBOTINFO-DEBUG-001: Setze avatarUrl aus Bot-Objekt");
               setBotAvatarUrl(botData.avatarUrl);
             }
           }
-          
+
           // Willkommensnachricht setzen
           if (botData.welcomeMessage) {
             console.log("USEBOTINFO-DEBUG-001: Setze welcomeMessage aus Bot-Objekt:", botData.welcomeMessage.substring(0, 30) + "...");
             setWelcomeMessage(botData.welcomeMessage);
           }
-          
+
           // Bot im Cache speichern
           const existingCache = botCache[botId] || {};
           botCache[botId] = {
@@ -280,8 +288,8 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
             showSuggestions: botData.settings?.showSuggestions ?? existingCache.showSuggestions ?? true,
             avatarUrl: botData.settings?.avatarUrl || botData.avatarUrl || existingCache.avatarUrl,
             welcomeMessage: botData.welcomeMessage,
-            messageTemplate: botData.settings?.messageTemplate === null || botData.settings?.messageTemplate === '' 
-              ? 'default' 
+            messageTemplate: botData.settings?.messageTemplate === null || botData.settings?.messageTemplate === ''
+              ? 'default'
               : botData.settings?.messageTemplate || existingCache.messageTemplate || 'default'
           };
         }
@@ -297,7 +305,7 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
     if (botCache[botId]) {
       console.log("USEBOTINFO-DEBUG-001: Verwende gecachte Bot-Daten für ID:", botId);
       setDataSource('cache');
-      
+
       const cachedBot = botCache[botId];
       setBotName(cachedBot.name);
       setBotPrimaryColor(cachedBot.primaryColor);
@@ -348,6 +356,7 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
     showCopyButton,
     enableFeedback,
     showSuggestions,
+    showNameInHeader,
     botAvatarUrl,
     welcomeMessage,
     messageTemplate,
@@ -355,4 +364,4 @@ export function useBotInfo({ botId, initialSettings }: UseBotInfoProps) {
     error,
     dataSource
   };
-} 
+}

@@ -22,6 +22,7 @@ export default function ClientComponent() {
   const [showSuggestions, setShowSuggestions] = useState<boolean>(true)
   const [enableFeedback, setEnableFeedback] = useState<boolean>(false)
   const [showCopyButton, setShowCopyButton] = useState<boolean>(true)
+  const [showNameInHeader, setShowNameInHeader] = useState<boolean>(true)
   const containerRef = useRef<HTMLDivElement>(null)
   const searchParams = useSearchParams()
 
@@ -113,6 +114,12 @@ export default function ClientComponent() {
     console.log(`CHAT-EMBED-DEBUG-008: Kopieren-Button anzeigen: ${shouldShowCopyButton}`)
     setShowCopyButton(shouldShowCopyButton)
 
+    // showNameInHeader aus URL erfassen
+    const showNameInHeaderParam = searchParams?.get('showNameInHeader')
+    const shouldShowNameInHeader = showNameInHeaderParam === 'false' ? false : true
+    console.log(`CHAT-EMBED-DEBUG-008: Bot-Namen im Header anzeigen: ${shouldShowNameInHeader}`)
+    setShowNameInHeader(shouldShowNameInHeader)
+
     // Mode aus URL erfassen
     const modeParam = searchParams?.get('mode')
     if (modeParam === 'bubble' || modeParam === 'inline' || modeParam === 'fullscreen') {
@@ -172,6 +179,7 @@ export default function ClientComponent() {
             showSuggestions,
             enableFeedback,
             showCopyButton,
+            showNameInHeader,
             ...(messageTemplate ? { messageTemplate } : {})
           }}
         />
@@ -190,6 +198,7 @@ export default function ClientComponent() {
             showSuggestions,
             enableFeedback,
             showCopyButton,
+            showNameInHeader,
             ...(messageTemplate ? { messageTemplate } : {})
           }}
         />

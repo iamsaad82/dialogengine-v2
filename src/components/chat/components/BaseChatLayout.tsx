@@ -21,7 +21,7 @@ export interface BaseChatLayoutProps {
   mode: 'bubble' | 'inline' | 'fullscreen'
   isLoading: boolean
   isDialogMode: boolean
-  
+
   // Bot/Chat-Info
   botName: string
   botPrimaryColor: string
@@ -33,17 +33,18 @@ export interface BaseChatLayoutProps {
   showCopyButton?: boolean
   enableFeedback?: boolean
   showSuggestions?: boolean
+  showNameInHeader?: boolean
   messageTemplate?: string
   botAvatarUrl?: string
   welcomeMessage?: string
   className?: string
   embedded?: boolean
-  
+
   // Nachrichten und Suggestions
   messages: Message[]
   suggestions?: BotSuggestion[]
   messagesEndRef: React.RefObject<HTMLDivElement>
-  
+
   // Handler
   toggleChat: () => void
   cycleMode: () => void
@@ -55,7 +56,7 @@ export interface BaseChatLayoutProps {
 
 /**
  * BaseChatLayout - Gemeinsames Layout für alle Chat-Komponenten
- * 
+ *
  * Diese Komponente stellt ein einheitliches Layout für sowohl die Streaming- als auch
  * die nicht-streaming Chat-Implementierung bereit. Sie enthält die komplette UI-Struktur
  * für alle drei Modi (bubble, inline, fullscreen).
@@ -66,7 +67,7 @@ export function BaseChatLayout({
   mode,
   isLoading,
   isDialogMode,
-  
+
   // Bot/Chat-Info
   botName,
   botPrimaryColor,
@@ -83,12 +84,12 @@ export function BaseChatLayout({
   welcomeMessage,
   className,
   embedded = false,
-  
+
   // Nachrichten und Suggestions
   messages,
   suggestions = [],
   messagesEndRef,
-  
+
   // Handler
   toggleChat,
   cycleMode,
@@ -97,12 +98,12 @@ export function BaseChatLayout({
   sendMessage,
   cancelMessage
 }: BaseChatLayoutProps) {
-  
+
   // Render-Logik: Chat-Bubble im geschlossenen Zustand
   if (!isOpen && mode !== 'fullscreen') {
     return (
-      <ChatBubble 
-        onClick={toggleChat} 
+      <ChatBubble
+        onClick={toggleChat}
         className={className}
       />
     )
@@ -110,7 +111,7 @@ export function BaseChatLayout({
 
   // Hauptlayout für geöffneten Chat
   return (
-    <div 
+    <div
       className={`chat-container ${mode} ${className || ''}`}
       style={{
         '--bot-primary-color': botPrimaryColor,
@@ -125,8 +126,8 @@ export function BaseChatLayout({
       <div className="debug-info" style={{ display: 'none' }}>
         {`messages.length: ${messages.length}, welcomeMessage: ${welcomeMessage ? 'vorhanden' : 'nicht vorhanden'}, botAvatarUrl: ${botAvatarUrl ? 'vorhanden' : 'nicht vorhanden'}`}
       </div>
-      
-      <ChatHeader 
+
+      <ChatHeader
         botName={botName}
         mode={mode}
         onClose={toggleChat}
@@ -137,11 +138,11 @@ export function BaseChatLayout({
         botTextColor={botTextColor}
         userTextColor={userTextColor}
       />
-      
+
       {/* Dialog/Web-Toggle nur im Fullscreen anzeigen */}
       {mode === 'fullscreen' && (
         <DialogWebToggle
-          botPrimaryColor={botPrimaryColor} 
+          botPrimaryColor={botPrimaryColor}
           botAccentColor={botAccentColor}
           botTextColor={botTextColor}
           isDialogMode={isDialogMode}
@@ -149,19 +150,19 @@ export function BaseChatLayout({
           embedded={embedded}
         />
       )}
-      
+
       {/* Zentrale Willkommensnachricht, nur anzeigen wenn keine Nachrichten vorhanden sind */}
       {messages.length === 0 && welcomeMessage && (
         <div className="welcome-message">
           {botAvatarUrl && (
             <div className="bot-avatar-container">
-              <img 
-                src={botAvatarUrl} 
+              <img
+                src={botAvatarUrl}
                 alt={`${botName} Logo`}
                 className="bot-avatar"
-                style={{ 
-                  width: '130px', 
-                  height: 'auto', 
+                style={{
+                  width: '130px',
+                  height: 'auto',
                   borderRadius: '0',
                   objectFit: 'contain',
                   margin: '0 auto 1rem auto',
@@ -182,7 +183,7 @@ export function BaseChatLayout({
             <div className="gradient-overlay-2"></div>
             <div className="gradient-overlay-3"></div>
             <div className="border-overlay"></div>
-            
+
             {/* Eigentlicher Nachrichtentext */}
             <div className="relative z-10">
               <div className="prose">
@@ -190,12 +191,12 @@ export function BaseChatLayout({
               </div>
             </div>
           </div>
-          
+
           {/* Vorschläge unter der Nachricht, nur anzeigen wenn showSuggestions aktiviert ist */}
           {showSuggestions && suggestions && suggestions.length > 0 ? (
             <div className="welcome-suggestions" style={{ marginTop: '1.5rem' }}>
-              <SuggestionsBar 
-                suggestions={suggestions} 
+              <SuggestionsBar
+                suggestions={suggestions}
                 onSuggestionClick={(text) => sendMessage(text)}
                 botPrimaryColor={botPrimaryColor || ''}
                 botAccentColor={botAccentColor || ''}
@@ -210,8 +211,8 @@ export function BaseChatLayout({
           )}
         </div>
       )}
-      
-      <MessageList 
+
+      <MessageList
         messages={messages}
         isLoading={isLoading}
         botPrimaryColor={botPrimaryColor}
@@ -222,6 +223,7 @@ export function BaseChatLayout({
         userTextColor={userTextColor}
         enableFeedback={enableFeedback}
         showCopyButton={showCopyButton}
+        showNameInHeader={showNameInHeader}
         welcomeMessage={null}
         messagesEndRef={messagesEndRef}
         botAvatarUrl={botAvatarUrl}
@@ -235,13 +237,14 @@ export function BaseChatLayout({
           botAccentColor: botAccentColor,
           userBgColor: userBgColor,
           userTextColor: userTextColor,
+          showNameInHeader: showNameInHeader,
           messageTemplate: messageTemplate
         }}
         isStreaming={isLoading}
       />
-      
-      <ChatInput 
-        onSend={sendMessage} 
+
+      <ChatInput
+        onSend={sendMessage}
         onCancel={cancelMessage}
         isLoading={isLoading}
         botPrimaryColor={botPrimaryColor}
@@ -250,4 +253,4 @@ export function BaseChatLayout({
       />
     </div>
   )
-} 
+}

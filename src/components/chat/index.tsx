@@ -14,16 +14,16 @@ console.log("Chat.tsx geladen - Debug-Version 005");
 const loadedBots = new Set<string>();
 const loadedWelcomeMessages = new Set<string>();
 
-export function Chat({ 
-  initialMode = 'bubble', 
-  embedded = false, 
-  botId, 
-  className, 
+export function Chat({
+  initialMode = 'bubble',
+  embedded = false,
+  botId,
+  className,
   initialSettings,
   suggestions = []
 }: CommonChatProps) {
   const [isDialogMode, setIsDialogMode] = useState<boolean>(false)
-  
+
   // Bot-Informationen über den gemeinsamen Hook laden
   const {
     botName,
@@ -36,21 +36,22 @@ export function Chat({
     showCopyButton,
     enableFeedback,
     showSuggestions,
+    showNameInHeader,
     botAvatarUrl,
     welcomeMessage,
   } = useBotInfo({ botId, initialSettings: initialSettings as BotSettings | undefined })
-  
-  const { 
-    messages, 
-    isLoading, 
-    error, 
-    isOpen, 
-    mode, 
-    sendMessage, 
-    cancelMessage, 
-    toggleChat, 
+
+  const {
+    messages,
+    isLoading,
+    error,
+    isOpen,
+    mode,
+    sendMessage,
+    cancelMessage,
+    toggleChat,
     cycleMode,
-    setMode, 
+    setMode,
     messagesEndRef,
     botSettings,
     welcomeMessage: useChatWelcomeMessage
@@ -73,7 +74,7 @@ export function Chat({
   const toggleDialogMode = () => {
     const newDialogMode = !isDialogMode;
     setIsDialogMode(newDialogMode);
-    
+
     // Dialog-Modus CSS-Klasse zum body und html hinzufügen/entfernen
     if (newDialogMode) {
       document.body.classList.add('dialog-mode');
@@ -85,11 +86,11 @@ export function Chat({
       console.log("Dialog-Modus deaktiviert. Body-Klassen:", document.body.className);
     }
   };
-  
+
   // Effekt für das Laden der Bot-Informationen
   useEffect(() => {
     if (!botId) return
-    
+
     // Bot-Informationen werden nun vom useBotInfo-Hook geladen
     console.log("CHAT-DEBUG-005: Bot-ID für API-Aufruf:", botId);
   }, [botId])
@@ -134,7 +135,7 @@ export function Chat({
       mode={mode}
       isLoading={isLoading}
       isDialogMode={isDialogMode}
-      
+
       // Bot/Chat-Info
       botName={botName}
       botPrimaryColor={botPrimaryColor}
@@ -146,16 +147,17 @@ export function Chat({
       showCopyButton={showCopyButton}
       enableFeedback={enableFeedback}
       showSuggestions={showSuggestions}
+      showNameInHeader={showNameInHeader}
       botAvatarUrl={botAvatarUrl}
       welcomeMessage={(welcomeMessage || useChatWelcomeMessage) || undefined}
       className={className}
       embedded={embedded}
-      
+
       // Nachrichten und Suggestions
       messages={messages}
       suggestions={suggestions}
       messagesEndRef={messagesEndRef}
-      
+
       // Handler
       toggleChat={toggleChat}
       cycleMode={cycleMode}
@@ -165,4 +167,4 @@ export function Chat({
       cancelMessage={cancelMessage}
     />
   )
-} 
+}
