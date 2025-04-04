@@ -19,8 +19,8 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatar
           src={botAvatarUrl}
           alt={botName}
           className="bot-avatar"
-          width="48"
-          height="48"
+          width="96"
+          height="96"
           style={{
             objectFit: 'contain',
             borderRadius: '0',
