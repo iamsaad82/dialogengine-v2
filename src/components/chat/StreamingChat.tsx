@@ -45,6 +45,7 @@ export function StreamingChat({
     showCopyButton,
     enableFeedback,
     showSuggestions,
+    showNameInHeader,
     botAvatarUrl,
     welcomeMessage,
     messageTemplate,
@@ -187,6 +188,7 @@ export function StreamingChat({
         showCopyButton={showCopyButton}
         enableFeedback={enableFeedback}
         showSuggestions={showSuggestions}
+        showNameInHeader={showNameInHeader}
         messageTemplate={messageTemplate}
         botAvatarUrl={botAvatarUrl}
         welcomeMessage={welcomeMessage}
