@@ -23,6 +23,7 @@ interface Bot {
     enableAnalytics: boolean
     showSuggestions: boolean
     showCopyButton: boolean
+    showNameInHeader?: boolean
     botBgColor: string
     botTextColor: string
     userBgColor: string
@@ -183,6 +184,11 @@ export default function EmbedGenerator() {
       scriptUrl.searchParams.append('showCopyButton', selectedBot.settings.showCopyButton.toString());
     }
 
+    // Bot-Namen im Header anzeigen
+    if (selectedBot?.settings?.showNameInHeader !== undefined) {
+      scriptUrl.searchParams.append('showNameInHeader', selectedBot.settings.showNameInHeader.toString());
+    }
+
     const code = `<!-- Dialog Engine Chat Widget -->
 <div id="dialog-container"
   data-mode="${initialMode}"
@@ -194,6 +200,7 @@ export default function EmbedGenerator() {
   ${selectedBot?.settings?.showSuggestions !== undefined ? `data-show-suggestions="${selectedBot.settings.showSuggestions}"` : ''}
   ${selectedBot?.settings?.enableFeedback !== undefined ? `data-enable-feedback="${selectedBot.settings.enableFeedback}"` : ''}
   ${selectedBot?.settings?.showCopyButton !== undefined ? `data-show-copy-button="${selectedBot.settings.showCopyButton}"` : ''}
+  ${selectedBot?.settings?.showNameInHeader !== undefined ? `data-show-name-in-header="${selectedBot.settings.showNameInHeader}"` : ''}
   ${selectedBot?.settings?.messageTemplate && selectedBot.settings.messageTemplate !== 'default' ?
     `data-message-template="${selectedBot.settings.messageTemplate}"` : ''}
   ${zIndex ? `data-z-index="${zIndex}"` : ''}

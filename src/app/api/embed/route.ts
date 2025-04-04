@@ -27,6 +27,8 @@ export async function GET(request: Request) {
   const enableFeedback = searchParams.get('enableFeedback') === 'true' ? true : false
   // Kopieren-Button anzeigen (Standard: true)
   const showCopyButton = searchParams.get('showCopyButton') === 'false' ? false : true
+  // Bot-Namen im Header anzeigen (Standard: true)
+  const showNameInHeader = searchParams.get('showNameInHeader') === 'false' ? false : true
 
   if (!botId) {
     return new Response('Bot ID erforderlich', { status: 400 })
@@ -73,6 +75,8 @@ export async function GET(request: Request) {
     const configEnableFeedback = targetContainer.getAttribute('data-enable-feedback') === "true" ? true : ${enableFeedback};
     // Kopieren-Button anzeigen
     const configShowCopyButton = targetContainer.getAttribute('data-show-copy-button') === "false" ? false : ${showCopyButton};
+    // Bot-Namen im Header anzeigen
+    const configShowNameInHeader = targetContainer.getAttribute('data-show-name-in-header') === "false" ? false : ${showNameInHeader};
 
     // Debugging-Info
     console.log('Dialog Widget Config:', {
@@ -82,7 +86,8 @@ export async function GET(request: Request) {
       botId: configBotId,
       streaming: configStreaming ? 'aktiviert' : 'deaktiviert',
       initialDialogMode: configInitialDialogMode ? 'Dialog-Modus' : 'Web-Modus',
-      messageTemplate: configMessageTemplate || 'Standard'
+      messageTemplate: configMessageTemplate || 'Standard',
+      showNameInHeader: configShowNameInHeader ? 'anzeigen' : 'ausblenden'
     });
 
     // Erweiterte Einstellungen aus Datenattributen oder Standardwerten
@@ -279,6 +284,10 @@ export async function GET(request: Request) {
 
       // Kopieren-Button-Option hinzufügen
       widgetUrl.searchParams.append('showCopyButton', configShowCopyButton.toString());
+
+      // Bot-Namen im Header anzeigen
+      const configShowNameInHeader = targetContainer.getAttribute('data-show-name-in-header');
+      widgetUrl.searchParams.append('showNameInHeader', configShowNameInHeader === 'false' ? 'false' : 'true');
 
       if (mode === 'bubble') {
         // Erstelle einen neuen Container für die Bubble

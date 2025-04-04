@@ -15,7 +15,7 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false)
   const botId = params.id
-  
+
   // Formular-Zustand
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -23,7 +23,7 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
   const [flowiseId, setFlowiseId] = useState('')
   const [active, setActive] = useState(false)
   const [suggestions, setSuggestions] = useState<BotSuggestion[]>([])
-  
+
   // Design-Einstellungen
   const [settings, setSettings] = useState<BotSettings>({
     primaryColor: '#3b82f6',
@@ -32,10 +32,11 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
     botAccentColor: '#3b82f6',
     userBgColor: '',
     userTextColor: '#ffffff',
-    enableFeedback: true, 
+    enableFeedback: true,
     enableAnalytics: true,
     showSuggestions: true,
     showCopyButton: true,
+    showNameInHeader: true,
     messageTemplate: 'default',
     botPersonality: 'Du bist der Assistent des Einkaufscenters ORO Schwabach',
     botContext: 'Center',
@@ -47,44 +48,44 @@ Feiertage:
 - Neujahr: Montag, 01.01.2024
 - Heilige Drei Könige: Samstag, 06.01.2024`
   })
-  
+
   // Bot-Daten laden
   useEffect(() => {
     const fetchBot = async () => {
       try {
         setLoading(true)
         const res = await fetch(`/api/bots/${botId}`)
-        
+
         if (!res.ok) {
           const errorData = await res.json()
           throw new Error(errorData.error || 'Fehler beim Laden des Bots')
         }
-        
+
         const botData = await res.json()
         setBot(botData)
-        
+
         // Formularfelder mit Bot-Daten füllen
         setName(botData.name || '')
         setDescription(botData.description || '')
         setWelcomeMessage(botData.welcomeMessage || '')
         setFlowiseId(botData.flowiseId || '')
         setActive(botData.active || false)
-        
+
         // Setze Vorschläge
         setSuggestions(botData.suggestions || [])
-        
+
         // Design-Einstellungen
         if (botData.settings) {
           console.log('Geladene Bot-Einstellungen:', botData.settings);
-          
+
           // Prüfe, ob messageTemplate vorhanden und nicht leer ist
-          const messageTemplate = botData.settings.messageTemplate === null || botData.settings.messageTemplate === '' 
+          const messageTemplate = botData.settings.messageTemplate === null || botData.settings.messageTemplate === ''
             ? 'default'
             : botData.settings.messageTemplate;
-            
+
           console.log('MessageTemplate aus Datenbank:', botData.settings.messageTemplate);
           console.log('Verwendetes MessageTemplate:', messageTemplate);
-          
+
           setSettings({
             primaryColor: botData.settings.primaryColor || '#3b82f6',
             botBgColor: botData.settings.botBgColor || 'rgba(248, 250, 252, 0.8)',
@@ -96,6 +97,7 @@ Feiertage:
             enableAnalytics: botData.settings.enableAnalytics,
             showSuggestions: botData.settings.showSuggestions,
             showCopyButton: botData.settings.showCopyButton,
+            showNameInHeader: botData.settings.showNameInHeader !== undefined ? botData.settings.showNameInHeader : true,
             messageTemplate: messageTemplate, // Explizit den verarbeiteten Wert setzen
             avatarUrl: botData.settings.avatarUrl || botData.avatarUrl || undefined,
             botPersonality: botData.settings.botPersonality || 'Du bist der Assistent des Einkaufscenters ORO Schwabach',
@@ -115,7 +117,7 @@ Feiertage:
             avatarUrl: botData.avatarUrl
           }));
         }
-        
+
         setError(null)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten')
@@ -123,10 +125,10 @@ Feiertage:
         setLoading(false)
       }
     }
-    
+
     fetchBot()
   }, [botId])
-  
+
   // Erfolgsmeldung nach dem Speichern zurücksetzen
   useEffect(() => {
     if (saveSuccess) {
@@ -136,29 +138,29 @@ Feiertage:
       return () => clearTimeout(timer);
     }
   }, [saveSuccess]);
-  
+
   // Bot speichern
   const saveBot = async () => {
     try {
       setSaving(true)
       setError(null)
-      
+
       console.log('Zu speichernde Einstellungen:', settings);
-      
+
       // Extrahiere die Prompt-Einstellungen für zukünftige Verwendung
-      const { 
-        botPersonality, 
-        botContext, 
-        botScope, 
-        offerTip, 
-        closedDays, 
-        ...dbSettings 
+      const {
+        botPersonality,
+        botContext,
+        botScope,
+        offerTip,
+        closedDays,
+        ...dbSettings
       } = settings;
-      
-      console.log('Prompt-Einstellungen (werden lokal gespeichert):', { 
-        botPersonality, botContext, botScope, offerTip, closedDays 
+
+      console.log('Prompt-Einstellungen (werden lokal gespeichert):', {
+        botPersonality, botContext, botScope, offerTip, closedDays
       });
-      
+
       // Allgemeine Bot-Einstellungen speichern
       const generalRes = await fetch(`/api/bots/${botId}`, {
         method: 'PUT',
@@ -175,12 +177,12 @@ Feiertage:
           suggestions
         }),
       })
-      
+
       if (!generalRes.ok) {
         const errorData = await generalRes.json()
         throw new Error(errorData.error || 'Fehler beim Speichern der Bot-Informationen')
       }
-      
+
       // Design-Einstellungen speichern
       const designRes = await fetch(`/api/bots/${botId}/settings`, {
         method: 'PUT',
@@ -192,12 +194,12 @@ Feiertage:
           settings: dbSettings // Nur die Einstellungen, die in der DB existieren
         }),
       })
-      
+
       if (!designRes.ok) {
         const errorData = await designRes.json()
         throw new Error(errorData.error || 'Fehler beim Speichern der Bot-Einstellungen')
       }
-      
+
       // Avatar-URL auch im Hauptobjekt speichern für doppelte Sicherheit
       if (settings.avatarUrl) {
         const avatarRes = await fetch(`/api/bots/${botId}`, {
@@ -209,21 +211,21 @@ Feiertage:
             avatarUrl: settings.avatarUrl
           }),
         })
-        
+
         if (!avatarRes.ok) {
           console.warn('Warnung: Avatar-URL konnte nicht im Bot-Objekt gespeichert werden');
         }
       }
-      
+
       // Bot neu laden
       const updatedBotRes = await fetch(`/api/bots/${botId}`)
       if (updatedBotRes.ok) {
         const updatedBot = await updatedBotRes.json()
         setBot(updatedBot)
-        
-        // Nach dem Neuladen die Prompt-Einstellungen wieder zufügen, 
+
+        // Nach dem Neuladen die Prompt-Einstellungen wieder zufügen,
         // da sie nicht in der Datenbank gespeichert werden
-        const updatedMessageTemplate = updatedBot.settings?.messageTemplate === null || updatedBot.settings?.messageTemplate === '' 
+        const updatedMessageTemplate = updatedBot.settings?.messageTemplate === null || updatedBot.settings?.messageTemplate === ''
           ? 'default'
           : updatedBot.settings?.messageTemplate;
 
@@ -240,7 +242,7 @@ Feiertage:
           closedDays: prevSettings.closedDays
         }));
       }
-      
+
       // Erfolgsmeldung anzeigen
       setSaveSuccess(true)
       setError(null)
@@ -250,11 +252,11 @@ Feiertage:
       setSaving(false)
     }
   }
-  
+
   const navigateBack = () => {
     router.push('/admin/bots')
   }
-  
+
   if (error) {
     return (
       <div className="py-8">
@@ -267,7 +269,7 @@ Feiertage:
       </div>
     )
   }
-  
+
   if (loading) {
     return (
       <div className="py-8 flex justify-center">
@@ -281,19 +283,19 @@ Feiertage:
       </div>
     )
   }
-  
+
   return (
     <div className="container py-8 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Bot verwalten: {bot?.name}</h1>
-        <button 
+        <button
           onClick={navigateBack}
           className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
         >
           Zurück zur Übersicht
         </button>
       </div>
-      
+
       {saveSuccess && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -302,7 +304,7 @@ Feiertage:
           <span>Änderungen erfolgreich gespeichert!</span>
         </div>
       )}
-      
+
       <BotSettingsTabs
         name={name}
         description={description}
@@ -319,7 +321,7 @@ Feiertage:
         onSettingsChange={setSettings}
         onSuggestionsChange={setSuggestions}
       />
-      
+
       <div className="flex justify-end gap-2 mt-6">
         <button
           onClick={navigateBack}
@@ -346,4 +348,4 @@ Feiertage:
       </div>
     </div>
   )
-} 
+}
