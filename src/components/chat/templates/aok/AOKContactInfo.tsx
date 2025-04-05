@@ -8,16 +8,16 @@ interface AOKContactInfoProps {
 
 /**
  * AOK-spezifische Kontaktinformationen-Komponente
- * 
+ *
  * Zeigt Kontaktdaten im AOK-Design mit hervorgehobener Telefonnummer, E-Mail, etc. an
  */
 const AOKContactInfo: React.FC<AOKContactInfoProps> = ({ content }) => {
   const contentRef = useRef<HTMLDivElement>(null);
-  
+
   // Nachträgliche Anpassungen für Kontakt-Elemente
   useEffect(() => {
     if (!contentRef.current) return;
-    
+
     // Telefonnummer-Formatierung verbessern
     const phoneElements = contentRef.current.querySelectorAll('a[href^="tel:"]');
     phoneElements.forEach(phone => {
@@ -38,13 +38,14 @@ const AOKContactInfo: React.FC<AOKContactInfoProps> = ({ content }) => {
   }, [content]);
 
   return (
-    <div className="aok-contact-info" ref={contentRef}>
-      <div 
-        className="aok-service-section"
-        dangerouslySetInnerHTML={{ __html: content }} 
+    <div className="aok-contact-box" ref={contentRef}>
+      <div className="aok-contact-title">Kontakt & Service</div>
+      <div
+        className="aok-contact-content"
+        dangerouslySetInnerHTML={{ __html: content }}
       />
     </div>
   );
 };
 
-export default AOKContactInfo; 
+export default AOKContactInfo;

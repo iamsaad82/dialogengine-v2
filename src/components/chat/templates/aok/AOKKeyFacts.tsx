@@ -9,7 +9,7 @@ interface AOKKeyFactsProps {
 
 /**
  * AOK-spezifische Key Facts-Komponente
- * 
+ *
  * Zeigt Stichpunkte im AOK-Design mit Icons und spezieller Formatierung an
  */
 const AOKKeyFacts: React.FC<AOKKeyFactsProps> = ({ content }) => {
@@ -18,19 +18,19 @@ const AOKKeyFacts: React.FC<AOKKeyFactsProps> = ({ content }) => {
   // Verbesserungen nach dem Rendern anwenden
   useEffect(() => {
     if (!contentRef.current) return;
-    
+
     // Links in den Key Facts speziell formatieren
     const links = contentRef.current.querySelectorAll('a');
     links.forEach(link => {
       // Telefon-Links hervorheben
       if (link.href.startsWith('tel:')) {
         link.classList.add('aok-tel-link');
-      } 
+      }
       // E-Mail-Links hervorheben
       else if (link.href.startsWith('mailto:')) {
         link.classList.add('aok-mail-link');
       }
-      // Web-Links hervorheben 
+      // Web-Links hervorheben
       else {
         link.classList.add('web-link');
       }
@@ -41,14 +41,14 @@ const AOKKeyFacts: React.FC<AOKKeyFactsProps> = ({ content }) => {
   const items = extractListItems(content);
 
   return (
-    <div className="aok-key-facts" ref={contentRef}>
-      <h4>Key Facts</h4>
-      <ul className="aok-key-facts-list">
+    <div className="aok-facts-box" ref={contentRef}>
+      <div className="aok-box-title">Key Facts</div>
+      <ul className="aok-facts-list">
         {items.length > 0 ? (
           // Wenn Items extrahiert wurden, einzeln rendern
           items.map((item, index) => (
             <li key={index}>
-              <strong>{item.icon}</strong> 
+              <strong>{item.icon}</strong>
               <span dangerouslySetInnerHTML={{ __html: item.text }} />
             </li>
           ))
@@ -61,4 +61,4 @@ const AOKKeyFacts: React.FC<AOKKeyFactsProps> = ({ content }) => {
   );
 };
 
-export default AOKKeyFacts; 
+export default AOKKeyFacts;

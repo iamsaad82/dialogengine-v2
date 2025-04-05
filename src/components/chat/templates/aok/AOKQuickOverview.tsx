@@ -8,16 +8,16 @@ interface AOKQuickOverviewProps {
 
 /**
  * AOK-spezifische Schnellüberblick-Komponente
- * 
+ *
  * Zeigt eine übersichtliche Zusammenfassung wichtiger Informationen im AOK-Design an
  */
 const AOKQuickOverview: React.FC<AOKQuickOverviewProps> = ({ content }) => {
   return (
-    <div className="aok-quick-overview">
-      <h4>Auf einen Blick</h4>
-      <div dangerouslySetInnerHTML={{ __html: content }} />
+    <div className="aok-box">
+      <div className="aok-box-title">Auf einen Blick</div>
+      <div className="aok-box-content" dangerouslySetInnerHTML={{ __html: content }} />
     </div>
   );
 };
 
-export default AOKQuickOverview; 
+export default AOKQuickOverview;

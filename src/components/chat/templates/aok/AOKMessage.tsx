@@ -28,13 +28,19 @@ const AOKMessage: React.FC<AOKMessageProps> = ({
   const [lastProcessedContent, setLastProcessedContent] = useState('');
 
   // Farben aus Bot-Settings
-  const primaryColor = colorStyle?.primaryColor || '#009fe3';
-  const secondaryColor = colorStyle?.secondaryColor || '#e3000f';
+  const primaryColor = colorStyle?.primaryColor || '#006e3b'; // Neues AOK-Grün
+  const secondaryColor = colorStyle?.secondaryColor || '#8bc100'; // Neues AOK-Hellgrün
 
   // CSS-Variablen setzen
   const dynamicStyles = {
     '--aok-primary': primaryColor,
     '--aok-secondary': secondaryColor,
+    '--aok-primary-rgb': primaryColor.startsWith('#') ?
+      `${parseInt(primaryColor.slice(1, 3), 16)}, ${parseInt(primaryColor.slice(3, 5), 16)}, ${parseInt(primaryColor.slice(5, 7), 16)}` :
+      '0, 110, 59',
+    '--aok-secondary-rgb': secondaryColor.startsWith('#') ?
+      `${parseInt(secondaryColor.slice(1, 3), 16)}, ${parseInt(secondaryColor.slice(3, 5), 16)}, ${parseInt(secondaryColor.slice(5, 7), 16)}` :
+      '139, 193, 0',
   } as React.CSSProperties;
 
   // Funktion, um Links in neuem Tab zu öffnen und URL-Format zu korrigieren
@@ -158,7 +164,11 @@ const AOKMessage: React.FC<AOKMessageProps> = ({
 
         {/* Während des Streamings den gesamten Inhalt anzeigen, aber Links korrigieren */}
         <div dangerouslySetInnerHTML={{ __html: processedContent }} />
-        <div className="aok-streaming-indicator">...</div>
+        <div className="aok-streaming-indicator">
+          <div className="aok-typing-dot"></div>
+          <div className="aok-typing-dot"></div>
+          <div className="aok-typing-dot"></div>
+        </div>
       </div>
     );
   }
@@ -183,7 +193,11 @@ const AOKMessage: React.FC<AOKMessageProps> = ({
 
       {/* Streaming-Indikator */}
       {!isComplete && (
-        <div className="aok-streaming-indicator">...</div>
+        <div className="aok-streaming-indicator">
+          <div className="aok-typing-dot"></div>
+          <div className="aok-typing-dot"></div>
+          <div className="aok-typing-dot"></div>
+        </div>
       )}
     </div>
   );

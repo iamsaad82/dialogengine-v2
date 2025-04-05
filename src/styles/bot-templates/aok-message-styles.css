@@ -1,22 +1,36 @@
 /* 
- * AOK MESSAGE TEMPLATE STYLES 
- * Zuletzt aktualisiert: 02.11.2023
+ * AOK MESSAGE TEMPLATE STYLES - Neu 2024
+ * Basierend auf dem aktuellen AOK-Webdesign
  */
 
-/* AOK Message Styles - Vereinfachte Version basierend auf AOK-Design */
+/* AOK Farbvariablen */
 :root {
-  --aok-primary: #009fe3; /* Hellblau - Primärfarbe */
-  --aok-secondary: #e30613; /* Rot - Akzentfarbe */
-  --aok-dark-blue: #003c74; /* Dunkelblau für Überschriften */
-  --aok-light-blue: #e1f4fa; /* Hellblau für Hintergründe */
-  --aok-light-grey: #f5f5f5; /* Hellgrau für Hintergründe */
-  --aok-dark-green: #006d4e; /* Dunkelgrün für CTA-Hintergrund */
-  --aok-light-green: #8bdc24; /* Hellgrün für Buttons */
-  --aok-text: #333333; /* Textfarbe */
+  --aok-primary: #006e3b; /* Dunkelgrün - Primärfarbe */
+  --aok-primary-light: #008a49; /* Helleres Grün für Hover */
+  --aok-primary-dark: #005a30; /* Dunkleres Grün */
+  --aok-primary-rgb: 0, 110, 59; /* RGB-Werte für Transparenz */
+  
+  --aok-secondary: #8bc100; /* Hellgrün - Akzentfarbe */
+  --aok-secondary-light: #9fd500; /* Helleres Akzentgrün */
+  --aok-secondary-rgb: 139, 193, 0; /* RGB-Werte für Transparenz */
+  
+  --aok-light-bg: #f5f9f7; /* Sehr helles Grün für Hintergründe */
+  --aok-light-bg-2: #e8f2ec; /* Etwas dunkleres Hintergrundgrün */
+  --aok-cream: #f9f7f2; /* Cremefarbener Hintergrund */
+  
+  --aok-text: #333333; /* Haupttextfarbe */
+  --aok-text-light: #666666; /* Hellere Textfarbe */
+  --aok-text-dark: #1a1a1a; /* Dunklere Textfarbe */
+  
+  --aok-white: #ffffff; /* Weiß */
+  --aok-border: #e0e0e0; /* Rahmenfarbe */
+  
   --aok-border-radius: 8px; /* Abgerundete Ecken */
   --aok-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Schatten */
+  --aok-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12); /* Hover-Schatten */
 }
 
+/* Grundlegende Nachrichtenstile */
 .aok-message {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   line-height: 1.6;
@@ -24,62 +38,63 @@
   padding: 0;
   width: 100%;
   max-width: 100%;
+  font-size: 0.95rem;
 }
 
-/* Grundlegende Typografie */
+/* Typografie */
 .aok-message h1 {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  color: var(--aok-dark-blue);
+  color: var(--aok-primary);
   margin: 1.5rem 0 1rem 0;
   line-height: 1.3;
 }
 
 .aok-message h2 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
-  color: var(--aok-dark-blue);
+  color: var(--aok-primary);
   margin: 1.2rem 0 0.8rem 0;
   line-height: 1.3;
 }
 
 .aok-message h3 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: var(--aok-dark-blue);
+  color: var(--aok-primary);
   margin: 1rem 0 0.6rem 0;
   line-height: 1.3;
 }
 
 .aok-message p {
   margin: 0 0 1rem 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.6;
 }
 
 /* Kurzantwort am Anfang der Nachricht */
 .aok-short-answer {
-  font-size: 1.15rem !important;
+  font-size: 1.1rem !important;
   font-weight: 500 !important;
   line-height: 1.5 !important;
   margin-bottom: 1.5rem !important;
   padding-bottom: 1rem !important;
-  border-bottom: 1px solid rgba(0, 159, 227, 0.25) !important;
-  color: var(--aok-dark-blue) !important;
+  border-bottom: 1px solid rgba(var(--aok-primary-rgb), 0.2) !important;
+  color: var(--aok-primary) !important;
 }
 
 /* Links */
 .aok-message a {
   color: var(--aok-primary) !important;
   text-decoration: none !important;
-  border-bottom: 1px solid rgba(0, 159, 227, 0.3) !important;
+  border-bottom: 1px solid rgba(var(--aok-primary-rgb), 0.3) !important;
   transition: color 0.2s ease, border-color 0.2s ease !important;
   padding-bottom: 1px !important;
   font-weight: 500 !important;
 }
 
 .aok-message a:hover {
-  color: var(--aok-secondary) !important;
+  color: var(--aok-primary-light) !important;
   border-bottom: 1px solid var(--aok-primary) !important;
 }
 
@@ -102,22 +117,29 @@
 
 .aok-message li {
   margin-bottom: 0.5rem;
+  font-size: 0.95rem;
 }
 
 /* AOK-Box - Allgemeine Box für verschiedene Inhalte */
 .aok-box {
-  background-color: var(--aok-light-blue);
+  background-color: var(--aok-light-bg);
   border-radius: var(--aok-border-radius);
   padding: 1.5rem;
   margin: 1.5rem 0;
   box-shadow: var(--aok-shadow);
   position: relative;
+  border: 1px solid rgba(var(--aok-primary-rgb), 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.aok-box:hover {
+  box-shadow: var(--aok-shadow-hover);
 }
 
 .aok-box-title {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: var(--aok-dark-blue);
+  color: var(--aok-primary);
   margin: 0 0 1rem 0;
   display: flex;
   align-items: center;
@@ -126,9 +148,9 @@
 .aok-box-title::before {
   content: "";
   display: inline-block;
-  width: 24px;
-  height: 24px;
-  background-color: var(--aok-primary);
+  width: 20px;
+  height: 20px;
+  background-color: var(--aok-secondary);
   border-radius: 50%;
   margin-right: 0.8rem;
   flex-shrink: 0;
@@ -140,7 +162,7 @@
 
 /* AOK-Info-Box - Für Hinweise und Informationen */
 .aok-info-box {
-  background-color: var(--aok-light-blue);
+  background-color: var(--aok-light-bg-2);
   border-left: 4px solid var(--aok-primary);
   border-radius: var(--aok-border-radius);
   padding: 1.2rem 1.5rem;
@@ -151,18 +173,18 @@
 .aok-info-box-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--aok-dark-blue);
+  color: var(--aok-primary);
   margin: 0 0 0.5rem 0;
 }
 
 /* AOK-Fakten-Box - Für Key Facts */
 .aok-facts-box {
-  background-color: white;
+  background-color: var(--aok-white);
   border-radius: var(--aok-border-radius);
   padding: 1.2rem 1.5rem;
   margin: 1.5rem 0;
   box-shadow: var(--aok-shadow);
-  border: 1px solid rgba(0, 159, 227, 0.15);
+  border: 1px solid rgba(var(--aok-primary-rgb), 0.15);
 }
 
 .aok-facts-list {
@@ -175,16 +197,20 @@
   position: relative;
   padding-left: 1.8rem;
   margin-bottom: 0.8rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.5;
 }
 
 .aok-facts-list li:before {
-  content: "✓";
+  content: "";
   position: absolute;
   left: 0;
-  color: var(--aok-primary);
-  font-weight: bold;
+  top: 0.25rem;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23008a49'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 /* AOK-CTA-Button */
@@ -193,18 +219,18 @@
   background-color: var(--aok-primary);
   color: white !important;
   font-weight: 600;
-  padding: 0.6rem 1.2rem;
+  padding: 0.7rem 1.4rem;
   border-radius: 4px;
   text-decoration: none !important;
   border: none !important;
   transition: background-color 0.2s ease, transform 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin: 0.8rem 0.5rem 0.8rem 0;
+  font-size: 0.95rem;
 }
 
 .aok-button:hover {
-  background-color: #0080b5;
+  background-color: var(--aok-primary-light);
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   text-decoration: none !important;
@@ -212,22 +238,46 @@
   color: white !important;
 }
 
+.aok-button-secondary {
+  background-color: var(--aok-secondary);
+  color: var(--aok-text-dark) !important;
+}
+
+.aok-button-secondary:hover {
+  background-color: var(--aok-secondary-light);
+  color: var(--aok-text-dark) !important;
+}
+
+.aok-button-outline {
+  background-color: transparent;
+  color: var(--aok-primary) !important;
+  border: 1px solid var(--aok-primary) !important;
+  box-shadow: none;
+}
+
+.aok-button-outline:hover {
+  background-color: rgba(var(--aok-primary-rgb), 0.05);
+  color: var(--aok-primary) !important;
+}
+
 /* AOK-Sicherheitshinweis */
 .aok-security-notice {
   display: flex;
-  align-items: center;
-  background-color: var(--aok-light-grey);
+  align-items: flex-start;
+  background-color: var(--aok-light-bg-2);
   border-radius: var(--aok-border-radius);
-  padding: 1rem 1.5rem;
+  padding: 1.2rem 1.5rem;
   margin: 1.5rem 0;
+  border-left: 4px solid var(--aok-secondary);
 }
 
 .aok-security-notice svg {
   flex-shrink: 0;
-  color: var(--aok-light-green);
+  color: var(--aok-secondary);
   width: 24px;
   height: 24px;
   margin-right: 1rem;
+  margin-top: 0.1rem;
 }
 
 .aok-security-notice-text {
@@ -236,16 +286,301 @@
   margin: 0;
 }
 
-/* Streaming-Indikator */
-.aok-streaming-indicator {
-  opacity: 0.7 !important;
-  font-size: 1.25rem !important;
-  margin-top: 1rem !important;
-  animation: blink 1s infinite !important;
+/* Karten-Layout für Services und Angebote */
+.aok-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.2rem;
+  margin: 1.5rem 0;
 }
 
-@keyframes blink {
-  0% { opacity: 0.3; }
-  50% { opacity: 1; }
-  100% { opacity: 0.3; }
-} 
+.aok-card {
+  background-color: var(--aok-white);
+  border-radius: var(--aok-border-radius);
+  overflow: hidden;
+  box-shadow: var(--aok-shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid rgba(var(--aok-primary-rgb), 0.1);
+}
+
+.aok-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--aok-shadow-hover);
+}
+
+.aok-card-image {
+  width: 100%;
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+}
+
+.aok-card-content {
+  padding: 1.2rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.aok-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--aok-primary);
+  margin: 0 0 0.8rem 0;
+}
+
+.aok-card-text {
+  font-size: 0.9rem;
+  color: var(--aok-text);
+  margin: 0 0 1rem 0;
+  flex-grow: 1;
+}
+
+.aok-card-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aok-card-link {
+  color: var(--aok-primary) !important;
+  font-weight: 500 !important;
+  font-size: 0.9rem !important;
+  display: flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+
+.aok-card-link::after {
+  content: "→" !important;
+  margin-left: 0.4rem !important;
+  transition: transform 0.2s ease !important;
+}
+
+.aok-card-link:hover::after {
+  transform: translateX(3px) !important;
+}
+
+/* Tabellen */
+.aok-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+  box-shadow: var(--aok-shadow);
+  border-radius: var(--aok-border-radius);
+  overflow: hidden;
+}
+
+.aok-table th {
+  background-color: var(--aok-primary);
+  color: white;
+  text-align: left;
+  padding: 0.8rem 1rem;
+  font-weight: 600;
+}
+
+.aok-table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--aok-border);
+  background-color: var(--aok-white);
+}
+
+.aok-table tr:last-child td {
+  border-bottom: none;
+}
+
+.aok-table tr:nth-child(even) td {
+  background-color: var(--aok-light-bg);
+}
+
+/* Kontakt-Box */
+.aok-contact-box {
+  background-color: var(--aok-cream);
+  border-radius: var(--aok-border-radius);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--aok-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aok-contact-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--aok-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.aok-contact-title::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23006e3b'%3E%3Cpath d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-right: 0.8rem;
+  flex-shrink: 0;
+}
+
+.aok-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 0.95rem;
+}
+
+.aok-contact-item-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Schritte/Prozess-Box */
+.aok-steps {
+  margin: 1.5rem 0;
+}
+
+.aok-step {
+  display: flex;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.aok-step:last-child {
+  margin-bottom: 0;
+}
+
+.aok-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 2.5rem;
+  left: 1rem;
+  width: 2px;
+  height: calc(100% - 1rem);
+  background-color: rgba(var(--aok-primary-rgb), 0.2);
+}
+
+.aok-step-number {
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--aok-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.aok-step-content {
+  flex-grow: 1;
+  padding-top: 0.25rem;
+}
+
+.aok-step-title {
+  font-weight: 600;
+  color: var(--aok-primary);
+  margin: 0 0 0.5rem 0;
+  font-size: 1.05rem;
+}
+
+.aok-step-text {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Tags */
+.aok-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.aok-tag {
+  background-color: rgba(var(--aok-primary-rgb), 0.1);
+  color: var(--aok-primary);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 100px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.aok-tag-icon {
+  margin-right: 0.4rem;
+}
+
+/* Streaming-Indikator */
+.aok-streaming-indicator {
+  display: flex;
+  gap: 4px;
+  margin-top: 1rem;
+  height: 24px;
+  align-items: center;
+}
+
+.aok-typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--aok-primary);
+  opacity: 0.6;
+  animation: aok-pulse 1.5s infinite ease-in-out;
+}
+
+.aok-typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.aok-typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes aok-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .aok-card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .aok-box, .aok-info-box, .aok-facts-box, .aok-security-notice, .aok-contact-box {
+    padding: 1rem;
+  }
+  
+  .aok-message h1 {
+    font-size: 1.4rem;
+  }
+  
+  .aok-message h2 {
+    font-size: 1.2rem;
+  }
+  
+  .aok-message h3 {
+    font-size: 1.1rem;
+  }
+}
