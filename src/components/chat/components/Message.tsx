@@ -9,6 +9,7 @@ import { MessageHeader } from './MessageHeader'
 import { MessageControls } from './MessageControls'
 import { Suspense, lazy } from 'react'
 import { getTemplateComponents } from '../templates'
+import { hexToRgbString } from '@/utils/colorUtils'
 
 // Hilfsfunktion für Gradienten aus der Primärfarbe
 const createGradientFromColor = (color: string | undefined): string => {
@@ -85,6 +86,11 @@ export const Message: React.FC<{
 
   const contentClass = `message-content ${isStreaming && isBot && isLast ? 'streaming-content' : ''}`;
 
+  // RGB-Werte für CSS-Variablen extrahieren
+  const primaryColorRgb = colorStyle?.primaryColor ? hexToRgbString(colorStyle.primaryColor) : '59, 130, 246';
+  const accentColorRgb = colorStyle?.botAccentColor ? hexToRgbString(colorStyle.botAccentColor) : '59, 130, 246';
+  const botBgColorRgb = '248, 250, 252'; // Standardwert für Hintergrund
+
   // Inline-Styles - Minimal und effektiv
   const messageStyles = {
     background: isBot
@@ -96,7 +102,10 @@ export const Message: React.FC<{
       : '#ffffff', // Immer weiß für Benutzer-Nachrichten, unabhängig von den Einstellungen
     width: 'fit-content', // Begrenze die Breite auf den Inhalt
     maxWidth: isBot ? '80%' : '70%', // User-Nachrichten etwas schmaler als Bot-Nachrichten
-  };
+    '--bot-primary-color-rgb': primaryColorRgb,
+    '--bot-accent-color-rgb': accentColorRgb,
+    '--bot-bg-color-rgb': botBgColorRgb,
+  } as React.CSSProperties;
 
   // Debug-Ausgabe für Farben
   console.log("MESSAGE-COLOR-DEBUG:", {

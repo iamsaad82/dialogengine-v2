@@ -8,6 +8,7 @@
 @import '../styles/bot-templates/creditreform-message-styles.css';
 @import '../styles/bot-templates/brandenburg-message-styles.css';
 @import '../styles/bot-templates/mall-message-styles.css';
+@import '../styles/bot-templates/modern-default-styles.css';
 
 @tailwind base;
 @tailwind components;
@@ -77,30 +78,30 @@
 
   --card: 0 0% 100%;
   --card-foreground: 0 0% 3.9%;
- 
+
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 3.9%;
- 
+
   --primary: 0 72.2% 50.6%;
   --primary-foreground: 0 85.7% 97.3%;
   --primary-rgb: 230, 57, 70;
- 
+
   --secondary: 0 0% 96.1%;
   --secondary-foreground: 0 0% 9%;
- 
+
   --muted: 0 0% 96.1%;
   --muted-foreground: 0 0% 45.1%;
- 
+
   --accent: 0 0% 96.1%;
   --accent-foreground: 0 0% 9%;
- 
+
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
 
   --border: 0 0% 89.8%;
   --input: 0 0% 89.8%;
   --ring: 0 0% 3.9%;
- 
+
   --radius: 0.5rem;
 
   /* Bot-Chat Farben */
@@ -108,7 +109,7 @@
   --bot-text-color: #000000;
   --bot-accent-color: hsl(var(--primary));
   --bot-avatar-bg: hsl(var(--background));
-  
+
   /* User-Chat Farben */
   --user-bg-color: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.85));
   --user-text-color: #ffffff;
@@ -118,12 +119,12 @@
 
 /* Grundlegende Schriftdefinitionen */
 html, body {
-  font-family: 'Geist Sans', system-ui, -apple-system, BlinkMacSystemFont, 
+  font-family: 'Geist Sans', system-ui, -apple-system, BlinkMacSystemFont,
                "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 code, pre, .code {
-  font-family: 'Geist Mono', SFMono-Regular, Menlo, Monaco, Consolas, 
+  font-family: 'Geist Mono', SFMono-Regular, Menlo, Monaco, Consolas,
                "Liberation Mono", "Courier New", monospace;
 }
 
@@ -131,28 +132,28 @@ code, pre, .code {
 .dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
- 
+
   --card: 0 0% 3.9%;
   --card-foreground: 0 0% 98%;
- 
+
   --popover: 0 0% 3.9%;
   --popover-foreground: 0 0% 98%;
- 
+
   --primary: 0 72.2% 50.6%;
   --primary-foreground: 0 85.7% 97.3%;
- 
+
   --secondary: 0 0% 14.9%;
   --secondary-foreground: 0 0% 98%;
- 
+
   --muted: 0 0% 14.9%;
   --muted-foreground: 0 0% 63.9%;
- 
+
   --accent: 0 0% 14.9%;
   --accent-foreground: 0 0% 98%;
- 
+
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
- 
+
   --border: 0 0% 14.9%;
   --input: 0 0% 14.9%;
   --ring: 0 0% 83.1%;

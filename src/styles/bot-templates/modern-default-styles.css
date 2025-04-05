@@ -1,0 +1,299 @@
+/* Modernisierte Stile für das Standard-Template */
+
+/* Glasmorphismus-Effekt für Nachrichten */
+.message.assistant {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.message.assistant:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Moderner Streaming-Indikator mit animierten Punkten */
+.streaming-indicator {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  height: 24px;
+  align-items: center;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--bot-accent-color, #3b82f6);
+  opacity: 0.6;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Moderne Karten-Komponenten */
+.quick-overview-card,
+.key-facts-card {
+  background: linear-gradient(135deg, 
+    rgba(var(--bot-bg-color-rgb, 255, 255, 255), 0.9), 
+    rgba(var(--bot-bg-color-rgb, 255, 255, 255), 0.7));
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(var(--bot-accent-color-rgb, 59, 130, 246), 0.15);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.quick-overview-card:hover,
+.key-facts-card:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding-bottom: 0.75rem;
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--bot-accent-color, #3b82f6);
+  color: white;
+  border-radius: 8px;
+}
+
+.card-header h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--bot-text-color, #1a202c);
+}
+
+.card-content {
+  color: var(--bot-text-color, #1a202c);
+}
+
+/* Verbesserte Listen mit modernen Icons */
+.modern-message ul {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 1rem 0 !important;
+}
+
+.modern-message ul li {
+  position: relative !important;
+  padding-left: 1.75rem !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.5 !important;
+}
+
+.modern-message ul li::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0.4rem !important;
+  width: 16px !important;
+  height: 16px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E") !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Verbesserte Typografie */
+.modern-message h2 {
+  font-size: 1.35rem !important;
+  font-weight: 600 !important;
+  margin: 1.5rem 0 0.75rem !important;
+  color: var(--bot-text-color, #1a202c) !important;
+  padding-bottom: 0.5rem !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.modern-message h3 {
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  margin: 1.25rem 0 0.5rem !important;
+  color: var(--bot-text-color, #2d3748) !important;
+}
+
+.modern-message p {
+  margin: 0.75rem 0 !important;
+  line-height: 1.6 !important;
+  color: var(--bot-text-color, #1a202c) !important;
+}
+
+/* Moderne Links */
+.modern-message a {
+  color: var(--bot-accent-color, #3b82f6) !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  position: relative !important;
+  transition: all 0.2s ease !important;
+  border-bottom: 1px solid rgba(var(--bot-accent-color-rgb, 59, 130, 246), 0.3) !important;
+}
+
+.modern-message a:hover {
+  border-bottom-color: var(--bot-accent-color, #3b82f6) !important;
+}
+
+/* Verbesserte Keyfacts-Liste */
+.keyfacts-list li {
+  position: relative !important;
+  padding-left: 1.75rem !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.5 !important;
+}
+
+.keyfacts-list li::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0.4rem !important;
+  width: 16px !important;
+  height: 16px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E") !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .quick-overview-card,
+  .key-facts-card {
+    padding: 1rem;
+  }
+  
+  .card-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .card-header h4 {
+    font-size: 1rem;
+  }
+}
+
+/* Subtile Animationen für bessere Benutzererfahrung */
+.message.assistant {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Wichtig: Diese Animation nur für nicht-streamende Nachrichten */
+.message.assistant:not(.streaming) .message-content {
+  animation: contentFadeIn 0.5s ease-out;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Verbesserte Blockquotes */
+.modern-message blockquote {
+  border-left: 4px solid var(--bot-accent-color, #3b82f6) !important;
+  background-color: rgba(var(--bot-accent-color-rgb, 59, 130, 246), 0.05) !important;
+  padding: 1rem !important;
+  margin: 1.5rem 0 !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+/* Verbesserte Code-Blöcke */
+.modern-message pre {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  padding: 1rem !important;
+  border-radius: 8px !important;
+  margin: 1rem 0 !important;
+  overflow-x: auto !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.modern-message code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  padding: 0.2rem 0.4rem !important;
+  border-radius: 4px !important;
+  font-size: 0.9em !important;
+}
+
+.modern-message pre code {
+  background-color: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Verbesserte Tabellen */
+.modern-message table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 1.5rem 0 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.modern-message th,
+.modern-message td {
+  padding: 0.75rem 1rem !important;
+  text-align: left !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.modern-message th {
+  background-color: rgba(var(--bot-accent-color-rgb, 59, 130, 246), 0.1) !important;
+  font-weight: 600 !important;
+  color: var(--bot-text-color, #1a202c) !important;
+}
+
+.modern-message tr:last-child td {
+  border-bottom: none !important;
+}
+
+.modern-message tr:hover td {
+  background-color: rgba(var(--bot-accent-color-rgb, 59, 130, 246), 0.05) !important;
+}

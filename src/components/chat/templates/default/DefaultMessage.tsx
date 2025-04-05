@@ -9,32 +9,36 @@ interface DefaultMessageProps {
 }
 
 /**
- * Standard-Message-Komponente
+ * Modernisierte Standard-Message-Komponente
  */
-const DefaultMessage: React.FC<DefaultMessageProps> = ({ 
-  content, 
+const DefaultMessage: React.FC<DefaultMessageProps> = ({
+  content,
   isStreaming = false,
-  messageControls 
+  messageControls
 }) => {
   return (
-    <div className="message-content">
+    <div className="message-content modern-message">
       {/* Nachrichtensteuerung (Kopieren, Feedback, etc.) */}
       {messageControls && (
         <div className="message-controls">{messageControls}</div>
       )}
-      
+
       {/* Nachrichteninhalt */}
-      <div 
+      <div
         className={`prose prose-sm break-words ${isStreaming ? 'streaming-content' : ''}`}
-        dangerouslySetInnerHTML={{ __html: content }} 
+        dangerouslySetInnerHTML={{ __html: content }}
       />
-      
-      {/* Streaming-Indikator */}
+
+      {/* Moderner Streaming-Indikator mit animierten Punkten */}
       {isStreaming && (
-        <div className="streaming-indicator">...</div>
+        <div className="streaming-indicator">
+          <div className="typing-dot"></div>
+          <div className="typing-dot"></div>
+          <div className="typing-dot"></div>
+        </div>
       )}
     </div>
   );
 };
 
-export default DefaultMessage; 
+export default DefaultMessage;
