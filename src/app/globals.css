@@ -9,6 +9,7 @@
 @import '../styles/bot-templates/brandenburg-message-styles.css';
 @import '../styles/bot-templates/mall-message-styles.css';
 @import '../styles/bot-templates/modern-default-styles.css';
+@import '../styles/bot-templates/ninfly-message-styles.css';
 
 @tailwind base;
 @tailwind components;

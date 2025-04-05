@@ -1,0 +1,501 @@
+/* Ninfly Sports Arena Template Styles */
+
+:root {
+  --ninfly-orange: #ff6600;
+  --ninfly-orange-light: #ff8533;
+  --ninfly-orange-dark: #cc5200;
+  --ninfly-anthracite: #333333;
+  --ninfly-anthracite-light: #4d4d4d;
+  --ninfly-anthracite-dark: #1a1a1a;
+  --ninfly-white: #ffffff;
+  --ninfly-light-gray: #f5f5f5;
+  --ninfly-gray: #e0e0e0;
+}
+
+/* Grundlegende Nachrichtenstile */
+.message.assistant.ninfly-template {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  border-left: 3px solid var(--ninfly-orange);
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Header-Bereich mit Ninfly-Branding */
+.ninfly-header {
+  background: linear-gradient(90deg, var(--ninfly-anthracite) 0%, var(--ninfly-anthracite-light) 100%);
+  color: white;
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  border-bottom: 2px solid var(--ninfly-orange);
+}
+
+.ninfly-logo {
+  height: 28px;
+  width: auto;
+}
+
+.ninfly-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.ninfly-subtitle {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* Content-Bereich */
+.ninfly-content {
+  padding: 1rem;
+}
+
+/* Bereichs-Karten für verschiedene Sportbereiche */
+.ninfly-area-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  border-radius: 8px;
+  margin: 1rem 0;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.ninfly-area-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.ninfly-area-header {
+  background: var(--ninfly-anthracite);
+  color: white;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 2px solid var(--ninfly-orange);
+}
+
+.ninfly-area-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--ninfly-orange);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ninfly-area-content {
+  padding: 1rem;
+  font-size: 0.85rem;
+}
+
+/* Aktivitäts-Liste */
+.ninfly-activities {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.ninfly-activity {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  padding: 0.7rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.ninfly-activity:hover {
+  background: rgba(255, 102, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.ninfly-activity-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 0.5rem;
+  background: var(--ninfly-anthracite);
+  color: white;
+  border-radius: 50%;
+  font-size: 1rem;
+}
+
+.ninfly-activity-name {
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.ninfly-activity-desc {
+  font-size: 0.75rem;
+  margin: 0.3rem 0 0;
+  opacity: 0.8;
+}
+
+/* Kurs-Karten */
+.ninfly-course-card {
+  display: flex;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1rem 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.ninfly-course-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.ninfly-course-image {
+  width: 100px;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.ninfly-course-content {
+  padding: 0.8rem;
+  flex-grow: 1;
+}
+
+.ninfly-course-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0 0 0.4rem;
+}
+
+.ninfly-course-desc {
+  font-size: 0.8rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.ninfly-course-details {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+}
+
+.ninfly-course-detail {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ninfly-course-detail-icon {
+  color: var(--ninfly-orange);
+}
+
+/* Info-Boxen */
+.ninfly-info-box {
+  background: rgba(255, 102, 0, 0.05);
+  border-left: 3px solid var(--ninfly-orange);
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.85rem;
+}
+
+.ninfly-warning-box {
+  background: rgba(255, 193, 7, 0.05);
+  border-left: 3px solid #ffc107;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.85rem;
+}
+
+.ninfly-success-box {
+  background: rgba(40, 167, 69, 0.05);
+  border-left: 3px solid #28a745;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.85rem;
+}
+
+/* Preistabelle */
+.ninfly-price-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ninfly-price-table th {
+  background: var(--ninfly-anthracite);
+  color: white;
+  text-align: left;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+}
+
+.ninfly-price-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.ninfly-price-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ninfly-price-highlight {
+  color: var(--ninfly-orange);
+  font-weight: 600;
+}
+
+/* CTA-Buttons */
+.ninfly-cta-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin: 1.2rem 0 0.5rem;
+}
+
+.ninfly-cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--ninfly-orange);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 5px rgba(255, 102, 0, 0.3);
+  border: none;
+  cursor: pointer;
+}
+
+.ninfly-cta-button:hover {
+  background: var(--ninfly-orange-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 102, 0, 0.4);
+}
+
+.ninfly-cta-button-secondary {
+  background: var(--ninfly-anthracite);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.ninfly-cta-button-secondary:hover {
+  background: var(--ninfly-anthracite-light);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ninfly-cta-button-outline {
+  background: transparent;
+  color: var(--ninfly-orange);
+  border: 1px solid var(--ninfly-orange);
+  box-shadow: none;
+}
+
+.ninfly-cta-button-outline:hover {
+  background: rgba(255, 102, 0, 0.05);
+  box-shadow: none;
+}
+
+/* Medien-Container */
+.ninfly-media-container {
+  margin: 1rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ninfly-media-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ninfly-media-caption {
+  background: var(--ninfly-anthracite);
+  color: white;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Obstacle-Grid für Ninja-Parcours */
+.ninfly-obstacle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.ninfly-obstacle {
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.ninfly-obstacle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ninfly-obstacle-image {
+  height: 80px;
+  background-size: cover;
+  background-position: center;
+}
+
+.ninfly-obstacle-name {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  border-top: 2px solid var(--ninfly-orange);
+}
+
+/* Tags */
+.ninfly-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.ninfly-tag {
+  background: rgba(255, 102, 0, 0.1);
+  color: var(--ninfly-orange-dark);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ninfly-tag-icon {
+  font-size: 0.8rem;
+}
+
+/* Footer */
+.ninfly-footer {
+  background: var(--ninfly-anthracite);
+  color: white;
+  padding: 0.8rem 1rem;
+  font-size: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  border-top: 2px solid var(--ninfly-orange);
+}
+
+.ninfly-social {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.ninfly-social-icon {
+  color: white;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+
+.ninfly-social-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .ninfly-activities {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .ninfly-obstacle-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .ninfly-course-card {
+    flex-direction: column;
+  }
+  
+  .ninfly-course-image {
+    width: 100%;
+    height: 100px;
+  }
+  
+  .ninfly-cta-container {
+    flex-direction: column;
+  }
+  
+  .ninfly-cta-button {
+    width: 100%;
+  }
+}
+
+/* Streaming-Indikator */
+.ninfly-streaming-indicator {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  height: 24px;
+  align-items: center;
+}
+
+.ninfly-typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--ninfly-orange);
+  opacity: 0.6;
+  animation: ninfly-pulse 1.5s infinite ease-in-out;
+}
+
+.ninfly-typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ninfly-typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes ninfly-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}

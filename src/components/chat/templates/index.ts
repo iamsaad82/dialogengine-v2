@@ -21,6 +21,11 @@ const BrandenburgInfo = lazy(() => import('./brandenburg/BrandenburgInfo'));
 // Shopping Mall Template-Komponenten
 const ShoppingMallMessage = lazy(() => import('./mall/ShoppingMallMessage'));
 
+// Ninfly Sports Arena Template-Komponenten
+const NinflyMessage = lazy(() => import('./ninfly/NinflyMessage'));
+const NinflyKeyFacts = lazy(() => import('./ninfly/NinflyKeyFacts'));
+const NinflyQuickOverview = lazy(() => import('./ninfly/NinflyQuickOverview'));
+
 // Template-Komponenten-Interface
 export interface TemplateComponents {
   Message: React.ComponentType<{
@@ -80,7 +85,7 @@ export function getTemplateComponents(templateName?: string | null): TemplateCom
         QuickOverview: AOKQuickOverview,
         ContactInfo: AOKContactInfo,
       };
-    
+
     case 'creditreform':
       return {
         Message: CreditreformMessage,
@@ -88,7 +93,7 @@ export function getTemplateComponents(templateName?: string | null): TemplateCom
         ServiceSection: CreditreformServiceSection,
         Info: CreditreformInfo,
       };
-    
+
     case 'brandenburg':
       return {
         Message: BrandenburgMessage,
@@ -96,14 +101,21 @@ export function getTemplateComponents(templateName?: string | null): TemplateCom
         News: BrandenburgNews,
         Info: BrandenburgInfo,
       };
-    
+
     case 'mall':
       return {
         Message: ShoppingMallMessage,
       };
-    
+
+    case 'ninfly':
+      return {
+        Message: NinflyMessage,
+        KeyFacts: NinflyKeyFacts,
+        QuickOverview: NinflyQuickOverview,
+      };
+
     // Weitere Templates hier hinzufügen
-    
+
     default:
       return {
         Message: StandardMessage,
@@ -117,7 +129,8 @@ export const templateNames = {
   aok: "AOK",
   creditreform: "Creditreform",
   brandenburg: "Brandenburg",
-  mall: "Shopping Mall"
+  mall: "Shopping Mall",
+  ninfly: "Ninfly Sports Arena"
 };
 
 // MessageTemplates-Export für Abwärtskompatibilität
@@ -126,7 +139,8 @@ const MessageTemplates = {
   aok: AOKMessage,
   creditreform: CreditreformMessage,
   brandenburg: BrandenburgMessage,
-  mall: ShoppingMallMessage
+  mall: ShoppingMallMessage,
+  ninfly: NinflyMessage
 };
 
-export default MessageTemplates; 
+export default MessageTemplates;
