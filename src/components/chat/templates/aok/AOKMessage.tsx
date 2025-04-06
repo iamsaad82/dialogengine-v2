@@ -102,6 +102,16 @@ const AOKMessage: React.FC<AOKMessageProps> = ({
     // und separat anzeigen, um Dopplung zu vermeiden
     newContent = newContent.replace(/<p class="aok-short-answer">(.*?)<\/p>/gi, '');
 
+    // Korrigieren von extrem langen Bild-URLs, die den Alt-Text enthalten
+    // Beispiel: https://www.aok.de/.../Bild-mit-sehr-langem-alt-text-als-dateiname.jpg
+    newContent = newContent.replace(/background-image: url\(['"](https:\/\/www\.aok\.de\/.*?\/).*?-[A-Za-z0-9-]{50,}\.(jpg|png|gif|jpeg)['"]/gi,
+                                   'background-image: url("$1aok-image.$2")');
+
+    // Korrigieren von falschen Link-Strukturen
+    // Wenn ein Link nicht der korrekten AOK-Struktur entspricht, auf die Hauptseite umleiten
+    newContent = newContent.replace(/href="https:\/\/www\.aok\.de\/pk\/(?!leistungen|chronische-erkrankungen|vorsorge|kontakt|faq|magazin|fileadmin)[^"]*"/gi,
+                                   'href="https://www.aok.de/"');
+
     // Ändern von Klassen, um mit dem neuen CSS zu funktionieren
     // key-facts → facts-box
     newContent = newContent
