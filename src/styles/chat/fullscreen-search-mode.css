@@ -89,12 +89,22 @@
 /* Header im Ergebniszustand */
 .fullscreenSearch-results-header {
   display: flex;
-  align-items: center;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  justify-content: center;
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(8px);
   transition: all 0.3s ease;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.fullscreenSearch-header-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
 }
 
 /* Logo im Ergebniszustand */
@@ -114,7 +124,7 @@
 .fullscreenSearch-results-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 1rem 2rem 2rem;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
@@ -151,13 +161,12 @@
 
 .universe-cluster {
   position: relative;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   transition: all 0.3s ease;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding-left: 1rem;
   transform-origin: center top;
   animation: clusterAppear 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   opacity: 0;
@@ -177,8 +186,7 @@
 
 /* Antwort-Karten Styling */
 .search-result-card {
-  padding: 1.5rem;
-  border-radius: 16px;
+  padding: 1.5rem 1.5rem 1.5rem 0;
   position: relative;
   overflow: hidden;
 }
@@ -186,12 +194,13 @@
 .search-result-card::before {
   content: '';
   position: absolute;
-  top: 0;
+  top: 1.5rem;
   left: 0;
   width: 4px;
-  height: 100%;
+  height: calc(100% - 3rem);
   background: var(--bot-primary-color, #3b82f6);
   opacity: 0.8;
+  border-radius: 0 2px 2px 0;
 }
 
 /* Visuelle Elemente für die Antwort */
@@ -213,22 +222,37 @@
 .search-result-segments {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-top: 1.5rem;
 }
 
 .search-result-segment {
-  flex: 1 1 calc(50% - 0.5rem);
+  flex: 1 1 calc(50% - 0.75rem);
   min-width: 250px;
-  padding: 1rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  padding: 0;
   animation: segmentAppear 0.4s ease forwards;
   animation-delay: calc(var(--segment-index, 0) * 0.1s + 0.3s);
   opacity: 0;
   transform: translateY(10px);
+  position: relative;
+}
+
+.search-result-segment h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.search-result-segment h4::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background-color: var(--bot-primary-color, #3b82f6);
+  border-radius: 50%;
+  margin-right: 0.5rem;
 }
 
 @keyframes segmentAppear {
@@ -240,29 +264,42 @@
 
 /* Verwandte Fragen */
 .search-related-questions {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.search-related-questions h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #555;
 }
 
 .search-related-question {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  font-size: 0.9rem;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
   animation: questionAppear 0.3s ease forwards;
   animation-delay: calc(var(--question-index, 0) * 0.05s + 0.6s);
   opacity: 0;
-  transform: scale(0.95);
+  transform: scale(0.98);
+  color: var(--bot-primary-color, #3b82f6);
+  display: flex;
+  align-items: center;
+}
+
+.search-related-question::before {
+  content: '\2192';
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.7;
 }
 
 .search-related-question:hover {
-  background: rgba(0, 0, 0, 0.05);
-  transform: translateY(-1px);
+  text-decoration: underline;
+  transform: translateX(2px);
 }
 
 @keyframes questionAppear {
@@ -327,25 +364,27 @@
 
 /* Benutzerfragen Styling */
 .search-user-query {
-  margin: 1.5rem 0;
+  margin: 0.5rem 0 1.5rem;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .search-query-text {
   display: inline-flex;
   align-items: center;
-  padding: 0.75rem 1.25rem;
-  border-radius: 30px;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
   background: rgba(0, 0, 0, 0.03);
   font-weight: 500;
-  max-width: 80%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  font-size: 1.1rem;
+  color: #333;
+  max-width: 100%;
 }
 
 .search-query-icon {
   margin-right: 0.75rem;
   font-size: 1.2rem;
+  color: var(--bot-primary-color, #3b82f6);
 }
 
 /* Ladeanimation */

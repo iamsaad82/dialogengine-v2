@@ -207,18 +207,20 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
   const renderResultsState = () => (
     <div className="fullscreenSearch-results">
       <div className="fullscreenSearch-results-header">
-        {botAvatarUrl && (
-          <img src={botAvatarUrl} alt={botName} className="fullscreenSearch-results-logo" />
-        )}
-        <div className="fullscreenSearch-results-input">
-          <ChatInput
-            onSend={handleSendMessage}
-            onCancel={onCancelMessage}
-            isLoading={isLoading}
-            botPrimaryColor={botPrimaryColor}
-            botAccentColor={botAccentColor}
-            botTextColor={botTextColor}
-          />
+        <div className="fullscreenSearch-header-content">
+          {botAvatarUrl && (
+            <img src={botAvatarUrl} alt={botName} className="fullscreenSearch-results-logo" />
+          )}
+          <div className="fullscreenSearch-results-input">
+            <ChatInput
+              onSend={handleSendMessage}
+              onCancel={onCancelMessage}
+              isLoading={isLoading}
+              botPrimaryColor={botPrimaryColor}
+              botAccentColor={botAccentColor}
+              botTextColor={botTextColor}
+            />
+          </div>
         </div>
       </div>
 
@@ -250,37 +252,32 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
                 <motion.div
                   key={`bot-${botIndex}`}
                   className="universe-cluster"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
                 >
                   <div className="search-result-card">
-                    <div
-                      className="search-result-visual"
-                      style={{ backgroundImage: `url(${botAvatarUrl || '/bot-avatar.png'})` }}
-                    />
-
                     {/* Hauptantwort */}
                     <div className="search-result-content">
-                      <h2 style={{ color: botPrimaryColor || 'inherit', marginTop: 0 }}>
+                      <h2 style={{ color: botPrimaryColor || 'inherit', marginTop: 0, fontSize: '1.5rem' }}>
                         {botMessage.content.split('.')[0]}.
                       </h2>
 
                       <div className="search-result-main-text">
-                        {botMessage.content.split('\n\n').map((paragraph, pIndex) => (
+                        {botMessage.content.split('\n\n').slice(0, 2).map((paragraph, pIndex) => (
                           <p key={pIndex}>{paragraph}</p>
                         ))}
                       </div>
 
                       {/* Segmente der Antwort */}
                       <div className="search-result-segments">
-                        {['Definitionen', 'Anwendungsbereiche', 'Technologien', 'Entwicklung'].map((segment, sIndex) => (
+                        {['Definitionen', 'Anwendungsbereiche', 'Technologien', 'Entwicklung'].slice(0, 2).map((segment, sIndex) => (
                           <div
                             key={sIndex}
                             className="search-result-segment"
                             style={{ '--segment-index': sIndex } as React.CSSProperties}
                           >
-                            <h4 style={{ color: botPrimaryColor || 'inherit', marginTop: 0 }}>{segment}</h4>
+                            <h4>{segment}</h4>
                             <p>{generateSegmentContent(segment, botMessage.content)}</p>
                           </div>
                         ))}
@@ -288,7 +285,7 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
 
                       {/* Verwandte Fragen */}
                       <div className="search-related-questions">
-                        <h4 style={{ width: '100%', margin: '0.5rem 0' }}>Verwandte Fragen:</h4>
+                        <h4>Verwandte Suchanfragen</h4>
                         {relatedQuestions.map((question, qIndex) => (
                           <div
                             key={qIndex}
@@ -304,7 +301,7 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
                       {/* Vertrauensindikator */}
                       <div className="search-confidence">
                         <span className="search-confidence-indicator"></span>
-                        Hohe Übereinstimmung
+                        Hohe Übereinstimmung mit Ihrer Suchanfrage
                       </div>
                     </div>
                   </div>
