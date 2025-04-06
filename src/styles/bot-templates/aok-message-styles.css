@@ -1,4 +1,4 @@
-/* 
+/*
  * AOK MESSAGE TEMPLATE STYLES - Neu 2024
  * Basierend auf dem aktuellen AOK-Webdesign
  */
@@ -9,22 +9,22 @@
   --aok-primary-light: #008a49; /* Helleres Grün für Hover */
   --aok-primary-dark: #005a30; /* Dunkleres Grün */
   --aok-primary-rgb: 0, 110, 59; /* RGB-Werte für Transparenz */
-  
+
   --aok-secondary: #8bc100; /* Hellgrün - Akzentfarbe */
   --aok-secondary-light: #9fd500; /* Helleres Akzentgrün */
   --aok-secondary-rgb: 139, 193, 0; /* RGB-Werte für Transparenz */
-  
+
   --aok-light-bg: #f5f9f7; /* Sehr helles Grün für Hintergründe */
   --aok-light-bg-2: #e8f2ec; /* Etwas dunkleres Hintergrundgrün */
   --aok-cream: #f9f7f2; /* Cremefarbener Hintergrund */
-  
+
   --aok-text: #333333; /* Haupttextfarbe */
   --aok-text-light: #666666; /* Hellere Textfarbe */
   --aok-text-dark: #1a1a1a; /* Dunklere Textfarbe */
-  
+
   --aok-white: #ffffff; /* Weiß */
   --aok-border: #e0e0e0; /* Rahmenfarbe */
-  
+
   --aok-border-radius: 8px; /* Abgerundete Ecken */
   --aok-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Schatten */
   --aok-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12); /* Hover-Schatten */
@@ -39,6 +39,9 @@
   width: 100%;
   max-width: 100%;
   font-size: 0.95rem;
+  /* Optimierungen für Streaming-Performance */
+  contain: content;
+  will-change: contents;
 }
 
 /* Typografie */
@@ -269,13 +272,15 @@
   padding: 1.2rem 1.5rem;
   margin: 1.5rem 0;
   border-left: 4px solid var(--aok-secondary);
+  /* Optimierungen für Streaming-Performance */
+  contain: content;
+  min-height: 60px;
 }
 
-.aok-security-notice svg {
+/* Entfernen der SVG-spezifischen Stile, da wir jetzt Emojis verwenden */
+.aok-security-notice span {
   flex-shrink: 0;
   color: var(--aok-secondary);
-  width: 24px;
-  height: 24px;
   margin-right: 1rem;
   margin-top: 0.1rem;
 }
@@ -409,6 +414,8 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-height: 150px; /* Minimale Höhe, um Flackern zu reduzieren */
+  contain: layout; /* Verbessert Rendering-Performance */
 }
 
 .aok-contact-title {
@@ -420,14 +427,10 @@
   align-items: center;
 }
 
+/* Entfernen des SVG-Icons im Titel, um Flackern zu reduzieren */
 .aok-contact-title::before {
-  content: "";
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23006e3b'%3E%3Cpath d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
+  content: "\1F4E7"; /* E-Mail-Emoji Unicode */
+  font-size: 20px;
   margin-right: 0.8rem;
   flex-shrink: 0;
 }
@@ -443,6 +446,10 @@
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+  display: inline-block;
+  position: relative;
+  /* Reserviert Platz für das Icon, um Flackern zu vermeiden */
+  min-width: 20px;
 }
 
 /* Schritte/Prozess-Box */
@@ -567,19 +574,19 @@
   .aok-card-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .aok-box, .aok-info-box, .aok-facts-box, .aok-security-notice, .aok-contact-box {
     padding: 1rem;
   }
-  
+
   .aok-message h1 {
     font-size: 1.4rem;
   }
-  
+
   .aok-message h2 {
     font-size: 1.2rem;
   }
-  
+
   .aok-message h3 {
     font-size: 1.1rem;
   }

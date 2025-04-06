@@ -143,35 +143,31 @@ Erstelle eine Antwort im AOK-Design zur Frage des Nutzers. Nutze die HTML-Strukt
 <div class="aok-contact-box">
   <div class="aok-contact-title">Kontakt & Service</div>
   <div class="aok-contact-item">
-    <svg class="aok-contact-item-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-    </svg>
+    <!-- Vereinfachtes SVG-Icon für bessere Performance -->
+    <span class="aok-contact-item-icon">📞</span>
     <span>Telefon: <a href="tel:0800123456789" class="aok-tel-link">0800 123 456 789</a> (kostenfrei)</span>
   </div>
   <div class="aok-contact-item">
-    <svg class="aok-contact-item-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-      <polyline points="22,6 12,13 2,6"></polyline>
-    </svg>
+    <!-- Vereinfachtes SVG-Icon für bessere Performance -->
+    <span class="aok-contact-item-icon">✉️</span>
     <span>E-Mail: <a href="mailto:service@aok.de" class="aok-mail-link">service@aok.de</a></span>
   </div>
   <div class="aok-contact-item">
-    <svg class="aok-contact-item-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-      <circle cx="12" cy="10" r="3"></circle>
-    </svg>
+    <!-- Vereinfachtes SVG-Icon für bessere Performance -->
+    <span class="aok-contact-item-icon">📍</span>
     <span>Geschäftsstellen in Ihrer Nähe finden Sie auf <a href="https://www.aok.de/geschaeftsstellen">aok.de/geschaeftsstellen</a></span>
   </div>
 </div>
 ```
 
+**Hinweis:** Wir verwenden hier einfache Emoji-Icons statt SVG, um das Flackern beim Streaming zu reduzieren.
+
 ### Sicherheitshinweis:
 
 ```html
 <div class="aok-security-notice">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-  </svg>
+  <!-- Vereinfachtes Icon für bessere Performance -->
+  <span style="font-size: 24px; margin-right: 10px;">🔒</span>
   <p class="aok-security-notice-text">Die AOK wird Sie niemals nach Ihren Zugangsdaten oder persönlichen Informationen per E-Mail oder Telefon fragen. Geben Sie keine sensiblen Daten preis.</p>
 </div>
 ```
