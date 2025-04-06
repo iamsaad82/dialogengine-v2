@@ -57,8 +57,23 @@
   /* Flexibles Layout */
   flex-shrink: 0;
   width: 100%;
-  max-width: 800px; /* Begrenzt die Breite auf größeren Bildschirmen */
+  max-width: 90%; /* Prozentuale Breite für bessere Responsivität */
   margin: 0 auto; /* Zentriert das Formular */
+}
+
+/* Anpassungen für größere Bildschirme */
+@media (min-width: 1200px) {
+  .chat-container form.chat-input-form {
+    max-width: 80%; /* Schmalere Breite auf sehr großen Bildschirmen */
+  }
+}
+
+/* Anpassungen für kleine Bildschirme */
+@media (max-width: 640px) {
+  .chat-container form.chat-input-form {
+    max-width: 95%; /* Breitere Nutzung des Platzes auf kleinen Bildschirmen */
+    padding: 0.75rem 0.75rem 1.25rem 0.75rem; /* Weniger Padding auf kleinen Bildschirmen */
+  }
 }
 
 /* Dunkel-Modus Anpassungen für den Form-Container */
@@ -79,12 +94,11 @@
   touch-action: manipulation; /* Verbesserte Touch-Interaktion */
   border-radius: 24px !important;
   padding: 14px 18px !important;
-  padding-right: 100px !important;
+  padding-right: 60px !important; /* Reduzierter rechter Abstand für bessere Proportionen */
   resize: none;
   border: 1px solid rgba(0, 0, 0, 0.12) !important;
   background-color: white !important; /* Weißer Hintergrund für besseren Kontrast */
-  width: 100%;
-  max-width: 650px; /* Begrenzt die Breite auf größeren Bildschirmen */
+  width: 100%; /* Volle Breite des Containers */
   min-height: 56px; /* Erhöhte Mindesthöhe */
   transition: all 0.2s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important; /* Deutlicher Schatten für Schwebeeffekt */
@@ -142,16 +156,30 @@
   cursor: not-allowed;
 }
 
+/* Responsive Anpassungen für den Sende-Button */
 @media (max-width: 640px) {
   .send-button {
-    width: 36px;
-    height: 36px;
-    right: 10px;
+    width: 38px;
+    height: 38px;
+    right: 8px;
   }
 
   .send-button svg {
     width: 18px;
     height: 18px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .send-button {
+    width: 48px;
+    height: 48px;
+    right: 10px;
+  }
+
+  .send-button svg {
+    width: 22px;
+    height: 22px;
   }
 }
 
