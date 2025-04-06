@@ -28,7 +28,7 @@ async function getAppSettings() {
 // Metadaten für SEO und Browsertitel
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getAppSettings()
-  
+
   return {
     title: settings.brandName,
     description: `Stadtassistent für ${settings.brandName}`,
@@ -40,6 +40,10 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   minimumScale: 1,
+  // Wir erlauben Zoom für bessere Zugänglichkeit, aber verhindern automatisches Zoomen bei Fokus
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover', // Optimiert für Geräte mit Notch (iPhone X+)
 }
 
 export default function RootLayout({
@@ -53,7 +57,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
-        
+
         {/* Lunary Analytics Script (wird nur geladen, wenn in den Einstellungen aktiviert) */}
         <LunaryScript />
       </body>

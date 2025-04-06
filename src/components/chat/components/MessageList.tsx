@@ -291,6 +291,7 @@ export function MessageList({
       ref={containerRef}
       className="message-list-container"
       onScroll={handleScroll}
+      style={{ WebkitOverflowScrolling: 'touch' }} /* Verbessert Scrolling auf iOS */
     >
       {/* Nachrichtenliste */}
       <AnimatePresence initial={false}>
@@ -334,14 +335,14 @@ export function MessageList({
           />
         )}
 
-      {/* Scroll-Button */}
+      {/* Scroll-Button - Optimiert für alle Geräte und Einbettungsmodi */}
         {showScrollButton && (
         <button
           className="scroll-button"
-            onClick={scrollToBottom}
+          onClick={scrollToBottom}
           aria-label="Zum Ende scrollen"
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 15L3 8H17L10 15Z" fill="currentColor"/>
           </svg>
         </button>
@@ -357,8 +358,8 @@ export function MessageList({
         />
       )}
 
-      {/* Invisible element to scroll to */}
-      <div ref={messagesEndRef} />
+      {/* Invisible element to scroll to - Optimiert für besseres Scrollverhalten */}
+      <div ref={messagesEndRef} style={{ height: '1px', width: '100%', marginTop: '8px' }} />
     </div>
   );
 }

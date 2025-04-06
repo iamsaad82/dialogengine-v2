@@ -7,6 +7,9 @@
   overflow: hidden;
   position: relative;
   background: var(--bot-bg-color);
+  /* Verbesserte Flexibilität für verschiedene Einbettungsmodi */
+  min-height: 300px;
+  max-height: 100vh;
 }
 
 /* Message List Container */
@@ -16,12 +19,21 @@
   padding: 1rem;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  height: calc(100% - 110px); /* Angepasst für größeres Eingabefeld */
   position: relative;
   overflow-x: hidden;
   z-index: 1;
   margin: 0;
   scrollbar-width: thin;
+  /* Flexibles Layout ohne feste Höhen */
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Wichtig für Flex-Container, damit Scrolling funktioniert */
+}
+
+@media (max-width: 640px) {
+  .message-list-container {
+    padding: 0.75rem 0.75rem 0.5rem 0.75rem;
+  }
 }
 
 /* Chat Input Container - nicht mehr in Verwendung, durch Form-Element ersetzt */
@@ -32,20 +44,161 @@
   backdrop-filter: blur(8px);
 }
 
-/* Form als neuer Container für den Chat-Input */
-.chat-container form {
+/* Form als Container für den Chat-Input */
+.chat-container form.chat-input-form {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(8px);
-  min-height: 110px; /* Feste Höhe passend zum Input-Feld */
   display: flex;
   align-items: center;
+  position: relative;
+  z-index: 10;
+  padding: 0.75rem 0.5rem;
+  /* Flexibles Layout */
+  flex-shrink: 0;
+  width: 100%;
 }
 
 /* Dunkel-Modus Anpassungen für den Form-Container */
-.dark .chat-container form {
+.dark .chat-container form.chat-input-form {
   border-color: rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* Optimierungen für iOS/Android */
+.chat-input-field {
+  -webkit-appearance: none; /* Verhindert iOS-spezifische Styling-Probleme */
+  -moz-appearance: none;
+  appearance: none;
+  font-size: 16px !important; /* Verhindert Zoom auf iOS */
+  line-height: 1.4;
+  max-height: 120px;
+  overflow-y: auto;
+  touch-action: manipulation; /* Verbesserte Touch-Interaktion */
+  border-radius: 24px !important;
+  padding: 12px 16px !important;
+  padding-right: 100px !important;
+  resize: none;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(8px);
+  width: 100%;
+  min-height: 48px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, height 0.1s ease;
+}
+
+.chat-input-field:focus {
+  outline: none;
+  border-color: var(--bot-primary-color, #3b82f6) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Dunkelmodus für Input-Feld */
+.dark .chat-input-field {
+  background-color: rgba(30, 30, 30, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .chat-input-field::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Sende-Button Optimierungen */
+.send-button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent; /* Entfernt blauen Highlight auf iOS */
+  position: absolute;
+  right: 12px;
+  bottom: 50%;
+  transform: translateY(50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bot-primary-color, #3b82f6);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.send-button:hover {
+  transform: translateY(50%) scale(1.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .send-button {
+    width: 36px;
+    height: 36px;
+    right: 10px;
+  }
+
+  .send-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Scroll-Button - Optimiert für alle Geräte und Einbettungsmodi */
+.scroll-button {
+  position: absolute; /* Absolute statt fixed für bessere Kompatibilität mit Einbettungsmodi */
+  bottom: 70px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: none;
+  z-index: 10;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(4px);
+  /* Verbesserte Sichtbarkeit */
+  opacity: 0.9;
+}
+
+.scroll-button:hover {
+  background-color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 1;
+}
+
+/* Dunkelmodus für Scroll-Button */
+.dark .scroll-button {
+  background-color: rgba(50, 50, 50, 0.9);
+  color: #e0e0e0;
+}
+
+.dark .scroll-button:hover {
+  background-color: rgba(60, 60, 60, 0.95);
+}
+
+@media (min-width: 640px) {
+  .scroll-button {
+    bottom: 80px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+  }
 }
 
 /* Message Styles */
