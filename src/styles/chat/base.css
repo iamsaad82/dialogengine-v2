@@ -94,7 +94,7 @@
   touch-action: manipulation; /* Verbesserte Touch-Interaktion */
   border-radius: 24px !important;
   padding: 16px 18px !important;
-  padding-right: 60px !important; /* Reduzierter rechter Abstand für bessere Proportionen */
+  padding-right: 56px !important; /* Reduzierter rechter Abstand für bessere Proportionen */
   resize: none;
   border: 1px solid rgba(0, 0, 0, 0.12) !important;
   background-color: white !important; /* Weißer Hintergrund für besseren Kontrast */
@@ -129,11 +129,11 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent; /* Entfernt blauen Highlight auf iOS */
   position: absolute;
-  right: 8px;
-  bottom: 50%;
-  transform: translateY(50%);
-  width: 46px;
-  height: 46px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -148,7 +148,7 @@
 }
 
 .send-button:hover {
-  transform: translateY(50%) scale(1.05);
+  transform: translateY(-50%) scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -160,39 +160,41 @@
 /* Responsive Anpassungen für den Sende-Button */
 @media (max-width: 640px) {
   .send-button {
-    width: 40px;
-    height: 40px;
-    right: 8px;
+    width: 36px;
+    height: 36px;
+    right: 10px;
   }
 
   .send-button svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   .chat-input-field {
     min-height: 54px;
     height: 54px;
     padding: 14px 16px !important;
+    padding-right: 52px !important;
   }
 }
 
 @media (min-width: 1200px) {
   .send-button {
-    width: 50px;
-    height: 50px;
-    right: 10px;
+    width: 44px;
+    height: 44px;
+    right: 12px;
   }
 
   .send-button svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
   }
 
   .chat-input-field {
     min-height: 64px;
     height: 64px;
     padding: 18px 20px !important;
+    padding-right: 64px !important;
   }
 }
 
