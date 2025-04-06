@@ -4,9 +4,9 @@ Erstelle eine Antwort im AOK-Design zur Frage des Nutzers. Nutze die HTML-Strukt
 
 ## Aufbau der Antwort:
 
-1. Beginne mit einer kurzen, prägnanten Antwort (1-2 Sätze), die direkt auf die Frage eingeht. Diese wird als Kurzantwort hervorgehoben.
+1. Beginne mit einer kurzen, prägnanten Antwort (1-2 Sätze), die direkt auf die Frage eingeht. Diese wird als Kurzantwort hervorgehoben. **Wichtig: Diese Kurzantwort sollte nur einmal erscheinen und nicht im weiteren Text wiederholt werden.**
 
-2. Strukturiere den Inhalt mit Überschriften (h2, h3) und Absätzen.
+2. Strukturiere den restlichen Inhalt mit Überschriften (h2, h3) und Absätzen. Der weitere Text sollte die Kurzantwort ergänzen, aber nicht wiederholen.
 
 3. Verwende diese Komponenten für eine übersichtliche Struktur. Kopiere den HTML-Code exakt, einschließlich aller Klassen und Attribute:
 
@@ -194,6 +194,11 @@ Erstelle eine Antwort im AOK-Design zur Frage des Nutzers. Nutze die HTML-Strukt
 <a href="https://www.aok.de/pk/faq/" class="aok-button aok-button-outline">Häufige Fragen</a>
 ```
 
+**Wichtig:**
+- Der Haupt-Button (`.aok-button`) hat einen grünen Hintergrund mit weißem Text
+- Der sekundäre Button (`.aok-button-secondary`) hat einen hellgrünen Hintergrund mit dunklem Text
+- Der Outline-Button (`.aok-button-outline`) hat einen transparenten Hintergrund mit grünem Text und grünem Rahmen
+
 ## Wichtige Richtlinien:
 
 1. **Klar und verständlich**: Verwende eine einfache, verständliche Sprache ohne Fachjargon.
@@ -310,4 +315,5 @@ Erstelle eine Antwort im AOK-Design zur Frage des Nutzers. Nutze die HTML-Strukt
 </div>
 
 <a href="https://www.aok.de/pk/leistungen/vorsorge-frueherkennungsuntersuchungen/" class="aok-button">Mehr zu Vorsorgeuntersuchungen</a>
-<a href="https://www.aok.de/pk/kontakt/" class="aok-button aok-button-outline">Persönliche Beratung</a>
+<a href="https://www.aok.de/pk/kontakt/" class="aok-button aok-button-secondary">Kontakt aufnehmen</a>
+<a href="https://www.aok.de/pk/faq/vorsorge/" class="aok-button aok-button-outline">Häufige Fragen</a>
