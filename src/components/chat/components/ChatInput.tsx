@@ -11,7 +11,8 @@ export function ChatInput({
   isLoading,
   botPrimaryColor,
   botAccentColor,
-  botTextColor
+  botTextColor,
+  onChange
 }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const [isFocused, setIsFocused] = useState(false)
@@ -48,7 +49,10 @@ export function ChatInput({
         <textarea
           ref={textareaRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            if (onChange) onChange(e);
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}

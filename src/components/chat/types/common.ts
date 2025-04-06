@@ -72,4 +72,5 @@ export interface ChatInputProps {
   botPrimaryColor?: string;
   botAccentColor?: string;
   botTextColor?: string;
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
