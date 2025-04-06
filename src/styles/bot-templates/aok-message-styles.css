@@ -297,6 +297,10 @@
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.2rem;
   margin: 1.5rem 0;
+  /* Optimierungen für Streaming-Performance */
+  min-height: 200px;
+  contain: layout;
+  will-change: contents;
 }
 
 .aok-card {
@@ -309,6 +313,9 @@
   flex-direction: column;
   height: 100%;
   border: 1px solid rgba(var(--aok-primary-rgb), 0.1);
+  /* Optimierungen für Streaming-Performance */
+  min-height: 150px;
+  contain: content;
 }
 
 .aok-card:hover {
@@ -321,6 +328,10 @@
   height: 160px;
   background-size: cover;
   background-position: center;
+  /* Fallback-Hintergrund, falls das Bild nicht geladen werden kann */
+  background-color: var(--aok-light-bg);
+  /* Platzhalter-Bild für bessere Performance */
+  background-image: linear-gradient(to bottom, var(--aok-light-bg), var(--aok-light-bg-2));
 }
 
 .aok-card-content {

@@ -98,6 +98,10 @@ const AOKMessage: React.FC<AOKMessageProps> = ({
     // Verarbeiten der Links
     let newContent = processHtmlWithLinks(content);
 
+    // Entfernen der aok-short-answer p-Tags, da wir die Kurzantwort bereits extrahiert haben
+    // und separat anzeigen, um Dopplung zu vermeiden
+    newContent = newContent.replace(/<p class="aok-short-answer">(.*?)<\/p>/gi, '');
+
     // Ändern von Klassen, um mit dem neuen CSS zu funktionieren
     // key-facts → facts-box
     newContent = newContent
