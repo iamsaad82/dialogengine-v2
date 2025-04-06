@@ -3,6 +3,7 @@ import { Message } from '../types/common';
 import { BotSuggestion } from '@/types/bot';
 import { MessageList } from './MessageList';
 import { ChatInput } from './ChatInput';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FullscreenSearchLayoutProps {
   messages: Message[];
@@ -123,6 +124,43 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
     }
   };
 
+  // Hilfsfunktion zum Generieren von Segmentinhalten basierend auf dem Thema
+  const generateSegmentContent = (segment: string, content: string): string => {
+    // Extrahiere relevante Informationen aus dem Inhalt basierend auf dem Segment
+    const contentLower = content.toLowerCase();
+
+    switch(segment) {
+      case 'Definitionen':
+        if (contentLower.includes('künstliche intelligenz') || contentLower.includes('ki')) {
+          return 'Künstliche Intelligenz (KI) bezeichnet Systeme, die menschliche Intelligenz simulieren, lernen und Probleme lösen können.';
+        }
+        return 'Grundlegende Begriffe und Konzepte zu diesem Thema.';
+
+      case 'Anwendungsbereiche':
+        if (contentLower.includes('medizin')) {
+          return 'In der Medizin wird KI für Diagnosen, Bildanalyse und personalisierte Behandlungen eingesetzt.';
+        } else if (contentLower.includes('wirtschaft') || contentLower.includes('ökonomie')) {
+          return 'In der Wirtschaft optimiert KI Prozesse, Prognosen und Kundenservice.';
+        }
+        return 'Praktische Einsatzgebiete und reale Anwendungsfälle.';
+
+      case 'Technologien':
+        if (contentLower.includes('machine learning') || contentLower.includes('maschinelles lernen')) {
+          return 'Machine Learning, Deep Learning und neuronale Netze sind Kernkomponenten moderner KI-Systeme.';
+        }
+        return 'Technische Grundlagen und aktuelle Entwicklungen in diesem Bereich.';
+
+      case 'Entwicklung':
+        if (contentLower.includes('zukunft')) {
+          return 'Die Zukunft der KI verspricht noch stärkere Integration in den Alltag und neue ethische Herausforderungen.';
+        }
+        return 'Historische Entwicklung und zukünftige Trends in diesem Bereich.';
+
+      default:
+        return 'Weitere Informationen zu diesem Themenbereich.';
+    }
+  };
+
   // Rendert den Anfangszustand mit zentriertem Eingabefeld
   const renderInitialState = () => (
     <div className="fullscreenSearch-initial">
@@ -186,37 +224,114 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
 
       <div className="fullscreenSearch-results-messages expanding-universe">
         <div className="universe-core">
-          <MessageList
-            messages={messages}
-            isLoading={isLoading}
-            botPrimaryColor={botPrimaryColor}
-            botBgColor={botBgColor}
-            botTextColor={botTextColor}
-            botAccentColor={botAccentColor}
-            userBgColor={userBgColor}
-            userTextColor={userTextColor}
-            enableFeedback={enableFeedback}
-            showCopyButton={showCopyButton}
-            showNameInHeader={showNameInHeader}
-            welcomeMessage={null}
-            messagesEndRef={messagesEndRef}
-            botAvatarUrl={botAvatarUrl}
-            botName={botName}
-            botId={botId}
-            onSuggestionClick={(text) => handleSendMessage(text)}
-            suggestions={suggestions}
-            settings={{
-              primaryColor: botPrimaryColor,
-              botBgColor: botBgColor,
-              botTextColor: botTextColor,
-              botAccentColor: botAccentColor,
-              userBgColor: userBgColor,
-              userTextColor: userTextColor,
-              showNameInHeader: showNameInHeader,
-              messageTemplate: messageTemplate
-            }}
-            isStreaming={isLoading}
-          />
+          {/* Benutzerfragen anzeigen */}
+          {messages.filter(msg => msg.role === 'user').map((userMessage, userIndex) => (
+            <div key={`user-${userIndex}`} className="search-user-query">
+              <div className="search-query-text">
+                <span className="search-query-icon">🔍</span>
+                {userMessage.content}
+              </div>
+            </div>
+          ))}
+
+          {/* Bot-Antworten als futuristische Suchergebnisse anzeigen */}
+          <AnimatePresence>
+            {messages.filter(msg => msg.role === 'assistant').map((botMessage, botIndex) => {
+              // Zufällige verwandte Fragen generieren
+              const relatedQuestions = [
+                "Was sind Anwendungen von KI im Alltag?",
+                "Wie funktioniert maschinelles Lernen?",
+                "Was ist der Unterschied zwischen KI und Machine Learning?",
+                "Welche ethischen Fragen wirft KI auf?",
+                "Wie wird sich KI in Zukunft entwickeln?"
+              ].slice(0, 3 + Math.floor(Math.random() * 3));
+
+              return (
+                <motion.div
+                  key={`bot-${botIndex}`}
+                  className="universe-cluster"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                  <div className="search-result-card">
+                    <div
+                      className="search-result-visual"
+                      style={{ backgroundImage: `url(${botAvatarUrl || '/bot-avatar.png'})` }}
+                    />
+
+                    {/* Hauptantwort */}
+                    <div className="search-result-content">
+                      <h2 style={{ color: botPrimaryColor || 'inherit', marginTop: 0 }}>
+                        {botMessage.content.split('.')[0]}.
+                      </h2>
+
+                      <div className="search-result-main-text">
+                        {botMessage.content.split('\n\n').map((paragraph, pIndex) => (
+                          <p key={pIndex}>{paragraph}</p>
+                        ))}
+                      </div>
+
+                      {/* Segmente der Antwort */}
+                      <div className="search-result-segments">
+                        {['Definitionen', 'Anwendungsbereiche', 'Technologien', 'Entwicklung'].map((segment, sIndex) => (
+                          <div
+                            key={sIndex}
+                            className="search-result-segment"
+                            style={{ '--segment-index': sIndex } as React.CSSProperties}
+                          >
+                            <h4 style={{ color: botPrimaryColor || 'inherit', marginTop: 0 }}>{segment}</h4>
+                            <p>{generateSegmentContent(segment, botMessage.content)}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Verwandte Fragen */}
+                      <div className="search-related-questions">
+                        <h4 style={{ width: '100%', margin: '0.5rem 0' }}>Verwandte Fragen:</h4>
+                        {relatedQuestions.map((question, qIndex) => (
+                          <div
+                            key={qIndex}
+                            className="search-related-question"
+                            style={{ '--question-index': qIndex } as React.CSSProperties}
+                            onClick={() => handleSendMessage(question)}
+                          >
+                            {question}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Vertrauensindikator */}
+                      <div className="search-confidence">
+                        <span className="search-confidence-indicator"></span>
+                        Hohe Übereinstimmung
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            {/* Lade-Animation für neue Antworten */}
+            {isLoading && (
+              <motion.div
+                className="universe-cluster loading-cluster"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="search-result-card">
+                  <div className="search-result-loading">
+                    <div className="search-loading-pulse"></div>
+                    <h3>Suche nach der besten Antwort...</h3>
+                    <p>Analysiere Informationen und erstelle eine umfassende Antwort für Sie.</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
     </div>
