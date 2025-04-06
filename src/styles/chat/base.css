@@ -46,17 +46,19 @@
 
 /* Form als Container für den Chat-Input */
 .chat-container form.chat-input-form {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.5); /* Hellerer, transparenterer Hintergrund */
-  backdrop-filter: blur(8px);
+  border-top: none; /* Keine Trennlinie mehr */
+  background: transparent; /* Komplett transparenter Hintergrund */
   display: flex;
   align-items: center;
+  justify-content: center; /* Zentriert das Input-Feld */
   position: relative;
   z-index: 10;
-  padding: 0.75rem 0.75rem;
+  padding: 1rem 1rem 1.5rem 1rem; /* Mehr Abstand unten */
   /* Flexibles Layout */
   flex-shrink: 0;
   width: 100%;
+  max-width: 800px; /* Begrenzt die Breite auf größeren Bildschirmen */
+  margin: 0 auto; /* Zentriert das Formular */
 }
 
 /* Dunkel-Modus Anpassungen für den Form-Container */
@@ -76,27 +78,31 @@
   overflow-y: auto;
   touch-action: manipulation; /* Verbesserte Touch-Interaktion */
   border-radius: 24px !important;
-  padding: 12px 16px !important;
+  padding: 14px 18px !important;
   padding-right: 100px !important;
   resize: none;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  background-color: transparent !important; /* Transparenter Hintergrund */
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  background-color: white !important; /* Weißer Hintergrund für besseren Kontrast */
   width: 100%;
+  max-width: 650px; /* Begrenzt die Breite auf größeren Bildschirmen */
   min-height: 56px; /* Erhöhte Mindesthöhe */
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, height 0.1s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important; /* Deutlicher Schatten für Schwebeeffekt */
 }
 
 .chat-input-field:focus {
   outline: none;
   border-color: var(--bot-primary-color, #3b82f6) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important; /* Stärkerer Schatten im Fokus */
+  transform: translateY(-1px); /* Leichter Schwebeeffekt bei Fokus */
 }
 
 /* Dunkelmodus für Input-Feld */
 .dark .chat-input-field {
-  background-color: transparent !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(30, 30, 35, 0.9) !important; /* Dunkler Hintergrund mit leichter Transparenz */
+  border-color: rgba(255, 255, 255, 0.15) !important;
   color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2) !important; /* Dunklerer Schatten für Dunkelmodus */
 }
 
 .dark .chat-input-field::placeholder {
@@ -108,11 +114,11 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent; /* Entfernt blauen Highlight auf iOS */
   position: absolute;
-  right: 12px;
+  right: 8px;
   bottom: 50%;
   transform: translateY(50%);
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -122,13 +128,13 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Stärkerer Schatten für besseren Kontrast */
   z-index: 2; /* Sicherstellen, dass der Button über dem Input liegt */
 }
 
 .send-button:hover {
   transform: translateY(50%) scale(1.05);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .send-button:disabled {
