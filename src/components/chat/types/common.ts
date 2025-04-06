@@ -7,7 +7,7 @@
 import { BotSuggestion } from '@/types/bot';
 
 // Gemeinsame Modi für beide Chat-Implementierungen
-export type ChatMode = 'bubble' | 'inline' | 'fullscreen';
+export type ChatMode = 'bubble' | 'inline' | 'fullscreen' | 'fullscreenSearch';
 
 // Gemeinsame Nachrichtenstruktur
 export interface Message {

@@ -7,18 +7,20 @@ import { DialogWebToggle } from './DialogWebToggle'
 import { MessageList } from './MessageList'
 import { ChatInput } from './ChatInput'
 import { SuggestionsBar } from '../SuggestionsBar'
+import FullscreenSearchLayout from './FullscreenSearchLayout'
 import { Message } from '../types/common'
 import type { BotSuggestion } from '@/types/bot'
 import '../../../styles/chat/base.css';
 import '../../../styles/chat/bubble-mode.css';
 import '../../../styles/chat/fullscreen-mode.css';
 import '../../../styles/chat/inline-mode.css';
+import '../../../styles/chat/fullscreen-search-mode.css';
 import '../styles/message-content.css';
 
 export interface BaseChatLayoutProps {
   // UI-Zustände
   isOpen: boolean
-  mode: 'bubble' | 'inline' | 'fullscreen'
+  mode: 'bubble' | 'inline' | 'fullscreen' | 'fullscreenSearch'
   isLoading: boolean
   isDialogMode: boolean
 
@@ -110,7 +112,34 @@ export function BaseChatLayout({
     )
   }
 
-  // Hauptlayout für geöffneten Chat
+  // Fullscreen AI Search Modus
+  if (mode === 'fullscreenSearch') {
+    return (
+      <FullscreenSearchLayout
+        messages={messages}
+        isLoading={isLoading}
+        onSendMessage={sendMessage}
+        onCancelMessage={cancelMessage}
+        botName={botName}
+        botId={botName.toLowerCase().replace(/\s+/g, '-')}
+        botPrimaryColor={botPrimaryColor}
+        botBgColor={botBgColor}
+        botTextColor={botTextColor}
+        botAccentColor={botAccentColor}
+        userBgColor={userBgColor}
+        userTextColor={userTextColor}
+        enableFeedback={enableFeedback}
+        showCopyButton={showCopyButton}
+        showNameInHeader={showNameInHeader}
+        botAvatarUrl={botAvatarUrl}
+        suggestions={suggestions}
+        messageTemplate={messageTemplate}
+        messagesEndRef={messagesEndRef}
+      />
+    );
+  }
+
+  // Hauptlayout für andere Modi
   return (
     <div
       className={`chat-container ${mode} ${className || ''}`}

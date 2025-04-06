@@ -3,6 +3,7 @@
 @import '../styles/chat/bubble-mode.css';
 @import '../styles/chat/inline-mode.css';
 @import '../styles/chat/fullscreen-mode.css';
+@import '../styles/chat/fullscreen-search-mode.css';
 @import '../components/chat/styles/message-content.css';
 @import '../styles/bot-templates/aok-message-styles.css';
 @import '../styles/bot-templates/creditreform-message-styles.css';

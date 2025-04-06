@@ -1,0 +1,193 @@
+/* Fullscreen AI Search Mode Styles */
+
+/* Hauptcontainer für den Fullscreen AI Search Modus */
+.fullscreenSearch {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--bot-bg-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Anfangszustand: Zentriertes Layout mit prominentem Eingabefeld */
+.fullscreenSearch-initial {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 2rem;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Logo/Intro-Bereich im Anfangszustand */
+.fullscreenSearch-intro {
+  text-align: center;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.fullscreenSearch-intro img {
+  max-width: 180px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.fullscreenSearch-intro h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--bot-primary-color);
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.fullscreenSearch-intro p {
+  font-size: 1.25rem;
+  color: var(--bot-text-color);
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Eingabefeld-Container im Anfangszustand */
+.fullscreenSearch-input-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  position: relative;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Vorschläge im Anfangszustand */
+.fullscreenSearch-suggestions {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Ergebniszustand: Kompakteres Layout mit Fokus auf Antworten */
+.fullscreenSearch-results {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Header im Ergebniszustand */
+.fullscreenSearch-results-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+/* Logo im Ergebniszustand */
+.fullscreenSearch-results-logo {
+  height: 40px;
+  width: auto;
+  margin-right: 1rem;
+}
+
+/* Eingabefeld im Ergebniszustand */
+.fullscreenSearch-results-input {
+  flex: 1;
+  position: relative;
+}
+
+/* Nachrichtenliste im Ergebniszustand */
+.fullscreenSearch-results-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Thought Canvas Animation */
+.thought-canvas {
+  position: relative;
+  overflow: hidden;
+}
+
+.thought-canvas-particle {
+  position: absolute;
+  background: var(--bot-primary-color);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0);
+  pointer-events: none;
+}
+
+/* Expanding Universe Visualisierung */
+.expanding-universe {
+  position: relative;
+  width: 100%;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.universe-core {
+  margin: 0 auto;
+  max-width: 700px;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.universe-cluster {
+  position: relative;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+/* Dark Mode Anpassungen */
+.dark .fullscreenSearch {
+  background: var(--bot-bg-color);
+}
+
+.dark .fullscreenSearch-results-header {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+  .fullscreenSearch-intro h1 {
+    font-size: 2rem;
+  }
+  
+  .fullscreenSearch-intro p {
+    font-size: 1rem;
+  }
+  
+  .fullscreenSearch-results-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .fullscreenSearch-results-messages {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .fullscreenSearch-intro img {
+    max-width: 120px;
+  }
+  
+  .fullscreenSearch-intro h1 {
+    font-size: 1.75rem;
+  }
+}

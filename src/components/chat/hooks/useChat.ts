@@ -58,7 +58,7 @@ const hasProcessedWelcomeMessage = (key: string): boolean => {
     if (processedWelcomeMessages.has(key)) {
       return true;
     }
-    
+
     const stored = getProcessedWelcomeMessages();
     return stored.has(key);
   } catch (e) {
@@ -70,7 +70,7 @@ const hasProcessedWelcomeMessage = (key: string): boolean => {
 // Hilfsfunktion für Debounce
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
-  
+
   return function(...args: Parameters<T>): void {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -94,9 +94,9 @@ export interface UseChatOptions {
   botId?: string;
 }
 
-export function useChat({ 
-  initialMessages = [], 
-  initialMode = 'bubble', 
+export function useChat({
+  initialMessages = [],
+  initialMode = 'bubble',
   initialOpen = false,
   botId,
   onError,
@@ -106,7 +106,7 @@ export function useChat({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [mode, setMode] = useState<'bubble' | 'fullscreen' | 'inline'>(initialMode)
+  const [mode, setMode] = useState<'bubble' | 'fullscreen' | 'inline' | 'fullscreenSearch'>(initialMode)
   const [isOpen, setIsOpen] = useState(initialOpen)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -124,7 +124,7 @@ export function useChat({
   useEffect(() => {
     // Versuche, eine vorhandene Session-ID aus dem localStorage zu laden
     const storedSessionId = localStorage.getItem(`${botId || 'default'}_sessionId`);
-    
+
     if (storedSessionId) {
       sessionIdRef.current = storedSessionId;
       console.log('DEBUG-007: Bestehende Session-ID geladen:', storedSessionId);
@@ -139,7 +139,7 @@ export function useChat({
   // Toggle Chat öffnen/schließen
   const toggleChat = useCallback(() => {
     setIsOpen((prev) => !prev)
-    
+
     // Tracking für Chat-Öffnen/Schließen
     LunaryClient.track({
       eventName: isOpen ? 'chat_closed' : 'chat_opened',
@@ -148,19 +148,28 @@ export function useChat({
     })
   }, [isOpen, botId])
 
-  // Wechselt zwischen den Modi (bubble -> inline -> fullscreen -> bubble)
+  // Wechselt zwischen den Modi (bubble -> inline -> fullscreen -> fullscreenSearch -> bubble)
   const cycleMode = useCallback(() => {
     setMode((currentMode) => {
-      const nextMode = currentMode === 'bubble' ? 'inline' : currentMode === 'inline' ? 'fullscreen' : 'bubble'
-      
+      let nextMode;
+      if (currentMode === 'bubble') {
+        nextMode = 'inline';
+      } else if (currentMode === 'inline') {
+        nextMode = 'fullscreen';
+      } else if (currentMode === 'fullscreen') {
+        nextMode = 'fullscreenSearch';
+      } else {
+        nextMode = 'bubble';
+      }
+
       // Tracking für Modusänderung
       LunaryClient.track({
         eventName: 'chat_mode_changed',
         properties: { mode: nextMode, botId },
         metadata: { sessionId: sessionIdRef.current }
       })
-      
-      return nextMode
+
+      return nextMode;
     })
   }, [botId])
 
@@ -172,7 +181,7 @@ export function useChat({
   // Nachrichtenliste aktualisieren mit neuer Nachricht
   useEffect(() => {
     if (messagesEndRef.current) {
-      // Das Element mit einem Offset ins Sichtfeld scrollen, 
+      // Das Element mit einem Offset ins Sichtfeld scrollen,
       // damit der Anfang der Nachricht sichtbar ist
       const parentElement = messagesEndRef.current.parentElement;
       if (parentElement) {
@@ -191,7 +200,7 @@ export function useChat({
   // Nachricht zur Liste hinzufügen
   const addMessage = useCallback((message: Message) => {
     console.log("DEBUG-007: addMessage aufgerufen", message);
-    
+
     // Überprüfen, ob die Nachricht bereits existiert (um Duplikate zu vermeiden)
     setMessages((prevMessages) => {
       // Prüfe auf identische Nachricht in den letzten 3 Elementen
@@ -200,12 +209,12 @@ export function useChat({
       const isDuplicate = recentMessages.some(
         (m) => m.role === message.role && m.content === message.content
       );
-      
+
       if (isDuplicate) {
         console.log("DEBUG-007: Duplikat gefunden, Nachricht wird nicht hinzugefügt");
         return prevMessages;
       }
-      
+
       return [...prevMessages, message];
     });
   }, []);
@@ -217,11 +226,11 @@ export function useChat({
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      
+
       // Refs für Abbruch setzen
       cancelRef.current = true;
       cancelFetchRef.current = true;
-      
+
       // Chat-Initialisierungsstatus zurücksetzen
       chatInitializedRef.current = false;
     };
@@ -233,13 +242,13 @@ export function useChat({
     if (!content || content.trim() === '') {
       return;
     }
-    
+
     // Verhindere erneutes Senden, wenn gerade geladen wird
     if (isLoading) {
       console.log('DEBUG-007: Sendeprozess läuft bereits, ignoriere erneuten Aufruf');
       return;
     }
-    
+
     // Prüfe, ob die letzte Nachricht erst kürzlich gesendet wurde (doppelte Absicherung)
     const now = Date.now();
     if (now - lastMessageTimestampRef.current < 1000) {
@@ -247,35 +256,35 @@ export function useChat({
       return;
     }
     lastMessageTimestampRef.current = now;
-    
+
     try {
       // Anfang des Ladevorgangs
       setIsLoading(true);
       setError(null);
-      
+
       // Benutzer-Nachricht hinzufügen
       const userMessage: Message = { role: 'user', content };
       addMessage(userMessage);
-      
+
       // Abbrechen wenn schon eine Anfrage läuft
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      
+
       // Neue AbortController-Instanz erstellen
       abortControllerRef.current = new AbortController();
       const signal = abortControllerRef.current.signal;
-      
+
       // Tracking für gesendete Nachricht
       LunaryClient.track({
         eventName: 'message_sent',
-        properties: { 
+        properties: {
           content: content.slice(0, 100), // Ersten 100 Zeichen der Nachricht
-          botId 
+          botId
         },
         metadata: { sessionId: sessionIdRef.current }
       });
-      
+
       // Sende Anfrage an API
       console.log('DEBUG-007: Sende API-Anfrage', content);
       const response = await fetch('/api/chat', {
@@ -291,25 +300,25 @@ export function useChat({
         }),
         signal,
       });
-      
+
       if (!response.ok) {
         throw new Error(
           `Fehler beim Senden der Nachricht: ${response.status} ${response.statusText}`
         );
       }
-      
+
       const data = await response.json();
-      
+
       // Aktualisiere die sessionId falls die API eine neue zurückgibt
       if (data.sessionId && data.sessionId !== sessionIdRef.current) {
         console.log('DEBUG-007: Neue Session-ID von API erhalten:', data.sessionId);
         sessionIdRef.current = data.sessionId;
         localStorage.setItem(`${botId || 'default'}_sessionId`, data.sessionId);
       }
-      
+
       // Füge Bot-Antwort hinzu
       let botContent = '';
-      
+
       if (data.text) {
         botContent = data.text;
       } else if (data.response) {
@@ -323,14 +332,14 @@ export function useChat({
       } else {
         botContent = 'Entschuldigung, ich konnte keine Antwort generieren.';
       }
-      
+
       const botMessage: Message = { role: 'assistant', content: botContent };
       addMessage(botMessage);
 
       // Tracking für empfangene Antwort
       LunaryClient.track({
         eventName: 'message_received',
-        properties: { 
+        properties: {
           content: botContent.slice(0, 100), // Ersten 100 Zeichen der Antwort
           botId,
           responseTime: Date.now() - performance.now() // Ungefähre Antwortzeit
@@ -344,20 +353,20 @@ export function useChat({
         console.log('DEBUG-007: Anfrage wurde abgebrochen');
         return;
       }
-      
+
       console.error('Fehler beim Senden der Nachricht:', err);
       setError('Beim Senden der Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.');
-      
+
       // Tracking für Fehler
       LunaryClient.track({
         eventName: 'message_error',
-        properties: { 
+        properties: {
           error: err instanceof Error ? err.message : 'Unbekannter Fehler',
-          botId 
+          botId
         },
         metadata: { sessionId: sessionIdRef.current }
       });
-      
+
     } finally {
       setIsLoading(false);
       abortControllerRef.current = null;
@@ -403,4 +412,4 @@ export function useChat({
     botSettings,
     welcomeMessage,
   }
-} 
+}
