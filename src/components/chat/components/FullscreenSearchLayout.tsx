@@ -188,8 +188,9 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
     <div className="fullscreenSearch-initial">
       <div className="fullscreenSearch-intro">
         {botAvatarUrl && <img src={botAvatarUrl} alt={botName} />}
-        <h1 style={{ color: botPrimaryColor || 'inherit' }}>{botName}</h1>
-        <p>Stellen Sie Ihre Frage und erhalten Sie sofort eine intelligente Antwort.</p>
+        <h1 style={{ color: botPrimaryColor || 'inherit' }}>MallPilot</h1>
+        <p>Ihr intelligenter Assistent für Orientierung und Information.</p>
+        <div className="tagline">Powered by SawatzkiMühlenbruch</div>
       </div>
 
       <div className="fullscreenSearch-input-container thought-canvas" ref={canvasRef}>
@@ -241,13 +242,33 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
     </div>
   );
 
+  // Status des Assistenten (Denken, Suchen, etc.)
+  const [assistantStatus, setAssistantStatus] = useState('');
+
+  // Aktualisiert den Status des Assistenten basierend auf der Aktivität
+  useEffect(() => {
+    if (isLoading) {
+      const statuses = [
+        'Analysiere Ihre Anfrage...',
+        'Suche nach relevanten Informationen...',
+        'Erstelle personalisierte Antwort...',
+        'Prüfe Standortdaten...',
+        'Verbinde mit Echtzeit-Datenbank...',
+      ];
+      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      setAssistantStatus(randomStatus);
+    } else {
+      setAssistantStatus('');
+    }
+  }, [isLoading]);
+
   // Rendert den Ergebniszustand mit Antworten
   const renderResultsState = () => (
     <div className="fullscreenSearch-results">
       <div className="fullscreenSearch-results-header">
         <div className="fullscreenSearch-header-content">
           {botAvatarUrl && (
-            <img src={botAvatarUrl} alt={botName} className="fullscreenSearch-results-logo" />
+            <img src={botAvatarUrl} alt="MallPilot" className="fullscreenSearch-results-logo" />
           )}
           <div className="fullscreenSearch-results-input">
             <ChatInput
@@ -257,8 +278,13 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
               botPrimaryColor={botPrimaryColor}
               botAccentColor={botAccentColor}
               botTextColor={botTextColor}
+              onChange={(e) => setInputValue(e.target.value)}
             />
           </div>
+        </div>
+        <div className={`assistant-status ${assistantStatus ? 'active' : ''}`}>
+          <span className="assistant-status-indicator"></span>
+          {assistantStatus}
         </div>
       </div>
 
@@ -295,6 +321,11 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
                   transition={{ duration: 0.3, delay: 0.1 }}
                 >
                   <div className="search-result-card">
+                    {/* Typ-Indikator */}
+                    <div className="search-result-type">
+                      <span>📍</span> Standortinformation
+                    </div>
+
                     {/* Hauptantwort */}
                     <div className="search-result-content">
                       <h2 style={{ color: botPrimaryColor || 'inherit', marginTop: 0, fontSize: '1.5rem' }}>
@@ -361,6 +392,16 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
                           <span className="search-metadata-icon">🔍</span>
                           Suchtiefe: Umfassende Analyse
                         </div>
+                      </div>
+
+                      {/* Standort-Information mit Karte */}
+                      <div className="location-info">
+                        <div className="location-info-icon">📍</div>
+                        <div className="location-info-content">
+                          <div className="location-info-title">Terminal 2, Ebene 3, Gate B42</div>
+                          <div className="location-info-details">5 Minuten Gehzeit von Ihrem aktuellen Standort</div>
+                        </div>
+                        <div className="location-info-action">Wegbeschreibung anzeigen</div>
                       </div>
 
                       {/* Vertrauensindikator */}
