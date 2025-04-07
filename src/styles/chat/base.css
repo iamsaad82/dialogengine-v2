@@ -28,6 +28,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0; /* Wichtig für Flex-Container, damit Scrolling funktioniert */
+  max-height: calc(100vh - 120px); /* Maximale Höhe begrenzen, um Platz für Header und Input zu lassen */
 }
 
 @media (max-width: 640px) {

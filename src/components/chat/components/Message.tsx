@@ -126,7 +126,7 @@ export const Message: React.FC<{
           botAvatarUrl={botAvatarUrl}
           showName={settings?.showNameInHeader !== undefined ? settings.showNameInHeader : true}
         />
-        <div className="message-content-wrapper">
+        <div className="message-content-wrapper" style={{ overflow: 'visible', height: 'auto', maxHeight: 'none' }}>
           <Suspense fallback={<div className="message-loading">Lade Nachricht...</div>}>
             <TemplateComponents.Message
               content={content}
@@ -157,7 +157,7 @@ export const Message: React.FC<{
   // User-Nachricht bleibt unverändert, Textfarbe wird durch CSS-Regel erzwungen
   return (
     <div className="message user" style={messageStyles}>
-      <div className="message-content-wrapper">
+      <div className="message-content-wrapper" style={{ overflow: 'visible', height: 'auto', maxHeight: 'none' }}>
         <div className={contentClass}>
           <MessageContent content={content} role={role} messageTemplate={null} />
         </div>
