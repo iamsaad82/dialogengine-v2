@@ -179,6 +179,8 @@
   margin-right: 0.5rem;
   color: var(--brandenburg-primary);
   min-width: 120px;
+  /* Flexibles Layout für bessere Responsivität */
+  flex: 0 0 auto;
 }
 
 .brandenburg-info-item-value {
@@ -261,8 +263,72 @@
 
   .brandenburg-blick,
   .brandenburg-info-box,
-  .brandenburg-tipp {
+  .brandenburg-tipp,
+  .brandenburg-service-box,
+  .brandenburg-news,
+  .brandenburg-info {
     padding: 1rem;
+    margin: 1rem 0;
+  }
+
+  .brandenburg-section-title {
+    font-size: 1.1rem;
+  }
+
+  .brandenburg-info-item {
+    flex-wrap: wrap;
+  }
+
+  .brandenburg-info-item-label {
+    min-width: auto;
+    margin-bottom: 0.25rem;
+    width: 100%;
+  }
+
+  .brandenburg-hours-list li {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 0.5rem;
+  }
+
+  .brandenburg-contact-info {
+    padding: 0.5rem;
+  }
+
+  .brandenburg-button {
+    display: block;
+    text-align: center;
+    width: 100%;
+  }
+}
+
+/* Zusätzliche Anpassungen für sehr kleine Bildschirme */
+@media (max-width: 480px) {
+  .brandenburg-message {
+    font-size: 0.95rem;
+  }
+
+  .brandenburg-short-answer {
+    font-size: 1rem !important;
+  }
+
+  .brandenburg-blick-title,
+  .brandenburg-info-title {
+    font-size: 1rem;
+  }
+
+  .brandenburg-section-title {
+    font-size: 1rem;
+  }
+
+  .brandenburg-blick li {
+    padding-left: 1.5rem;
+  }
+
+  .brandenburg-service-box h4,
+  .brandenburg-news h4,
+  .brandenburg-info h4 {
+    font-size: 1rem !important;
   }
 }
 
@@ -330,6 +396,8 @@
   justify-content: space-between !important;
   border-bottom: 1px dotted #e0e0e0 !important;
   font-size: 0.95rem !important;
+  flex-wrap: wrap !important; /* Erlaubt Umbruch auf kleinen Bildschirmen */
+  gap: 0.25rem !important;
 }
 
 .brandenburg-contact-info {
