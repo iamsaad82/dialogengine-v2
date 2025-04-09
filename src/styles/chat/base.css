@@ -1,5 +1,7 @@
 /* Base Chat Styles */
 .chat-container {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -8,13 +10,11 @@
   /* Verbesserte Flexibilität für verschiedene Einbettungsmodi */
   min-height: 300px;
   max-height: 100vh;
-  /* Wichtig für korrekte Berechnung der Scrollhöhe */
-  display: grid;
-  grid-template-rows: auto 1fr auto;
 }
 
 /* Message List Container */
 .message-list-container {
+  flex: 1;
   overflow-y: auto;
   padding: 1rem;
   -webkit-overflow-scrolling: touch;
@@ -24,11 +24,6 @@
   z-index: 1;
   margin: 0;
   scrollbar-width: thin;
-  /* Flexibles Layout ohne feste Höhen */
-  display: flex;
-  flex-direction: column;
-  min-height: 0; /* Wichtig für Flex-Container, damit Scrolling funktioniert */
-  height: 100%; /* Wichtig für korrekte Berechnung der Scrollhöhe */
 }
 
 @media (max-width: 640px) {
@@ -251,6 +246,7 @@
 }
 
 /* Message Styles */
+/* Grundlegende Nachrichtenformatierung */
 .message {
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
@@ -258,8 +254,10 @@
   max-width: 80%;
   word-wrap: break-word;
   width: fit-content;
+  display: flex; /* Wichtig für konsistente Anzeige */
 }
 
+/* Bot-Nachrichten */
 .message.assistant {
   background: var(--bot-bg-color);
   color: var(--bot-text-color);
@@ -269,6 +267,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Benutzer-Nachrichten */
 .message.user {
   background: var(--user-bg-color);
   color: #ffffff !important; /* Immer weiß für Benutzer-Nachrichten */
@@ -277,6 +276,9 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   max-width: 70%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex !important; /* Erzwingen der Anzeige */
+  justify-content: flex-end !important; /* Rechts ausrichten */
+  width: 100% !important; /* Volle Breite für korrekte Ausrichtung */
 }
 
 /* Zusätzliche Regel für den Inhalt der Benutzer-Nachricht */
@@ -312,9 +314,6 @@
   word-break: normal;
   font-size: 0.9375rem;
   line-height: 1.5;
-  overflow: visible;
-  height: auto;
-  max-height: none;
 }
 
 /* Streaming Message spezifische Stabilisierung */
@@ -329,9 +328,6 @@
   transition: color 0.1s linear !important;
   will-change: contents;
   contain: layout style;
-  overflow: visible;
-  height: auto;
-  max-height: none;
 }
 
 /* Message Actions */
@@ -379,6 +375,14 @@
   .message {
     max-width: 90%;
     padding: 0.5rem 0.75rem;
+  }
+
+  /* Sicherstellen, dass Benutzernachrichten auch auf mobilen Geräten angezeigt werden */
+  .message.user {
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    max-width: 85%;
   }
 
   .message-header {
@@ -533,9 +537,7 @@
 /* Streaming-spezifische Stile */
 .streaming-message {
   position: relative;
-  overflow: visible;
-  height: auto;
-  max-height: none;
+  overflow: hidden;
 }
 
 .pulse-subtle {

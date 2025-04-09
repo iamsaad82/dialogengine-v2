@@ -580,30 +580,6 @@
   }
 }
 
-/* Benutzernachrichten im AOK-Template */
-.message.user .message-content {
-  background-color: var(--aok-primary, #006e3b) !important;
-  color: white !important;
-  border-radius: 12px 12px 0 12px !important;
-  padding: 0.75rem 1rem !important;
-  font-weight: 400 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  max-width: 85% !important;
-  margin-left: auto !important;
-  display: inline-block !important;
-  font-size: 0.95rem !important;
-  line-height: 1.5 !important;
-}
-
-/* Sicherstellen, dass Benutzernachrichten immer angezeigt werden */
-.message.user {
-  display: flex !important;
-  justify-content: flex-end !important;
-  margin-bottom: 1rem !important;
-  padding: 0 !important;
-  width: 100% !important;
-}
-
 /* Responsive Design */
 @media (max-width: 640px) {
   .aok-card-grid {
@@ -626,9 +602,5 @@
     font-size: 1.1rem;
   }
 
-  /* Responsive Anpassungen für Benutzernachrichten */
-  .message.user .message-content {
-    max-width: 90% !important;
-    font-size: 0.9rem !important;
-  }
+
 }
