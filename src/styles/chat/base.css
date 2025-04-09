@@ -1,7 +1,5 @@
 /* Base Chat Styles */
 .chat-container {
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -10,11 +8,13 @@
   /* Verbesserte Flexibilität für verschiedene Einbettungsmodi */
   min-height: 300px;
   max-height: 100vh;
+  /* Wichtig für korrekte Berechnung der Scrollhöhe */
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 
 /* Message List Container */
 .message-list-container {
-  flex: 1;
   overflow-y: auto;
   padding: 1rem;
   -webkit-overflow-scrolling: touch;
@@ -28,7 +28,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0; /* Wichtig für Flex-Container, damit Scrolling funktioniert */
-  max-height: calc(100vh - 120px); /* Maximale Höhe begrenzen, um Platz für Header und Input zu lassen */
+  height: 100%; /* Wichtig für korrekte Berechnung der Scrollhöhe */
 }
 
 @media (max-width: 640px) {
@@ -312,6 +312,9 @@
   word-break: normal;
   font-size: 0.9375rem;
   line-height: 1.5;
+  overflow: visible;
+  height: auto;
+  max-height: none;
 }
 
 /* Streaming Message spezifische Stabilisierung */
@@ -326,6 +329,9 @@
   transition: color 0.1s linear !important;
   will-change: contents;
   contain: layout style;
+  overflow: visible;
+  height: auto;
+  max-height: none;
 }
 
 /* Message Actions */
@@ -527,7 +533,9 @@
 /* Streaming-spezifische Stile */
 .streaming-message {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  height: auto;
+  max-height: none;
 }
 
 .pulse-subtle {

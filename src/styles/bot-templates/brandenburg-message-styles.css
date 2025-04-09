@@ -28,6 +28,7 @@
   overflow: visible;
   height: auto;
   min-height: 0;
+  max-height: none;
 }
 
 /* Logo und Titelbereich */
