@@ -3,6 +3,7 @@
 import React, { useCallback, useState, useEffect } from 'react'
 import { Message as MessageType } from '../types/common'
 import '../styles/message-content.css'
+import '../styles/message-header.css'
 import StreamingContent from './StreamingContent'
 import { MessageContent } from './MessageContent/MessageContent'
 import { MessageHeader } from './MessageHeader'
@@ -80,11 +81,13 @@ export const Message: React.FC<{
   const TemplateComponents = getTemplateComponents(messageTemplate);
 
   // Template-Klasse nur für Bot-Nachrichten, User-Nachrichten bleiben unverändert
+  // Entferne streaming-message Klasse, um Flackern zu verhindern
   const messageClass = isBot
-    ? `${messageTemplate}-message message assistant ${isStreaming && isLast ? 'streaming-message' : ''}`
-    : `message user`; // Keine Template-Klasse für User-Nachrichten
+    ? `${messageTemplate}-message message assistant no-animation`
+    : `message user no-animation`; // Keine Template-Klasse für User-Nachrichten
 
-  const contentClass = `message-content ${isStreaming && isBot && isLast ? 'streaming-content' : ''}`;
+  // Entferne streaming-content Klasse, um Flackern zu verhindern
+  const contentClass = `message-content no-animation`;
 
   // RGB-Werte für CSS-Variablen extrahieren
   const primaryColorRgb = colorStyle?.primaryColor ? hexToRgbString(colorStyle.primaryColor) : '59, 130, 246';
@@ -120,22 +123,24 @@ export const Message: React.FC<{
   // Bot-Nachricht mit Template-Komponente rendern
   if (isBot) {
     return (
-      <div className={`${messageTemplate}-message message assistant ${isStreaming && isLast ? 'streaming-message' : ''}`} style={messageStyles}>
+      <>
         <MessageHeader
           botName={botName}
           botAvatarUrl={botAvatarUrl}
           showName={settings?.showNameInHeader !== undefined ? settings.showNameInHeader : true}
         />
-        <div className="message-content-wrapper" style={{ overflow: 'visible', height: 'auto', maxHeight: 'none' }}>
-          <Suspense fallback={<div className="message-loading">Lade Nachricht...</div>}>
-            <TemplateComponents.Message
-              content={content}
-              isStreaming={isStreaming && isLast}
-              colorStyle={colorStyle}
-              isComplete={!isStreaming || !isLast}
-              messageControls={null} // Keine MessageControls mehr an das Template übergeben
-            />
-          </Suspense>
+        <div className={`${messageTemplate}-message message assistant`} style={messageStyles}>
+          <div className="message-content-wrapper" style={{ width: '100%', maxWidth: '100%', overflow: 'hidden', contain: 'layout' }}>
+            <Suspense fallback={<div className="message-loading">Lade Nachricht...</div>}>
+              <TemplateComponents.Message
+                content={content}
+                isStreaming={isStreaming && isLast}
+                colorStyle={colorStyle}
+                isComplete={!isStreaming || !isLast}
+                messageControls={null} // Keine MessageControls mehr an das Template übergeben
+                query={message.content} // Die ursprüngliche Anfrage des Nutzers für bessere Relevanzfilterung
+              />
+            </Suspense>
 
           {/* MessageControls am Ende der Nachricht platzieren */}
           <div className="message-controls-container">
@@ -151,14 +156,15 @@ export const Message: React.FC<{
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   // User-Nachricht bleibt unverändert, Textfarbe wird durch CSS-Regel erzwungen
   return (
     <div className="message user" style={messageStyles}>
-      <div className="message-content-wrapper" style={{ overflow: 'visible', height: 'auto', maxHeight: 'none' }}>
-        <div className={contentClass}>
+      <div className="message-content-wrapper" style={{ width: '100%' }}>
+        <div className={contentClass} style={{ width: '100%', minWidth: '60px' }}>
           <MessageContent content={content} role={role} messageTemplate={null} />
         </div>
       </div>

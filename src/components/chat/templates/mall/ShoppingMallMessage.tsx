@@ -1,12 +1,13 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useRef, useLayoutEffect, useMemo } from 'react';
 import { useMallContentStreaming } from './hooks/useMallContentStreaming';
 import MallHeader from './components/MallHeader';
 import MallIntroSection from './components/MallIntroSection';
 import ShopSlider from './components/ShopSlider';
 import RestaurantSlider from './components/RestaurantSlider';
 import MallTipSection from './components/MallTipSection';
+import SkeletonLoader from './components/SkeletonLoader';
 import { MallSectionType } from './utils/contentParser';
 
 // Funktion zum Hinzufügen der globalen Styles
@@ -46,6 +47,7 @@ interface ShoppingMallMessageProps {
   messageControls?: React.ReactNode; // Wird nicht mehr verwendet, bleibt für Abwärtskompatibilität
   colorStyle?: Record<string, string>;
   isComplete: boolean;
+  query?: string; // Die ursprüngliche Anfrage des Nutzers für bessere Relevanzfilterung
 }
 
 /**
@@ -57,16 +59,24 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
   isStreaming = false,
   messageControls,
   colorStyle,
-  isComplete: forceComplete = false
+  isComplete: forceComplete = false,
+  query = ''
 }) => {
   // Globale Styles für Animationen hinzufügen
   useGlobalStyles();
 
-  // Verarbeite den Content mit dem Streaming-Hook
-  const { sections, isComplete: hookIsComplete, processedHtml } = useMallContentStreaming(content, isStreaming && !forceComplete);
+  // Verarbeite den Content mit dem Streaming-Hook und berücksichtige die Nutzeranfrage
+  const { sections, isComplete: hookIsComplete, processedHtml } = useMallContentStreaming(
+    content,
+    isStreaming && !forceComplete,
+    query // Übergebe die Nutzeranfrage an den Hook
+  );
 
   // Lokaler State für isComplete, um mehr Kontrolle zu haben
   const [isComplete, setIsComplete] = useState(!isStreaming || forceComplete);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [finalHeight, setFinalHeight] = useState<number | null>(null);
+  const [isRendered, setIsRendered] = useState(false);
 
   // Aktualisiere isComplete, wenn sich hookIsComplete ändert
   useEffect(() => {
@@ -83,6 +93,22 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
     }
   }, [content, isStreaming, forceComplete]);
 
+  // Messe die Höhe nach Abschluss des Streamings
+  useLayoutEffect(() => {
+    if (isComplete && contentRef.current && !finalHeight) {
+      // Warte einen Frame, um die Höhe zu messen
+      window.setTimeout(() => {
+        if (contentRef.current) {
+          // Messe die Höhe des Inhalts
+          const height = contentRef.current.scrollHeight;
+          console.log('Mall Template: Finale Höhe gemessen:', height);
+          setFinalHeight(height);
+          setIsRendered(true);
+        }
+      }, 100); // Längere Verzögerung für zuverlässigere Messung
+    }
+  }, [isComplete, finalHeight]);
+
   // Farben aus Bot-Settings
   const primaryColor = colorStyle?.primaryColor || '#3b1c60';
   const secondaryColor = colorStyle?.secondaryColor || '#ff5a5f';
@@ -90,25 +116,42 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
   const botBgColor = colorStyle?.botBgColor || '#ffffff';
   const botTextColor = colorStyle?.botTextColor || '#333333';
 
-  // CSS-Variablen setzen
-  const dynamicStyles = {
-    '--mall-primary': primaryColor,
-    '--mall-secondary': secondaryColor,
-    '--mall-tertiary': tertiaryColor,
-    '--mall-border-radius': '12px',
-    '--mall-shadow': 'none',
-    '--mall-font': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
-    '--mall-text': botTextColor,
-    '--mall-light-text': '#ffffff',
-    '--mall-background': 'transparent',
+  // Berechne die Stile für den Container basierend auf dem Status
+  const dynamicStyles = useMemo(() => {
+    const style: React.CSSProperties = {
+      '--mall-primary': primaryColor,
+      '--mall-secondary': secondaryColor,
+      '--mall-tertiary': tertiaryColor,
+      '--mall-border-radius': '12px',
+      '--mall-shadow': 'none',
+      '--mall-font': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+      '--mall-text': botTextColor,
+      '--mall-light-text': '#ffffff',
+      '--mall-background': 'transparent',
 
-    // Base styles
-    fontFamily: 'var(--mall-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif)',
-    lineHeight: '1.6',
-    color: 'var(--mall-text, #333333)',
-    backgroundColor: 'transparent',
-    // Keine Überschreibung von padding oder margin
-  } as React.CSSProperties;
+      // Base styles
+      fontFamily: 'var(--mall-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif)',
+      lineHeight: '1.6',
+      color: 'var(--mall-text, #333333)',
+      backgroundColor: 'transparent',
+      position: 'relative',
+      overflow: 'hidden',
+    };
+
+    // Wenn wir eine endgültige Höhe haben und das Streaming abgeschlossen ist,
+    // verwenden wir eine feste Höhe, um Layout-Shifts zu verhindern
+    if (finalHeight !== null && isComplete) {
+      style.height = `${finalHeight}px`;
+      // Setze auch eine CSS-Variable für die Höhe
+      style['--final-height' as any] = `${finalHeight}px`;
+      console.log('Mall Template: Verwende feste Höhe:', finalHeight);
+    } else {
+      // Sonst verwenden wir eine Mindesthöhe
+      style.minHeight = '100px';
+    }
+
+    return style;
+  }, [primaryColor, secondaryColor, tertiaryColor, botTextColor, finalHeight, isComplete]);
 
   // Nur notwendige CSS-Stile inline definieren, die nicht in der externen CSS-Datei sind
   const inlineCSS = `
@@ -117,7 +160,30 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
       font-family: var(--mall-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif);
       line-height: 1.6;
       color: var(--mall-text, #333333);
-      /* Keine Überschreibung von background-color, padding oder margin */
+      font-size: 16px; /* Feste Basisgröße */
+      transition: none !important; /* Keine Übergänge während des Streamings */
+      will-change: contents; /* Optimiert für Änderungen des Inhalts */
+      position: relative;
+      min-height: 100px;
+      overflow: hidden;
+    }
+
+    /* Spezielle Klasse für abgeschlossene Nachrichten */
+    .mall-complete {
+      /* Feste Höhe nach Abschluss */
+      height: var(--final-height, auto) !important;
+    }
+
+    .mall-content {
+      width: 100%;
+      position: relative;
+    }
+
+    /* Deaktivierung aller Animationen außer der Höhen-Transition */
+    .mall-message *:not(.mall-message),
+    .mall-content * {
+      animation: none !important;
+      transition: none !important;
     }
 
     /* Header */
@@ -146,12 +212,15 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
       margin: 1.5rem;
       font-size: 1.1rem;
       line-height: 1.5;
+      min-height: 1.5rem; /* Verhindert Größenänderungen während des Streamings */
+      transition: none !important; /* Keine Übergänge während des Streamings */
     }
 
     /* Sections */
     .mall-message .mall-section {
       margin: 1.5rem 0;
       padding: 0 1.5rem;
+      transition: none !important; /* Keine Übergänge während des Streamings */
     }
 
     .mall-message .mall-section-title {
@@ -159,6 +228,8 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
       font-weight: 700;
       color: var(--mall-primary, #3b1c60);
       margin: 0 0 1.25rem 1.5rem;
+      transition: none !important; /* Keine Übergänge während des Streamings */
+      min-height: 1.5rem; /* Verhindert Größenänderungen */
     }
 
     /* Shop Slider */
@@ -349,16 +420,30 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
   // Fallback-Rendering wenn keine Sektionen gefunden wurden
   if (sections.length === 0 && content) {
     return (
-      <div className="mall-message" style={dynamicStyles}>
+      <div
+        ref={contentRef}
+        className={`mall-message ${isComplete ? 'mall-complete' : ''}`}
+        style={dynamicStyles}
+      >
         {/* Inline-CSS statt externer Datei */}
         <style dangerouslySetInnerHTML={{ __html: inlineCSS }} />
         {/* Keine Nachrichtensteuerung mehr hier, wird jetzt in der Message-Komponente angezeigt */}
 
         {/* Fallback: Original-Content anzeigen */}
-        <div dangerouslySetInnerHTML={{ __html: content }} />
+        <div
+          className="mall-content"
+          style={{
+            width: '100%',
+            position: 'relative',
+            // Keine Transitions oder Animationen im Content
+            transition: 'none',
+            animation: 'none',
+          }}
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
 
-        {/* Streaming-Indikator */}
-        {!isComplete && (
+        {/* Streaming-Indikator nur anzeigen, wenn aktiv gestreamt wird und nicht vollständig */}
+        {isStreaming && !isComplete && (
           <div className="mall-streaming-indicator">...</div>
         )}
       </div>
@@ -366,16 +451,29 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
   }
 
   return (
-    <div className="mall-message" style={dynamicStyles}>
+    <div
+      ref={contentRef}
+      className={`mall-message ${isComplete ? 'mall-complete' : ''}`}
+      style={dynamicStyles}
+    >
       {/* Inline-CSS statt externer Datei */}
       <style dangerouslySetInnerHTML={{ __html: inlineCSS }} />
       {/* Keine Nachrichtensteuerung mehr hier, wird jetzt in der Message-Komponente angezeigt */}
 
+      {/* Skeleton-Loader nur anzeigen, wenn noch keine Sektionen erkannt wurden */}
+      {isStreaming && sections.length === 0 && (
+        <div className="mall-skeleton-container">
+          <SkeletonLoader type="intro" />
+          <SkeletonLoader type="shops" />
+          <SkeletonLoader type="tip" />
+        </div>
+      )}
+
       {/* Komponenten basierend auf erkannten Sektionen rendern */}
       <Suspense fallback={<div className="mall-loading">Wird geladen...</div>}>
         {sections.map((section, index) => {
-          // Jede Sektion basierend auf ihrem Typ rendern
-          switch (section.type) {
+            // Jede Sektion basierend auf ihrem Typ rendern
+            switch (section.type) {
             case 'header':
               // Header nicht mehr anzeigen
               return null;
@@ -440,8 +538,8 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
         })}
       </Suspense>
 
-      {/* Verbesserter Streaming-Indikator - nur anzeigen, wenn wirklich Streaming aktiv ist */}
-      {!isComplete && (
+      {/* Verbesserter Streaming-Indikator - nur anzeigen, wenn wirklich Streaming aktiv ist und nicht vollständig */}
+      {false && isStreaming && !isComplete && (
         <div
           style={{
             display: 'flex',

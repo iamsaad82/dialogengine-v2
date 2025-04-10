@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect, useMemo } from 'react';
 
 interface StandardMessageProps {
   content: string;
@@ -26,6 +26,8 @@ const StandardMessage: React.FC<StandardMessageProps> = ({
   const [processedContent, setProcessedContent] = useState('');
   const [shortAnswer, setShortAnswer] = useState<string | null>(null);
   const [lastProcessedContent, setLastProcessedContent] = useState('');
+  const [isRendered, setIsRendered] = useState(false);
+  const [finalHeight, setFinalHeight] = useState<number | null>(null);
 
   // Farben aus Bot-Settings
   const primaryColor = colorStyle?.primaryColor || '#2563eb';
@@ -106,79 +108,103 @@ const StandardMessage: React.FC<StandardMessageProps> = ({
     });
   };
 
-  useEffect(() => {
+  // Verarbeitung des Inhalts mit useLayoutEffect für synchrones Rendering
+  useLayoutEffect(() => {
+    // Nur ausführen, wenn Content vorhanden und neu ist
     if (!content || content === lastProcessedContent) return;
 
     setLastProcessedContent(content);
 
-    // Extrahieren der Kurzantwort
-    if (content) {
-      // Strategie 1: Text bis zum ersten HTML-Tag extrahieren
-      const textBeforeFirstTag = content.match(/^([^<]+)/i);
-      if (textBeforeFirstTag && textBeforeFirstTag[1].trim().length > 0) {
-        setShortAnswer(textBeforeFirstTag[1].trim());
-      }
-      // Strategie 2: Ersten Absatz als Kurzantwort verwenden
-      else if (!shortAnswer) {
-        const firstParagraph = content.match(/<p>([^<]+)<\/p>/i);
-        if (firstParagraph && firstParagraph[1].trim().length > 0) {
-          setShortAnswer(firstParagraph[1].trim());
+    try {
+      // Extrahieren der Kurzantwort
+      if (content) {
+        // Strategie 1: Text bis zum ersten HTML-Tag extrahieren
+        const textBeforeFirstTag = content.match(/^([^<]+)/i);
+        if (textBeforeFirstTag && textBeforeFirstTag[1].trim().length > 0) {
+          setShortAnswer(textBeforeFirstTag[1].trim());
+        }
+        // Strategie 2: Ersten Absatz als Kurzantwort verwenden
+        else if (!shortAnswer) {
+          const firstParagraph = content.match(/<p>([^<]+)<\/p>/i);
+          if (firstParagraph && firstParagraph[1].trim().length > 0) {
+            setShortAnswer(firstParagraph[1].trim());
+          }
         }
       }
+
+      // Verarbeiten der Links und interaktiven Elemente
+      let newContent = processHtmlWithLinks(content);
+
+      // Füge Pfeile zu Accordion-Headern hinzu
+      newContent = newContent.replace(
+        /<div class="standard-accordion-header"([^>]*)>/gi,
+        '<div class="standard-accordion-header"$1><span>$2</span><span class="accordion-arrow" style="transition: transform 0.3s ease;">▼</span>'
+      );
+
+      // Setze initiale Accordion-Inhalte auf ausgeblendet
+      newContent = newContent.replace(
+        /<div class="standard-accordion-content">/gi,
+        '<div class="standard-accordion-content" style="display: none;">'
+      );
+
+      // Setze den Inhalt immer direkt
+      setProcessedContent(newContent);
+      setIsRendered(true);
+
+      // Wenn das Streaming abgeschlossen ist, setzen wir die endgültige Höhe
+      if (!isStreaming || isComplete) {
+        // Warte einen Frame, um die Höhe zu messen
+        window.setTimeout(() => {
+          if (contentRef.current) {
+            // Messe die Höhe des Inhalts
+            const height = contentRef.current.scrollHeight;
+            console.log('Standard Template: Finale Höhe gemessen:', height);
+            setFinalHeight(height);
+          }
+        }, 100); // Längere Verzögerung für zuverlässigere Messung
+      }
+    } catch (error) {
+      console.error('Fehler bei der Content-Verarbeitung:', error);
+      // Fallback: Unveränderten Content anzeigen
+      setProcessedContent(content);
+      setIsRendered(true);
     }
-
-    // Verarbeiten der Links und interaktiven Elemente
-    let newContent = processHtmlWithLinks(content);
-
-    // Füge Pfeile zu Accordion-Headern hinzu
-    newContent = newContent.replace(
-      /<div class="standard-accordion-header"([^>]*)>/gi,
-      '<div class="standard-accordion-header"$1><span>$2</span><span class="accordion-arrow" style="transition: transform 0.3s ease;">▼</span>'
-    );
-
-    // Setze initiale Accordion-Inhalte auf ausgeblendet
-    newContent = newContent.replace(
-      /<div class="standard-accordion-content">/gi,
-      '<div class="standard-accordion-content" style="display: none;">'
-    );
-
-    setProcessedContent(newContent);
-  }, [content, shortAnswer, lastProcessedContent]);
+  }, [content, shortAnswer, lastProcessedContent, isStreaming, isComplete]);
 
   // Nach dem Rendern interaktive Elemente verbessern
   useEffect(() => {
     enhanceInteractiveElements();
   }, [processedContent]);
 
-  // Während des Streamings einfacheres Layout verwenden
-  if (isStreaming) {
-    return (
-      <div
-        ref={contentRef}
-        className="standard-message"
-        style={dynamicStyles}
-      >
-        {/* Keine Nachrichtensteuerung mehr hier, wird jetzt in der Message-Komponente angezeigt */}
+  // Berechne die Stile für den Container basierend auf dem Status
+  const containerStyle = useMemo(() => {
+    const style: React.CSSProperties = {
+      ...dynamicStyles,
+      position: 'relative',
+      overflow: 'hidden',
+    };
 
-        {/* Kurzantwort während des Streamings extrahieren */}
-        {shortAnswer && (
-          <div className="standard-short-answer">
-            {shortAnswer}
-          </div>
-        )}
+    // Wenn wir eine endgültige Höhe haben und das Streaming abgeschlossen ist,
+    // verwenden wir eine feste Höhe, um Layout-Shifts zu verhindern
+    if (finalHeight !== null && (!isStreaming || isComplete)) {
+      style.height = `${finalHeight}px`;
+      // Setze auch eine CSS-Variable für die Höhe
+      style['--final-height' as any] = `${finalHeight}px`;
+      console.log('Standard Template: Verwende feste Höhe:', finalHeight);
+    } else {
+      // Sonst verwenden wir eine Mindesthöhe
+      style.minHeight = '100px';
+    }
 
-        {/* Während des Streamings den gesamten Inhalt anzeigen, aber Links korrigieren */}
-        <div dangerouslySetInnerHTML={{ __html: processedContent }} />
-        <div className="standard-streaming-indicator">...</div>
-      </div>
-    );
-  }
+    return style;
+  }, [dynamicStyles, finalHeight, isStreaming, isComplete]);
 
+  // Optimiertes Rendering mit fester Höhe nach Abschluss
   return (
     <div
       ref={contentRef}
-      className="standard-message"
-      style={dynamicStyles}
+      className={`standard-message ${isComplete ? 'standard-complete' : ''}`}
+      style={containerStyle}
     >
       {/* Keine Nachrichtensteuerung mehr hier, wird jetzt in der Message-Komponente angezeigt */}
 
@@ -189,11 +215,21 @@ const StandardMessage: React.FC<StandardMessageProps> = ({
         </div>
       )}
 
-      {/* Regulärer Inhalt mit interaktiven Elementen */}
-      <div dangerouslySetInnerHTML={{ __html: processedContent }} />
+      {/* Inhalt mit interaktiven Elementen */}
+      <div
+        className="standard-content"
+        style={{
+          width: '100%',
+          position: 'relative',
+          // Keine Transitions oder Animationen im Content
+          transition: 'none',
+          animation: 'none',
+        }}
+        dangerouslySetInnerHTML={{ __html: processedContent }}
+      />
 
-      {/* Streaming-Indikator */}
-      {!isComplete && (
+      {/* Streaming-Indikator nur anzeigen, wenn aktiv gestreamt wird und nicht vollständig */}
+      {isStreaming && !isComplete && (
         <div className="standard-streaming-indicator">...</div>
       )}
     </div>

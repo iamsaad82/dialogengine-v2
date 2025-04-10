@@ -39,10 +39,30 @@
   width: 100%;
   max-width: 100%;
   font-size: 0.95rem;
-  /* Optimierungen für Streaming-Performance */
-  contain: content;
-  will-change: contents;
+  position: relative;
+  min-height: 100px;
+  overflow: hidden;
 }
+
+/* Spezielle Klasse für abgeschlossene Nachrichten */
+.aok-complete {
+  /* Feste Höhe nach Abschluss */
+  height: var(--final-height, auto) !important;
+}
+
+.aok-content {
+  width: 100%;
+  position: relative;
+}
+
+/* Deaktivierung aller Animationen außer der Höhen-Transition */
+.aok-message *:not(.aok-message),
+.aok-content * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Wir entfernen die Header-Stile hier, da sie jetzt in message-header.css definiert sind */
 
 /* Typografie */
 .aok-message h1 {

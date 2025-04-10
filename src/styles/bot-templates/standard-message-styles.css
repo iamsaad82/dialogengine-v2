@@ -22,6 +22,27 @@
   color: var(--std-dark);
   max-width: 100%;
   letter-spacing: -0.01em;
+  position: relative;
+  min-height: 100px;
+  overflow: hidden;
+}
+
+/* Spezielle Klasse für abgeschlossene Nachrichten */
+.standard-complete {
+  /* Feste Höhe nach Abschluss */
+  height: var(--final-height, auto) !important;
+}
+
+.standard-content {
+  width: 100%;
+  position: relative;
+}
+
+/* Deaktivierung aller Animationen außer der Höhen-Transition */
+.standard-message *:not(.standard-message),
+.standard-content * {
+  animation: none !important;
+  transition: none !important;
 }
 
 /* Grundlegende Typografie */
@@ -82,7 +103,7 @@
 }
 
 /* Listen */
-.standard-message ul, 
+.standard-message ul,
 .standard-message ol {
   padding-left: 1.5rem;
   margin: 0 0 1.5rem 0;
@@ -386,4 +407,4 @@
   0% { opacity: 0.3; }
   50% { opacity: 1; }
   100% { opacity: 0.3; }
-} 
+}

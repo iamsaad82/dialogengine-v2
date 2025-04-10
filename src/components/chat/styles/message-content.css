@@ -1,10 +1,17 @@
 /* Modern gestaltetes CSS für Chat-Komponenten */
 
 /* Animationsunterdrückung nur für problematische Elemente */
-.message, .message-content, .streaming-content {
+.message, .message-content, .streaming-content, .no-animation, .no-animation * {
   animation: none !important;
   transition: none !important;
   will-change: auto !important;
+}
+
+/* Verhindert Layout-Shifts während des Streamings */
+.message-content-wrapper {
+  contain: layout;
+  min-height: 100px;
+  position: relative;
 }
 
 /* Moderne Message-Stile mit Schatten und sanften Übergängen */
@@ -60,10 +67,12 @@
 .message-header {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   margin-bottom: 0.25rem;
   font-weight: 500;
   font-size: 0.875rem;
   letter-spacing: -0.01em;
+  text-align: left;
 }
 
 .bot-avatar,
@@ -75,6 +84,10 @@
   object-fit: contain;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   background: white;
+  display: inline-block;
+  vertical-align: middle;
+  float: none;
+  position: relative;
 }
 
 /* Message Inhalte mit verbesserter Lesbarkeit */

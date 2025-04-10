@@ -1,0 +1,354 @@
+/*
+ * Streaming-Stabilität CSS
+ * Diese Datei enthält CSS-Regeln, die die Stabilität während des Streamings verbessern
+ * und das Springen von Textgrößen und Layouts verhindern.
+ */
+
+/* Basis-Regeln für alle Templates */
+.message-content {
+  /* Verhindert Größenänderungen während des Streamings */
+  min-height: 1.5rem;
+  transition: none !important;
+  will-change: auto;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+
+  /* Verhindert Layout-Shifts */
+  contain: layout style;
+
+  /* Optimiert Rendering-Performance */
+  backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
+
+  /* Verhindert Flackern während des Streamings */
+  animation: none !important;
+
+  /* Verhindert Neuberechnung des Layouts während des Streamings */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+
+  /* Verhindert Flackern durch Schriftarten-Laden */
+  font-display: optional !important;
+}
+
+/* Globale Regel zur Verhinderung von Flackern */
+.message-content * {
+  animation: none !important;
+  transition: none !important;
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+  will-change: auto !important;
+}
+
+/* Verhindert Größenänderungen bei Überschriften */
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content h5,
+.message-content h6 {
+  transition: none !important;
+  min-height: 1.2em;
+  will-change: contents;
+  contain: layout style;
+  animation: none !important;
+
+  opacity: 1 !important;
+}
+
+/* Verhindert Größenänderungen bei Absätzen */
+.message-content p {
+  transition: none !important;
+  min-height: 1.5em;
+  will-change: contents;
+  contain: layout style;
+  animation: none !important;
+
+  opacity: 1 !important;
+}
+
+/* Verhindert Größenänderungen bei Listen */
+.message-content ul,
+.message-content ol {
+  transition: none !important;
+  min-height: 1.5em;
+  will-change: contents;
+  contain: layout style;
+  animation: none !important;
+
+  opacity: 1 !important;
+}
+
+/* Verhindert Größenänderungen bei Listenelementen */
+.message-content li {
+  transition: none !important;
+  min-height: 1.5em;
+  will-change: contents;
+  contain: layout style;
+  animation: none !important;
+
+  opacity: 1 !important;
+}
+
+/* Verhindert Größenänderungen bei Bildern und Medien */
+.message-content img,
+.message-content video,
+.message-content iframe {
+  transition: none !important;
+  contain: layout style;
+  animation: none !important;
+
+  opacity: 1 !important;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Verhindert Größenänderungen bei Tabellen */
+.message-content table {
+  transition: none !important;
+  contain: layout style;
+  table-layout: fixed;
+  width: 100%;
+  animation: none !important;
+
+  opacity: 1 !important;
+}
+
+/* Stabilisierung des Logos und Headers */
+.message-header {
+  transition: none !important;
+  animation: none !important;
+  will-change: auto !important; /* Verhindert unnötige GPU-Beschleunigung */
+  contain: layout style;
+
+  opacity: 1 !important;
+  backface-visibility: hidden;
+  min-height: 48px;
+}
+
+.message-header img,
+.message-header .bot-avatar,
+.bot-avatar-image {
+  transition: none !important;
+  animation: none !important;
+  will-change: auto !important;
+  contain: layout style;
+
+  min-height: 48px;
+  min-width: auto;
+  height: 48px !important;
+  width: auto !important;
+  max-height: 48px;
+  max-width: 192px;
+  opacity: 1 !important;
+  backface-visibility: hidden;
+  object-fit: contain;
+}
+
+/* Moderne Header-Styles für alle Templates */
+.message-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 8px 0 !important;
+  position: relative !important;
+  margin-bottom: 12px !important;
+  min-height: 48px !important;
+}
+
+/* Konsistente Logo-Größe für alle Templates */
+.message-content .message-header img,
+.message-content .message-header .bot-avatar,
+.message-header img,
+.message-header .bot-avatar {
+  display: block !important;
+  width: auto !important;
+  height: 48px !important;
+  min-width: auto !important;
+  min-height: 48px !important;
+  max-width: 192px !important;
+  max-height: 48px !important;
+  object-fit: contain !important;
+}
+
+/* Konsistente Container-Größe für alle Templates */
+.message-content .bot-avatar-container,
+.bot-avatar-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-shrink: 0 !important;
+  margin-right: 12px !important;
+}
+
+/* Bot-Name-Container */
+.bot-name-container {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  flex-grow: 1 !important;
+  overflow: hidden !important;
+}
+
+/* Bot-Name-Stil */
+.bot-name {
+  display: block !important;
+  font-weight: 500 !important;
+  font-size: 1rem !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Bot-Untertitel-Stil */
+.bot-subtitle {
+  display: block !important;
+  font-size: 0.8rem !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin-top: 2px !important;
+  color: var(--bot-secondary-color, #666) !important;
+}
+
+/* Template-spezifische Regeln */
+
+/* AOK Template */
+.aok-message {
+  transition: none !important;
+  will-change: contents;
+  contain: layout style;
+}
+
+.aok-message .aok-short-answer,
+.aok-message .aok-box,
+.aok-message .aok-info-box,
+.aok-message .aok-facts-box {
+  transition: none !important;
+  min-height: 1.5em;
+  will-change: contents;
+  contain: layout style;
+}
+
+/* Mall Template */
+.mall-message {
+  will-change: contents;
+  contain: layout style;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+
+  /* Verhindert Flackern während des Streamings */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 1000px;
+
+  /* Reserviert Platz für Inhalte */
+  min-height: 200px;
+
+  /* Verhindert Flackern durch Schriftarten-Laden */
+  font-display: optional !important;
+
+  /* Verhindert Flackern durch Bilder-Laden */
+  img {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 150px;
+  }
+
+  /* Sanfter Übergang für neue Sektionen */
+  .mall-intro-section,
+  .mall-shop-slider,
+  .mall-restaurants-slider,
+  .mall-tip-section {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0.7; }
+    to { opacity: 1; }
+  }
+}
+
+.mall-message .mall-intro,
+.mall-message .mall-section,
+.mall-message .mall-section-title {
+  transition: none !important;
+  min-height: 1.5em;
+  will-change: contents;
+  contain: layout style;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+}
+
+/* Shop/Restaurant Slider Stabilisierung */
+.mall-message .mall-shops-slider,
+.mall-message .mall-restaurants-slider {
+  transition: none !important;
+  will-change: auto !important;
+  contain: layout style;
+  min-height: 200px;
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Shop/Restaurant Cards Stabilisierung */
+.mall-message .shop-card,
+.mall-message .restaurant-card {
+  transition: none !important;
+  will-change: auto !important;
+  contain: layout style;
+  min-height: 150px;
+  min-width: 200px;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Brandenburg Template */
+.brandenburg-message {
+  transition: none !important;
+  will-change: contents;
+  contain: layout style;
+}
+
+.brandenburg-message .brandenburg-intro,
+.brandenburg-message .brandenburg-section,
+.brandenburg-message .brandenburg-box {
+  transition: none !important;
+  min-height: 1.5em;
+  will-change: contents;
+  contain: layout style;
+}
+
+/* Ninfly Template */
+.ninfly-message {
+  transition: none !important;
+  will-change: contents;
+  contain: layout style;
+}
+
+.ninfly-message .ninfly-intro,
+.ninfly-message .ninfly-section,
+.ninfly-message .ninfly-box {
+  transition: none !important;
+  min-height: 1.5em;
+  will-change: contents;
+  contain: layout style;
+}
+
+/* Creditreform Template */
+.creditreform-message {
+  transition: none !important;
+  will-change: contents;
+  contain: layout style;
+}
+
+.creditreform-message .creditreform-intro,
+.creditreform-message .creditreform-section,
+.creditreform-message .creditreform-box {
+  transition: none !important;
+  min-height: 1.5em;
+  will-change: contents;
+  contain: layout style;
+}

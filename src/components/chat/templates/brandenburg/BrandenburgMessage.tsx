@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect, useMemo } from 'react';
 
 interface BrandenburgMessageProps {
   content: string;
@@ -24,6 +24,8 @@ const BrandenburgMessage: React.FC<BrandenburgMessageProps> = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const [processedContent, setProcessedContent] = useState('');
   const [lastProcessedContent, setLastProcessedContent] = useState('');
+  const [isRendered, setIsRendered] = useState(false);
+  const [finalHeight, setFinalHeight] = useState<number | null>(null);
 
   // Farben aus Bot-Settings
   const primaryColor = colorStyle?.primaryColor || '#003c8e';
@@ -234,7 +236,8 @@ const BrandenburgMessage: React.FC<BrandenburgMessageProps> = ({
 
   // Die processHtmlWithLinks-Funktion ist bereits oben definiert
 
-  useEffect(() => {
+  // Verarbeitung des Inhalts mit useLayoutEffect für synchrones Rendering
+  useLayoutEffect(() => {
     // Nur ausführen, wenn im Browser und Content vorhanden
     if (typeof window === 'undefined' || !content || content === lastProcessedContent) return;
 
@@ -243,47 +246,79 @@ const BrandenburgMessage: React.FC<BrandenburgMessageProps> = ({
     try {
       // Immer die vollständige Verarbeitung verwenden, um das Layout konsistent zu halten
       let newContent = convertHtmlToNewStructure(content);
+
+      // Setze den Inhalt immer direkt
       setProcessedContent(newContent);
+      setIsRendered(true);
+
+      // Wenn das Streaming abgeschlossen ist, setzen wir die endgültige Höhe
+      if (!isStreaming || isComplete) {
+        // Warte einen Frame, um die Höhe zu messen
+        window.setTimeout(() => {
+          if (contentRef.current) {
+            // Messe die Höhe des Inhalts
+            const height = contentRef.current.scrollHeight;
+            console.log('Finale Höhe gemessen:', height);
+            setFinalHeight(height);
+          }
+        }, 100); // Längere Verzögerung für zuverlässigere Messung
+      }
     } catch (error) {
       console.error('Fehler bei der Content-Verarbeitung:', error);
       // Fallback: Unveränderten Content anzeigen
       setProcessedContent(content);
+      setIsRendered(true);
     }
-  }, [content, lastProcessedContent]);
+  }, [content, lastProcessedContent, isStreaming, isComplete]);
 
-  // Während des Streamings das gleiche Layout wie bei fertigen Nachrichten verwenden
-  // aber ohne Animationen und mit Streaming-Indikator
-  if (isStreaming) {
-    return (
-      <div
-        ref={contentRef}
-        className="brandenburg-message"
-        style={dynamicStyles}
-      >
-        {/* Keine Nachrichtensteuerung mehr hier, wird jetzt in der Message-Komponente angezeigt */}
+  // Berechne die Stile für den Container basierend auf dem Status
+  const containerStyle = useMemo(() => {
+    const style: React.CSSProperties = {
+      ...dynamicStyles,
+      position: 'relative',
+      overflow: 'hidden',
+    };
 
-        {/* Content mit der neuen HTML-Struktur und Links */}
-        <div dangerouslySetInnerHTML={{ __html: processedContent }} />
+    // Wenn wir eine endgültige Höhe haben und das Streaming abgeschlossen ist,
+    // verwenden wir eine feste Höhe, um Layout-Shifts zu verhindern
+    if (finalHeight !== null && (!isStreaming || isComplete)) {
+      style.height = `${finalHeight}px`;
+      // Setze auch eine CSS-Variable für die Höhe
+      style['--final-height' as any] = `${finalHeight}px`;
+      console.log('Verwende feste Höhe:', finalHeight);
+    } else {
+      // Sonst verwenden wir eine Mindesthöhe
+      style.minHeight = '100px';
+      console.log('Verwende Mindesthöhe');
+    }
 
-        {/* Streaming-Indikator */}
-        {!isComplete && (
-          <div className="brandenburg-streaming-indicator">...</div>
-        )}
-      </div>
-    );
-  }
+    return style;
+  }, [dynamicStyles, finalHeight, isStreaming, isComplete]);
 
-  // Normales Layout mit Animationen für fertige Nachrichten
+  // Optimiertes Rendering mit fester Höhe nach Abschluss
   return (
     <div
       ref={contentRef}
-      className="brandenburg-message brandenburg-fade-in"
-      style={dynamicStyles}
+      className={`brandenburg-message ${isComplete ? 'brandenburg-complete' : ''}`}
+      style={containerStyle}
     >
-      {/* Keine Nachrichtensteuerung mehr hier, wird jetzt in der Message-Komponente angezeigt */}
-
       {/* Content mit der neuen HTML-Struktur und Links */}
-      <div dangerouslySetInnerHTML={{ __html: processedContent }} />
+      <div
+        className="brandenburg-content"
+        style={{
+          width: '100%',
+          position: 'relative',
+          // Keine Transitions oder Animationen im Content
+          transition: 'none',
+          animation: 'none',
+        }}
+        dangerouslySetInnerHTML={{ __html: processedContent }}
+      />
+
+      {/* Streaming-Indikator nur anzeigen, wenn aktiv gestreamt wird und nicht vollständig */}
+      {isStreaming && !isComplete && (
+        <div className="brandenburg-streaming-indicator">...</div>
+      )}
     </div>
   );
 };

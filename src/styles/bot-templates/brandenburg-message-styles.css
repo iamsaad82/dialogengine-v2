@@ -24,17 +24,13 @@
   margin: 0;
   padding: 0;
   max-width: 100%;
-  /* Wichtig für korrektes Scrolling */
-  overflow: visible;
-  height: auto;
-  min-height: 0;
-  max-height: none;
+  width: 100%;
 }
 
 /* Logo und Titelbereich */
 .brandenburg-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
+  text-align: left;
+  margin-bottom: 1rem;
   background-color: #f8f9fa;
   padding: 1rem;
   border-radius: var(--brandenburg-border-radius);
@@ -73,15 +69,15 @@
   background-color: var(--brandenburg-primary);
   color: white;
   border-radius: var(--brandenburg-border-radius);
-  padding: 1.25rem 1.5rem;
-  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
   position: relative;
   box-shadow: var(--brandenburg-shadow);
 }
 
 .brandenburg-blick-title {
   font-weight: 600;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.5rem 0;
   font-size: 1.1rem;
 }
 
@@ -113,20 +109,20 @@
 
 /* Abschnitte mit Nummern */
 .brandenburg-section {
-  margin: 2rem 0;
+  margin: 0.5rem 0;
 }
 
 .brandenburg-section-title {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--brandenburg-text);
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
 }
 
 .brandenburg-section p {
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -144,15 +140,15 @@
 .brandenburg-info-box {
   background-color: var(--brandenburg-light-blue);
   border-radius: var(--brandenburg-border-radius);
-  padding: 1.5rem;
-  margin: 1.5rem 0;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
   box-shadow: var(--brandenburg-shadow);
   border: 1px solid rgba(0, 60, 142, 0.1);
 }
 
 .brandenburg-info-title {
   font-weight: 600;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
   font-size: 1.1rem;
 }
 
@@ -196,8 +192,8 @@
 .brandenburg-tipp {
   background-color: var(--brandenburg-light-yellow);
   border-radius: var(--brandenburg-border-radius);
-  padding: 1.25rem 1.5rem;
-  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
   position: relative;
   box-shadow: var(--brandenburg-shadow);
   border: 1px solid rgba(254, 213, 0, 0.3);
@@ -242,9 +238,10 @@
   content: "✉️ ";
 }
 
-/* Animationen */
+/* Animationen - deaktiviert für bessere Stabilität */
 .brandenburg-fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+  /* animation: fadeIn 0.5s ease-in-out; */
+  opacity: 1 !important;
 }
 
 @keyframes fadeIn {
@@ -254,14 +251,20 @@
 
 /* Streaming-Modus ohne Animationen */
 .brandenburg-streaming {
-  opacity: 1;
-  transition: none;
+  opacity: 1 !important;
+  animation: none !important;
+  transition: none !important;
+  contain: layout style paint !important;
 }
 
 /* Keine spezifischen Message Controls mehr hier, werden jetzt in der Message-Komponente verwaltet */
 
 /* Responsivität */
 @media (max-width: 768px) {
+  .brandenburg-message {
+    width: 100%;
+  }
+
   .brandenburg-header {
     text-align: left;
   }
@@ -546,4 +549,41 @@
   0% { opacity: 0.3; }
   50% { opacity: 1; }
   100% { opacity: 0.3; }
+}
+
+/* Einfache Basis-Stile ohne komplexe Eigenschaften */
+.brandenburg-message {
+  width: 100%;
+  position: relative;
+  min-height: 100px;
+  overflow: hidden;
+}
+
+/* Spezielle Klasse für abgeschlossene Nachrichten */
+.brandenburg-complete {
+  /* Feste Höhe nach Abschluss */
+  height: var(--final-height, auto) !important;
+}
+
+.brandenburg-content {
+  width: 100%;
+  position: relative;
+}
+
+/* Deaktivierung aller Animationen außer der Höhen-Transition */
+.brandenburg-message *:not(.brandenburg-message),
+.brandenburg-content * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Verbesserte Stabilität für Blöcke */
+.brandenburg-blick,
+.brandenburg-info-box,
+.brandenburg-tipp,
+.brandenburg-section {
+  /* Verhindert Layout-Shifts */
+  min-height: 30px;
+  margin-bottom: 0.5rem;
+  position: relative;
 }
