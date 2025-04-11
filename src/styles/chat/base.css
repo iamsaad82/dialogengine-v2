@@ -8,6 +8,12 @@
   --user-text-color: #1e293b;
 }
 
+/* Setze CSS-Variablen basierend auf den Bot-Einstellungen */
+.chat-container {
+  --user-bg-color: var(--bot-primary-color, #3b82f6);
+  --user-text-color: #ffffff;
+}
+
 /* Base Chat Styles */
 .chat-container {
   display: flex;
@@ -287,7 +293,7 @@
   color: var(--user-text-color, #1e293b) !important;
   margin-left: auto;
   margin-right: 0;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   max-width: 70%;
   min-width: 60px; /* Mindestbreite für kurze Nachrichten */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -298,12 +304,13 @@
   visibility: visible !important; /* Immer sichtbar */
   white-space: pre-wrap !important; /* Zeilenumbrüche beibehalten */
   word-break: break-word !important; /* Lange Wörter umbrechen */
+  padding: 0.75rem 1rem !important; /* Direktes Padding ohne Wrapper */
 }
 
 /* Zusätzliche Regel für den Inhalt der Benutzer-Nachricht */
 .message.user .message-content,
 .message.user .message-content * {
-  color: var(--user-text-color, #1e293b) !important;
+  color: var(--user-text-color, #ffffff) !important;
 }
 
 /* Message Header */

@@ -98,15 +98,16 @@ export const Message: React.FC<{
   const messageStyles = {
     background: isBot
       ? colorStyle?.botBgColor || 'var(--bot-bg-color)'
-      : 'var(--user-bg-color, var(--bot-primary-color, #3b82f6))', // Verwende immer die CSS-Variable für Benutzer-Nachrichten
+      : colorStyle?.primaryColor || 'var(--user-bg-color, var(--bot-primary-color, #3b82f6))', // Verwende die Primärfarbe aus den Bot-Einstellungen
     color: isBot
       ? colorStyle?.botTextColor || 'var(--bot-text-color)'
-      : '#ffffff', // Immer weiß für Benutzer-Nachrichten, unabhängig von den Einstellungen
+      : colorStyle?.userTextColor || 'var(--user-text-color, #1e293b)', // Verwende die Textfarbe aus den Bot-Einstellungen
     width: 'fit-content', // Begrenze die Breite auf den Inhalt
     maxWidth: isBot ? '80%' : '70%', // User-Nachrichten etwas schmaler als Bot-Nachrichten
     '--bot-primary-color-rgb': primaryColorRgb,
     '--bot-accent-color-rgb': accentColorRgb,
     '--bot-bg-color-rgb': botBgColorRgb,
+    padding: isBot ? undefined : '0.75rem 1rem', // Direktes Padding für User-Nachrichten
   } as React.CSSProperties;
 
   // Debug-Ausgabe für Farben
@@ -159,13 +160,11 @@ export const Message: React.FC<{
     );
   }
 
-  // User-Nachricht bleibt unverändert, Textfarbe wird durch CSS-Regel erzwungen
+  // User-Nachricht ohne Wrapper, um Abstände zu vermeiden
   return (
     <div className="message user" style={messageStyles}>
-      <div className="message-content-wrapper" style={{ width: '100%' }}>
-        <div className={contentClass} style={{ width: '100%', minWidth: '60px' }}>
-          <MessageContent content={content} role={role} messageTemplate={null} />
-        </div>
+      <div className={contentClass} style={{ width: '100%', minWidth: '60px' }}>
+        <MessageContent content={content} role={role} messageTemplate={null} />
       </div>
     </div>
   );
