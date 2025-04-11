@@ -137,6 +137,7 @@ const ShopCard: React.FC<ShopCardProps> = ({
     lineHeight: '1.4',
     color: '#555',
     flex: '1 1 auto', // Nimmt verfügbaren Platz ein
+    whiteSpace: 'normal' as React.CSSProperties['whiteSpace'], // Verhindert, dass HTML-Tags als Text angezeigt werden
   };
 
   const linkStyle = {
@@ -189,7 +190,13 @@ const ShopCard: React.FC<ShopCardProps> = ({
           </p>
         )}
 
-        {description && <p style={descriptionStyle} title={description}>{description}</p>}
+        {description && (
+          <p
+            style={descriptionStyle}
+            title={description}
+            dangerouslySetInnerHTML={{ __html: description }}
+          />
+        )}
 
         {floor && (
           <p style={floorStyle}>

@@ -48,9 +48,13 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
           const newSections = incrementalParseMallContent(content, query);
           console.log('Parsed sections during streaming:', newSections);
 
-          // Setze die Sektionen immer, auch wenn wir nur wenige haben
+          // Setze die Sektionen nur, wenn wir mehr als 0 haben und wenn sie sich geändert haben
           if (newSections.length > 0) {
-            setSections(newSections);
+            // Vergleiche die neuen Sektionen mit den alten, um unnötige Renders zu vermeiden
+            const sectionsChanged = JSON.stringify(newSections) !== JSON.stringify(sections);
+            if (sectionsChanged) {
+              setSections(newSections);
+            }
           }
         } else {
           // Wenn kein Streaming aktiv ist, verwende normales Parsen
@@ -73,7 +77,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
 
           streamingTimeoutRef.current = setTimeout(() => {
             setIsComplete(true);
-          }, 200); // Reduziert auf 0,2 Sekunden Verzögerung für schnellere Anzeige
+          }, 500); // 0,5 Sekunden Verzögerung für stabilere Anzeige
         } else {
           // Wenn kein Streaming aktiv ist, setze isComplete sofort auf true
           setIsComplete(true);
@@ -82,7 +86,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
         console.error('Fehler bei der Mall-Content-Verarbeitung:', error);
         setIsComplete(true); // Bei Fehlern immer als abgeschlossen markieren
       }
-    }, 10); // 10ms Debounce-Zeit für sofortige Anzeige
+    }, 50); // 50ms Debounce-Zeit für stabilere Anzeige
   }, [content, isStreaming, query]);
 
   // Zusätzlicher Effekt, um sicherzustellen, dass isComplete nach einer bestimmten Zeit auf true gesetzt wird
