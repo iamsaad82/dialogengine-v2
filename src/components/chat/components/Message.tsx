@@ -98,8 +98,7 @@ export const Message: React.FC<{
   const messageStyles = {
     background: isBot
       ? colorStyle?.botBgColor || 'var(--bot-bg-color)'
-      : colorStyle?.userBgColor ||
-        (colorStyle?.primaryColor ? createGradientFromColor(colorStyle.primaryColor) : 'var(--user-bg-color, var(--bot-primary-color, #3b82f6))'),
+      : 'var(--user-bg-color, var(--bot-primary-color, #3b82f6))', // Verwende immer die CSS-Variable für Benutzer-Nachrichten
     color: isBot
       ? colorStyle?.botTextColor || 'var(--bot-text-color)'
       : '#ffffff', // Immer weiß für Benutzer-Nachrichten, unabhängig von den Einstellungen

@@ -1,3 +1,13 @@
+/* CSS-Variablen für das Chat-System */
+:root {
+  --bot-primary-color: #3b82f6;
+  --bot-accent-color: #3b82f6;
+  --bot-bg-color: #f8fafc;
+  --bot-text-color: #1e293b;
+  --user-bg-color: #f1f5f9; /* Hellgrau für Benutzer-Nachrichten */
+  --user-text-color: #1e293b;
+}
+
 /* Base Chat Styles */
 .chat-container {
   display: flex;
@@ -273,11 +283,11 @@
 
 /* Benutzer-Nachrichten */
 .message.user {
-  background: var(--user-bg-color);
-  color: #ffffff !important; /* Immer weiß für Benutzer-Nachrichten */
+  background: var(--user-bg-color, #f1f5f9);
+  color: var(--user-text-color, #1e293b) !important;
   margin-left: auto;
   margin-right: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   max-width: 70%;
   min-width: 60px; /* Mindestbreite für kurze Nachrichten */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -293,7 +303,7 @@
 /* Zusätzliche Regel für den Inhalt der Benutzer-Nachricht */
 .message.user .message-content,
 .message.user .message-content * {
-  color: #ffffff !important;
+  color: var(--user-text-color, #1e293b) !important;
 }
 
 /* Message Header */
