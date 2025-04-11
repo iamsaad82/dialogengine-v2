@@ -1,0 +1,93 @@
+/*
+ * Header-Stabilität CSS
+ * Diese Datei enthält CSS-Regeln, die speziell die Stabilität des Bot-Headers während des Streamings verbessern
+ */
+
+/* Verhindert jegliche Animation oder Transition im Header */
+.message-header,
+.message-header *,
+.bot-avatar-container,
+.bot-avatar-container *,
+.bot-avatar,
+.bot-name-container,
+.bot-name,
+.bot-subtitle {
+  animation: none !important;
+  transition: none !important;
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-delay: 0s !important;
+  animation-timing-function: linear !important;
+  transition-timing-function: linear !important;
+  animation-fill-mode: none !important;
+  transition-property: none !important;
+}
+
+/* Erzwingt GPU-Rendering für den Header und seine Elemente */
+.message-header,
+.bot-avatar-container,
+.bot-avatar {
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  perspective: 1000px !important;
+  -webkit-perspective: 1000px !important;
+  will-change: transform !important;
+  contain: layout style paint !important;
+  isolation: isolate !important;
+}
+
+/* Verhindert Layout-Shifts im Header */
+.message-header {
+  position: relative !important;
+  z-index: 10 !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  margin-bottom: 12px !important;
+  overflow: visible !important;
+  contain: layout !important;
+}
+
+/* Stabilisiert das Bot-Logo */
+.bot-avatar-container {
+  position: relative !important;
+  z-index: 11 !important;
+  width: auto !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  margin-right: 12px !important;
+  overflow: visible !important;
+  flex-shrink: 0 !important;
+  contain: layout !important;
+}
+
+/* Stabilisiert das Bot-Logo-Bild */
+.bot-avatar-container img,
+.bot-avatar {
+  position: relative !important;
+  z-index: 12 !important;
+  display: block !important;
+  width: auto !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  min-width: auto !important;
+  max-width: 192px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  contain: layout !important;
+}
+
+/* Verhindert Neuberechnung des Layouts während des Streamings */
+.message-header,
+.bot-avatar-container,
+.bot-avatar {
+  content-visibility: auto !important;
+  contain-intrinsic-size: auto 48px !important;
+}

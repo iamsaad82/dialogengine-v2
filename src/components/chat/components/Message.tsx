@@ -124,11 +124,23 @@ export const Message: React.FC<{
   if (isBot) {
     return (
       <>
-        <MessageHeader
-          botName={botName}
-          botAvatarUrl={botAvatarUrl}
-          showName={settings?.showNameInHeader !== undefined ? settings.showNameInHeader : true}
-        />
+        {/* Header in einem separaten, stabilen Container */}
+        <div className="message-header-container" style={{
+          position: 'relative',
+          zIndex: 10,
+          transform: 'translateZ(0)',
+          WebkitTransform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          contain: 'layout style paint',
+          willChange: 'transform',
+          isolation: 'isolate'
+        }}>
+          <MessageHeader
+            botName={botName}
+            botAvatarUrl={botAvatarUrl}
+            showName={settings?.showNameInHeader !== undefined ? settings.showNameInHeader : true}
+          />
+        </div>
         <div className={`${messageTemplate}-message message assistant`} style={messageStyles}>
           <div className="message-content-wrapper" style={{ width: '100%', maxWidth: '100%', overflow: 'hidden', contain: 'layout' }}>
             <Suspense fallback={<div className="message-loading">Lade Nachricht...</div>}>

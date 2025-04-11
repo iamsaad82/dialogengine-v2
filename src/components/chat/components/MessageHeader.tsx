@@ -12,16 +12,16 @@ interface MessageHeaderProps {
 /**
  * Header für Bot-Nachrichten mit Avatar und Namen
  */
-export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatarUrl, showName = true, subtitle }) => {
+export const MessageHeader: React.FC<MessageHeaderProps> = React.memo(({ botName, botAvatarUrl, showName = true, subtitle }) => {
   return (
     <div className="message-header" style={{
       animation: 'none !important',
       transition: 'none !important',
-      willChange: 'auto',
+      willChange: 'transform',
       transform: 'translateZ(0)',
       WebkitTransform: 'translateZ(0)',
       backfaceVisibility: 'hidden',
-      contain: 'layout style',
+      contain: 'layout style paint',
       opacity: 1,
       display: 'flex',
       flexDirection: 'row',
@@ -30,7 +30,8 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatar
       padding: '8px 0',
       position: 'relative',
       marginBottom: '12px',
-      zIndex: 1
+      zIndex: 1,
+      isolation: 'isolate'
     }}>
       {/* Linke Seite: Logo */}
       <div className="bot-avatar-container" style={{
@@ -133,4 +134,7 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatar
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Immer gleich rendern, um Flackern zu vermeiden
+  return true;
+});
