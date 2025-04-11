@@ -1,0 +1,85 @@
+/*
+ * Message Header Styles
+ * Diese Stile stellen sicher, dass der Header in allen Templates korrekt angezeigt wird
+ */
+
+.message-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding-left: 1rem;
+}
+
+.bot-avatar-container {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-right: 10px;
+  flex-shrink: 0;
+  animation: none !important;
+  transition: none !important;
+}
+
+.bot-avatar {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 0;
+  background: transparent;
+  display: block;
+  max-width: 120px;
+  max-height: 120px;
+  box-shadow: none;
+  border: none;
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.bot-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--bot-primary-color, var(--bot-accent-color));
+  display: inline-block;
+}
+
+/* Sicherstellen, dass der Header in allen Templates korrekt angezeigt wird */
+.aok-message .message-header,
+.creditreform-message .message-header,
+.brandenburg-message .message-header,
+.mall-message .message-header,
+.ninfly-message .message-header,
+.default-message .message-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .bot-avatar {
+    width: 90px;
+    height: 90px;
+    max-width: 90px;
+    max-height: 90px;
+  }
+
+  .bot-name {
+    font-size: 0.9rem;
+  }
+
+  .message-header {
+    padding-left: 0.75rem;
+  }
+}
