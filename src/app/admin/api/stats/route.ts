@@ -135,7 +135,7 @@ export async function GET(request: Request) {
 
   // Wenn keine echten Daten vorhanden sind, geben wir Beispieldaten zurück
   // Dies ist nützlich für die Entwicklung und wenn die Datenbank leer ist
-  const useDummyData = true; // Auf false setzen, um echte Daten zu verwenden
+  const useDummyData = false; // Auf true setzen, um Beispieldaten zu verwenden
 
   try {
     // Wenn wir Beispieldaten verwenden sollen, geben wir diese zurück
