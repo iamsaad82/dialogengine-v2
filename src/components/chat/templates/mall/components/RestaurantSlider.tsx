@@ -144,25 +144,60 @@ const RestaurantSlider: React.FC<RestaurantSliderProps> = ({
     setIsDragging(false);
   };
 
+  // Funktion zum Behandeln von Dot-Klicks
+  const handleDotClick = (index: number) => {
+    if (!sliderRef.current) return;
+
+    // Berechne die Position, zu der gescrollt werden soll
+    const itemsPerPage = getVisibleItemCount();
+    const targetIndex = index * itemsPerPage;
+
+    if (targetIndex < restaurants.length) {
+      // Finde das Element an der Zielposition
+      const targetElement = sliderRef.current.children[targetIndex] as HTMLElement;
+      if (targetElement) {
+        // Scrolle zum Element
+        sliderRef.current.scrollTo({
+          left: targetElement.offsetLeft - sliderRef.current.offsetLeft,
+          behavior: 'smooth'
+        });
+
+        // Aktualisiere den aktuellen Index
+        setCurrentIndex(targetIndex);
+      }
+    }
+  };
+
   const sectionStyle = {
     ...style,
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    backgroundColor: 'rgba(var(--mall-primary-rgb, 59, 28, 96), 0.03)',
     padding: '1.5rem',
-    margin: '1.5rem',
-    borderRadius: '8px',
+    margin: '1.5rem 0',
+    borderRadius: '16px',
     position: 'relative' as React.CSSProperties['position'],
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
   };
 
   const titleStyle = {
-    fontSize: '1.3rem',
+    fontSize: '1.4rem',
     fontWeight: 700,
     color: 'var(--mall-primary, #3b1c60)',
-    margin: '0 0 1rem 0'
+    margin: '0 0 1.2rem 0',
+    display: 'flex',
+    alignItems: 'center',
+  };
+
+  // Icon-Stil
+  const iconStyle = {
+    marginRight: '0.5rem',
+    fontSize: '1.2rem',
+    color: 'var(--mall-primary, #3b1c60)',
+    opacity: 0.7,
   };
 
   const sliderStyle = {
     margin: 0,
-    padding: '0.5rem 0',
+    padding: '0.75rem 0.25rem',
     overflowX: 'auto' as React.CSSProperties['overflowX'],
     display: 'flex',
     WebkitOverflowScrolling: 'touch' as any,
@@ -173,6 +208,12 @@ const RestaurantSlider: React.FC<RestaurantSliderProps> = ({
     touchAction: 'pan-x' as React.CSSProperties['touchAction'], // Verbesserte Touch-Unterstützung
     WebkitUserSelect: 'none' as any, // Verhindert Textauswahl während des Swipens
     userSelect: 'none' as any, // Verhindert Textauswahl während des Swipens
+    scrollSnapType: 'x mandatory' as React.CSSProperties['scrollSnapType'],
+    gap: '1rem',
+    position: 'relative' as React.CSSProperties['position'],
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
     '&::-webkit-scrollbar': {
       display: 'none' // Chrome/Safari/Opera
     },
@@ -182,36 +223,47 @@ const RestaurantSlider: React.FC<RestaurantSliderProps> = ({
     position: 'absolute',
     top: '50%',
     transform: 'translateY(-50%)',
-    width: '36px',
-    height: '36px',
+    width: '40px',
+    height: '40px',
     borderRadius: '50%',
     backgroundColor: 'white',
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
-    display: isVisible ? 'flex' : 'none',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    display: 'flex', // Immer anzeigen
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    zIndex: 2,
+    zIndex: 10, // Höherer z-index damit die Pfeile immer sichtbar sind
     border: 'none',
     outline: 'none',
     color: 'var(--mall-primary, #3b1c60)',
-    fontSize: '1.2rem',
+    fontSize: '1.4rem',
     fontWeight: 'bold',
+    opacity: isVisible ? 0.9 : 0.3, // Reduzierte Opazität wenn nicht aktiv
+    transition: 'none', // Keine Transition um Flackern zu vermeiden
   });
 
   const paginationStyle: React.CSSProperties = {
     display: 'flex',
     justifyContent: 'center',
-    marginTop: '0.5rem',
-    gap: '6px'
+    marginTop: '0.75rem',
+    gap: '8px',
+    padding: '0.5rem 0',
   };
 
   const dotStyle = (isActive: boolean): React.CSSProperties => ({
-    width: '8px',
-    height: '8px',
+    width: '10px',
+    height: '10px',
     borderRadius: '50%',
-    backgroundColor: isActive ? 'var(--mall-primary, #3b1c60)' : '#ccc',
-    transition: 'background-color 0.3s ease'
+    backgroundColor: isActive
+      ? 'var(--mall-primary, #3b1c60)'
+      : 'rgba(var(--mall-primary-rgb, 59, 28, 96), 0.15)',
+    transition: 'all 0.3s ease',
+    transform: isActive ? 'scale(1.2)' : 'scale(1)',
+    boxShadow: isActive ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
+    cursor: 'pointer',
+    border: 'none',
+    outline: 'none',
+    margin: '0 2px',
   });
 
   // Swipe-Hinweis-Stil mit Timeout statt Animation
@@ -229,29 +281,37 @@ const RestaurantSlider: React.FC<RestaurantSliderProps> = ({
 
   const swipeHintStyle: React.CSSProperties = {
     position: 'absolute',
-    bottom: '10px',
-    right: '10px',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    bottom: '15px',
+    right: '15px',
+    backgroundColor: 'rgba(var(--mall-primary-rgb, 59, 28, 96), 0.8)',
     color: 'white',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    fontSize: '0.8rem',
-    opacity: 0.8,
+    padding: '6px 12px',
+    borderRadius: '20px',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    opacity: 0.9,
     pointerEvents: 'none',
-    transition: 'opacity 0.5s ease',
-    display: (restaurants.length > getVisibleItemCount() && showSwipeHint) ? 'block' : 'none'
+    transition: 'opacity 0.5s ease, transform 0.5s ease',
+    transform: 'translateY(0)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+    display: (restaurants.length > getVisibleItemCount() && showSwipeHint) ? 'flex' : 'none',
+    alignItems: 'center',
+    gap: '6px',
   };
 
   return (
     <div style={sectionStyle} className="mall-restaurants-slider">
-      <h2 style={titleStyle}>{title}</h2>
+      <h2 style={titleStyle}>
+        <span style={iconStyle}>🍴</span>
+        {title}
+      </h2>
 
       {/* Navigationspfeile */}
       <button
         onClick={handleScrollLeft}
         style={{
           ...arrowStyle(showLeftArrow),
-          left: '10px',
+          left: '15px',
         }}
         aria-label="Nach links scrollen"
       >
@@ -262,7 +322,7 @@ const RestaurantSlider: React.FC<RestaurantSliderProps> = ({
         onClick={handleScrollRight}
         style={{
           ...arrowStyle(showRightArrow),
-          right: '10px',
+          right: '15px',
         }}
         aria-label="Nach rechts scrollen"
       >
@@ -291,20 +351,23 @@ const RestaurantSlider: React.FC<RestaurantSliderProps> = ({
         ))}
       </div>
 
-      {/* Pagination-Indikatoren */}
-      {restaurants.length > 1 && getVisibleItemCount() > 0 && (
-        <div style={paginationStyle}>
-          {Array.from({ length: Math.max(1, Math.ceil(restaurants.length / getVisibleItemCount())) }).map((_, index) => (
-            <div
-              key={`dot-${index}`}
-              style={dotStyle(Math.floor(currentIndex / Math.max(1, getVisibleItemCount())) === index)}
-            />
-          ))}
-        </div>
-      )}
+      {/* Pagination-Indikatoren - immer anzeigen */}
+      <div style={paginationStyle}>
+        {Array.from({ length: Math.max(1, Math.ceil(restaurants.length / getVisibleItemCount())) }).map((_, index) => (
+          <button
+            key={`dot-${index}`}
+            onClick={() => handleDotClick(index)}
+            style={dotStyle(Math.floor(currentIndex / Math.max(1, getVisibleItemCount())) === index)}
+            aria-label={`Zu Seite ${index + 1} springen`}
+          />
+        ))}
+      </div>
 
       {/* Swipe-Hinweis */}
-      <div style={swipeHintStyle}>Wischen zum Scrollen</div>
+      <div style={swipeHintStyle}>
+        <span style={{fontSize: '1.1rem'}}>⇄</span>
+        Wischen zum Scrollen
+      </div>
     </div>
   );
 };

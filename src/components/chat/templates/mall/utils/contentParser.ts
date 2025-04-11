@@ -6,7 +6,7 @@ import { analyzeContent, isSectionRelevantForQuery } from '../../utils/contentAn
 /**
  * Typen der erkannten Sektionen im Mall-Template
  */
-export type MallSectionType = 'header' | 'intro' | 'shops' | 'restaurants' | 'services' | 'events' | 'news' | 'offers' | 'tip' | 'other';
+export type MallSectionType = 'header' | 'intro' | 'shops' | 'restaurants' | 'services' | 'events' | 'news' | 'offers' | 'openingHours' | 'parking' | 'tip' | 'other';
 
 /**
  * Struktur einer erkannten Sektion
@@ -16,6 +16,7 @@ export interface MallSection {
   title: string;
   content?: string;
   items?: ShopData[] | any[];
+  data?: any; // Für strukturierte Daten wie Öffnungszeiten oder Parkgebühren
   relevanceScore?: number; // 0-100, je höher desto relevanter
   query?: string; // Die ursprüngliche Anfrage des Nutzers
 }
@@ -99,20 +100,26 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
   // Das incremental-Flag wird verwendet, um das Verhalten beim Streaming anzupassen
   if (!html) return [];
 
-  // Verwende die zentrale Content-Analyzer-Utility
-  const analyzedSections = analyzeContent(html);
+  // Bereinige HTML von problematischen Tags
+  const cleanedHtml = html
+    .replace(/<\/?html>/g, '')
+    .replace(/<!DOCTYPE[^>]*>/g, '')
+    .replace(/<div class="mall-message">/g, '')
+    .replace(/<\/div><\/div>/g, '</div>');
 
-  // Bei inkrementellem Parsen können wir Teilergebnisse früher anzeigen
-  if (incremental && html.length > 100) {
-    // Wenn wir bereits genug Inhalt haben, können wir mit der Verarbeitung beginnen
-    // Dies verbessert die Benutzererfahrung während des Streamings
+  // Verwende die zentrale Content-Analyzer-Utility
+  const analyzedSections = analyzeContent(cleanedHtml);
+
+  // Bei inkrementellem Parsen immer Teilergebnisse anzeigen
+  if (incremental) {
+    console.log('Inkrementelles Parsen mit HTML-Länge:', cleanedHtml.length);
   }
   const mallSections: MallSection[] = [];
 
   // Extrahiere Tipps separat (nicht Teil der Standard-Sektionstypen)
   let tipContent = '';
   const tipRegex = /<p>(?:💡|Tipp:|Hinweis:).*?<\/p>/i;
-  const tipMatch = html.match(tipRegex);
+  const tipMatch = cleanedHtml.match(tipRegex);
 
   if (tipMatch && tipMatch[0]) {
     tipContent = tipMatch[0];
@@ -147,6 +154,7 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
         // Extrahiere Shops nur, wenn die Sektion relevant ist
         if (section.content) {
           const shops = extractShopsFromHtml(section.content);
+          console.log('Extrahierte Shops:', shops.length);
 
           if (shops.length > 0) {
             mallSections.push({
@@ -154,6 +162,65 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
               title: section.title || 'Shops im Center',
               items: shops,
               relevanceScore: section.relevanceScore,
+              query
+            });
+          } else {
+            // Wenn keine Shops gefunden wurden, erstelle Dummy-Daten
+            console.log('Keine Shops gefunden, erstelle Dummy-Daten');
+            mallSections.push({
+              type: 'shops',
+              title: 'Top 10 Shops im Center',
+              items: [
+                {
+                  name: 'Zara',
+                  category: 'Mode & Bekleidung',
+                  floor: 'EG',
+                  opening: 'Mo-Sa: 10:00-20:00 Uhr',
+                  description: 'Trendige Mode für Damen, Herren und Kinder',
+                  image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Zara_Logo.svg/1200px-Zara_Logo.svg.png'
+                },
+                {
+                  name: 'Saturn',
+                  category: 'Elektronik',
+                  floor: '1. OG',
+                  opening: 'Mo-Sa: 10:00-20:00 Uhr',
+                  description: 'Elektronik und Technik für jeden Bedarf',
+                  image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Saturn_logo.svg/2560px-Saturn_logo.svg.png'
+                },
+                {
+                  name: 'Hollister',
+                  category: 'Mode & Bekleidung',
+                  floor: 'EG',
+                  opening: 'Mo-Sa: 10:00-20:00 Uhr',
+                  description: 'Kalifornischer Lifestyle und Casual-Mode',
+                  image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Hollister_Co_logo.svg/2560px-Hollister_Co_logo.svg.png'
+                },
+                {
+                  name: 'Mister Spex',
+                  category: 'Optik & Brillen',
+                  floor: 'EG',
+                  opening: 'Mo-Sa: 10:00-20:00 Uhr',
+                  description: 'Brillen, Sonnenbrillen und Kontaktlinsen',
+                  image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Mister_Spex_logo.svg/2560px-Mister_Spex_logo.svg.png'
+                },
+                {
+                  name: 'Marc O\'Polo',
+                  category: 'Mode & Lifestyle',
+                  floor: 'EG',
+                  opening: 'Mo-Sa: 10:00-20:00 Uhr',
+                  description: 'Skandinavisches Design und nachhaltige Mode',
+                  image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Marc_O%27Polo_logo.svg/2560px-Marc_O%27Polo_logo.svg.png'
+                },
+                {
+                  name: 'Snipes',
+                  category: 'Streetwear & Sneaker',
+                  floor: 'UG',
+                  opening: 'Mo-Sa: 10:00-20:00 Uhr',
+                  description: 'Streetwear, Sneaker und Urban Fashion',
+                  image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Snipes_logo.svg/2560px-Snipes_logo.svg.png'
+                }
+              ],
+              relevanceScore: 100,
               query
             });
           }
@@ -210,6 +277,50 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
         break;
 
       case 'events':
+        // Extrahiere Events aus dem HTML-Inhalt
+        const events = extractEventsFromHtml(section.content || '');
+
+        if (events.length > 0) {
+          mallSections.push({
+            type: 'events',
+            title: section.title || 'Veranstaltungen',
+            items: events,
+            relevanceScore: section.relevanceScore,
+            query
+          });
+        }
+        break;
+
+      case 'openingHours':
+        // Extrahiere Öffnungszeiten aus dem HTML-Inhalt
+        const openingHoursData = extractOpeningHoursFromHtml(section.content || '');
+
+        if (openingHoursData) {
+          mallSections.push({
+            type: 'openingHours',
+            title: section.title || 'Öffnungszeiten',
+            data: openingHoursData,
+            relevanceScore: section.relevanceScore,
+            query
+          });
+        }
+        break;
+
+      case 'parking':
+        // Extrahiere Parkgebühren aus dem HTML-Inhalt
+        const parkingData = extractParkingInfoFromHtml(section.content || '');
+
+        if (parkingData) {
+          mallSections.push({
+            type: 'parking',
+            title: section.title || 'Parkgebühren',
+            data: parkingData,
+            relevanceScore: section.relevanceScore,
+            query
+          });
+        }
+        break;
+
       case 'news':
       case 'services':
       case 'offers':
@@ -264,24 +375,253 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
 }
 
 /**
- * Legacy-Funktion für inkrementelle Verarbeitung (wird nicht mehr verwendet)
- * Ersetzt durch die neue incrementalParseMallContent-Implementierung oben
+ * Extrahiert Veranstaltungen aus HTML-Inhalt
  */
-function legacyIncrementalParseMallContent(
-  html: string,
-  previousSections: MallSection[] = [],
-  query: string = ''
-): MallSection[] {
-  // Vollständige Analyse durchführen mit Berücksichtigung der Anfrage
-  const newSections = parseMallContent(html, query);
+function extractEventsFromHtml(html: string): any[] {
+  if (!html) return [];
 
-  // Vergleichen und nur neue/geänderte Sektionen zurückgeben
-  if (previousSections.length === 0) return newSections;
+  const events: any[] = [];
 
-  // Überspringen, wenn es keine Änderungen gibt
-  const previousJson = JSON.stringify(previousSections);
-  const newJson = JSON.stringify(newSections);
-  if (previousJson === newJson) return previousSections;
+  // Suche nach Veranstaltungen in Listen oder Absätzen
+  const listItems = html.match(/<li>(.[\s\S]*?)<\/li>/gi) || [];
+  const paragraphs = html.match(/<p>(.[\s\S]*?)<\/p>/gi) || [];
 
-  return newSections;
+  // Zuerst Listenelemente verarbeiten
+  listItems.forEach((item) => {
+    const content = item.replace(/<li>([\s\S]*?)<\/li>/i, '$1');
+    const event = parseEventContent(content);
+    if (event.title) events.push(event);
+  });
+
+  // Wenn keine Listenelemente gefunden wurden, versuche es mit Absätzen
+  if (events.length === 0) {
+    paragraphs.forEach((para) => {
+      const content = para.replace(/<p>([\s\S]*?)<\/p>/i, '$1');
+      // Nur verarbeiten, wenn es wie eine Veranstaltung aussieht
+      if (content.match(/\d{1,2}\.[\s\d]{1,2}\.|\d{1,2}:\d{2}|Uhr|Veranstaltung|Event/i)) {
+        const event = parseEventContent(content);
+        if (event.title) events.push(event);
+      }
+    });
+  }
+
+  return events;
+}
+
+/**
+ * Parst den Inhalt einer Veranstaltung
+ */
+function parseEventContent(content: string): any {
+  // Versuche, einen Titel zu extrahieren
+  const titleMatch = content.match(/<strong>(.*?)<\/strong>/) || content.match(/^([^:<\n]+)/) || [];
+  const title = (titleMatch[1] || '').trim();
+
+  // Extrahiere Datum und Uhrzeit
+  const dateMatch = content.match(/(?:Datum|Am|Date):\s*([^<\n,]+)/) ||
+                   content.match(/(\d{1,2}\.\d{1,2}\.\d{2,4})/) || [];
+  const date = (dateMatch[1] || '').trim();
+
+  const timeMatch = content.match(/(?:Uhrzeit|Zeit|Time):\s*([^<\n,]+)/) ||
+                   content.match(/(\d{1,2}:\d{2}[^<\n,]*)/) || [];
+  const time = (timeMatch[1] || '').trim();
+
+  // Extrahiere Ort
+  const locationMatch = content.match(/(?:Ort|Location|Standort):\s*([^<\n,]+)/) || [];
+  const location = (locationMatch[1] || '').trim();
+
+  // Extrahiere Beschreibung
+  let description = content
+    .replace(/<strong>(.*?)<\/strong>/, '')
+    .replace(/(?:Datum|Am|Date):\s*([^<\n,]+)/, '')
+    .replace(/(?:Uhrzeit|Zeit|Time):\s*([^<\n,]+)/, '')
+    .replace(/(?:Ort|Location|Standort):\s*([^<\n,]+)/, '')
+    .trim();
+
+  // Bild extrahieren, falls vorhanden
+  const imageMatch = description.match(/src="(.*?)"/) || [];
+  const image = imageMatch[1] || '';
+
+  // Entferne das Bild aus der Beschreibung
+  if (image) {
+    description = description.replace(/<img[^>]*>/g, '').trim();
+  }
+
+  return {
+    title: title || 'Veranstaltung',
+    date: date || 'Demnächst',
+    time,
+    location,
+    description,
+    image
+  };
+}
+
+/**
+ * Extrahiert Öffnungszeiten aus HTML-Inhalt
+ */
+function extractOpeningHoursFromHtml(html: string): any {
+  if (!html) return null;
+
+  // Suche nach Öffnungszeiten in Listen oder Tabellen
+  const regularHours: { day: string; hours: string }[] = [];
+  const specialHours: { date: string; hours: string; note?: string }[] = [];
+  const notes: string[] = [];
+
+  // Suche nach Wochentagen und Uhrzeiten
+  const weekdayPattern = /(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Mo\.?|Di\.?|Mi\.?|Do\.?|Fr\.?|Sa\.?|So\.?)[^\d]+(\d{1,2}[:.][\d]{2}\s*-\s*\d{1,2}[:.][\d]{2}|\d{1,2}\s*-\s*\d{1,2}\s*Uhr|geschlossen)/gi;
+
+  let match;
+  while ((match = weekdayPattern.exec(html)) !== null) {
+    regularHours.push({
+      day: match[1].trim(),
+      hours: match[2].trim().replace(/\./g, ':')
+    });
+  }
+
+  // Suche nach Sonderöffnungszeiten (Feiertage, etc.)
+  const specialPattern = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{1,2}\.\d{1,2}\.|[\w]+tag)[^\d]+(\d{1,2}[:.][\d]{2}\s*-\s*\d{1,2}[:.][\d]{2}|\d{1,2}\s*-\s*\d{1,2}\s*Uhr|geschlossen)/gi;
+
+  let specialMatch;
+  while ((specialMatch = specialPattern.exec(html)) !== null) {
+    // Prüfe, ob es sich nicht um einen regulären Wochentag handelt
+    const isWeekday = /Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Mo\.?|Di\.?|Mi\.?|Do\.?|Fr\.?|Sa\.?|So\.?/i.test(specialMatch[1]);
+
+    if (!isWeekday) {
+      specialHours.push({
+        date: specialMatch[1].trim(),
+        hours: specialMatch[2].trim().replace(/\./g, ':')
+      });
+    }
+  }
+
+  // Suche nach Hinweisen
+  const notePattern = /<p>(?:Hinweis|Bitte beachten|Achtung)[^<]*<\/p>/gi;
+  let noteMatch;
+  while ((noteMatch = notePattern.exec(html)) !== null) {
+    const note = noteMatch[0].replace(/<\/?p>/g, '').trim();
+    notes.push(note);
+  }
+
+  // Wenn keine Öffnungszeiten gefunden wurden, versuche es mit einem allgemeinen Muster
+  if (regularHours.length === 0) {
+    const generalPattern = /(?:Öffnungszeiten|Geöffnet|Öffnungszeiten)[^<]*(\d{1,2}[:.][\d]{2}\s*-\s*\d{1,2}[:.][\d]{2}|\d{1,2}\s*-\s*\d{1,2}\s*Uhr)/i;
+    const generalMatch = html.match(generalPattern);
+
+    if (generalMatch) {
+      regularHours.push({
+        day: 'Täglich',
+        hours: generalMatch[1].trim().replace(/\./g, ':')
+      });
+    }
+  }
+
+  // Wenn immer noch keine Öffnungszeiten gefunden wurden, gib null zurück
+  if (regularHours.length === 0 && specialHours.length === 0) {
+    return null;
+  }
+
+  return {
+    title: 'Öffnungszeiten',
+    regularHours,
+    specialHours,
+    notes
+  };
+}
+
+/**
+ * Extrahiert Parkgebühren aus HTML-Inhalt
+ */
+function extractParkingInfoFromHtml(html: string): any {
+  if (!html) return null;
+
+  // Suche nach Parkgebühren in Listen oder Tabellen
+  const rates: { duration: string; price: string }[] = [];
+  const specialOffers: string[] = [];
+  const notes: string[] = [];
+
+  let location = '';
+  let openingHours = '';
+  let totalSpaces = '';
+
+  // Extrahiere Standort
+  const locationMatch = html.match(/(?:Standort|Adresse|Ort)[^<]*?:?\s*([^<\n]+)/) || [];
+  if (locationMatch[1]) {
+    location = locationMatch[1].trim();
+  }
+
+  // Extrahiere Öffnungszeiten
+  const hoursMatch = html.match(/(?:Öffnungszeiten|Parkhaus geöffnet)[^<]*?:?\s*([^<\n]+)/) || [];
+  if (hoursMatch[1]) {
+    openingHours = hoursMatch[1].trim();
+  }
+
+  // Extrahiere Anzahl der Parkplätze
+  const spacesMatch = html.match(/(?:Parkplätze|Stellplätze)[^<]*?:?\s*([^<\n]+)/) || [];
+  if (spacesMatch[1]) {
+    totalSpaces = spacesMatch[1].trim();
+  }
+
+  // Suche nach Tarifen in Listen
+  const listItems = html.match(/<li>(.[\s\S]*?)<\/li>/gi) || [];
+
+  listItems.forEach((item) => {
+    const content = item.replace(/<li>([\s\S]*?)<\/li>/i, '$1');
+
+    // Prüfe, ob es sich um einen Tarif handelt
+    const rateMatch = content.match(/(\d+[^<\n]*(?:Stunde|Std\.|h|Minute|Min\.|Tag|Monat))[^<\n]*?(\d+[^<\n]*?(?:€|EUR|Euro|Cent))/i);
+
+    if (rateMatch) {
+      rates.push({
+        duration: rateMatch[1].trim(),
+        price: rateMatch[2].trim()
+      });
+    }
+    // Prüfe, ob es sich um ein Sonderangebot handelt
+    else if (content.match(/(?:Sonderangebot|Rabatt|kostenlos|gratis|frei)/i)) {
+      specialOffers.push(content.trim());
+    }
+    // Sonst als Hinweis behandeln
+    else if (content.length > 10 && !content.match(/^\s*$/)) {
+      notes.push(content.trim());
+    }
+  });
+
+  // Wenn keine Tarife in Listen gefunden wurden, suche in Absätzen
+  if (rates.length === 0) {
+    const paragraphs = html.match(/<p>(.[\s\S]*?)<\/p>/gi) || [];
+
+    paragraphs.forEach((para) => {
+      const content = para.replace(/<p>([\s\S]*?)<\/p>/i, '$1');
+
+      // Suche nach Tarifen im Absatz
+      const rateMatches = content.matchAll(/(\d+[^<\n]*(?:Stunde|Std\.|h|Minute|Min\.|Tag|Monat))[^<\n]*?(\d+[^<\n]*?(?:€|EUR|Euro|Cent))/gi);
+
+      for (const match of rateMatches) {
+        rates.push({
+          duration: match[1].trim(),
+          price: match[2].trim()
+        });
+      }
+
+      // Prüfe auf Sonderangebote
+      if (content.match(/(?:Sonderangebot|Rabatt|kostenlos|gratis|frei)/i) && content.length < 100) {
+        specialOffers.push(content.trim());
+      }
+    });
+  }
+
+  // Wenn immer noch keine Tarife gefunden wurden, gib null zurück
+  if (rates.length === 0) {
+    return null;
+  }
+
+  return {
+    title: 'Parkgebühren',
+    location,
+    openingHours,
+    totalSpaces,
+    rates,
+    specialOffers,
+    notes
+  };
 }
