@@ -163,9 +163,7 @@ export const Message: React.FC<{
   // User-Nachricht ohne Wrapper, um Abstände zu vermeiden
   return (
     <div className="message user" style={messageStyles}>
-      <div className={contentClass} style={{ width: 'auto', display: 'inline-block' }}>
-        <MessageContent content={content} role={role} messageTemplate={null} />
-      </div>
+      <MessageContent content={content} role={role} messageTemplate={null} />
     </div>
   );
 };

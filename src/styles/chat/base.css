@@ -294,10 +294,10 @@
   margin-left: auto;
   margin-right: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  max-width: 70%;
+  max-width: max-content; /* Nur so breit wie nötig */
   min-width: 60px; /* Mindestbreite für kurze Nachrichten */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  display: inline-block !important; /* Inline-Block für bessere Anpassung an den Inhalt */
+  display: table !important; /* Table für bessere Anpassung an den Inhalt */
   width: auto !important; /* Automatische Breite basierend auf dem Inhalt */
   opacity: 1 !important; /* Immer sichtbar */
   visibility: visible !important; /* Immer sichtbar */
@@ -312,6 +312,7 @@
 .message.user .message-content * {
   color: var(--user-text-color, #ffffff) !important;
   display: inline !important; /* Inline-Anzeige für bessere Anpassung */
+  max-width: 100% !important; /* Maximale Breite begrenzen */
 }
 
 /* Message Header */

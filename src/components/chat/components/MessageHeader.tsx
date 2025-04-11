@@ -19,6 +19,7 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatar
       transition: 'none !important',
       willChange: 'auto',
       transform: 'translateZ(0)',
+      WebkitTransform: 'translateZ(0)',
       backfaceVisibility: 'hidden',
       contain: 'layout style',
       opacity: 1,
@@ -28,7 +29,8 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatar
       width: '100%',
       padding: '8px 0',
       position: 'relative',
-      marginBottom: '12px'
+      marginBottom: '12px',
+      zIndex: 1
     }}>
       {/* Linke Seite: Logo */}
       <div className="bot-avatar-container" style={{
@@ -44,9 +46,11 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatar
         transition: 'none !important',
         willChange: 'auto',
         transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
         backfaceVisibility: 'hidden',
         contain: 'layout style',
-        opacity: 1
+        opacity: 1,
+        zIndex: 2
       }}>
         {botAvatarUrl && (
           <img
@@ -70,11 +74,14 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({ botName, botAvatar
               border: 'none',
               willChange: 'auto',
               transform: 'translateZ(0)',
+              WebkitTransform: 'translateZ(0)',
               backfaceVisibility: 'hidden',
               animation: 'none !important',
               transition: 'none !important',
               opacity: 1,
-              contain: 'layout style'
+              contain: 'layout style',
+              position: 'relative',
+              zIndex: 3
             }}
           />
         )}

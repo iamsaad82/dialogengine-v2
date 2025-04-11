@@ -120,19 +120,26 @@
   animation: none !important;
   will-change: auto !important; /* Verhindert unnötige GPU-Beschleunigung */
   contain: layout style;
+  transform: translateZ(0) !important; /* Erzwingt GPU-Rendering */
+  -webkit-transform: translateZ(0) !important;
 
   opacity: 1 !important;
   backface-visibility: hidden;
   min-height: 48px;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .message-header img,
 .message-header .bot-avatar,
-.bot-avatar-image {
+.bot-avatar-image,
+.bot-avatar-container img {
   transition: none !important;
   animation: none !important;
   will-change: auto !important;
   contain: layout style;
+  transform: translateZ(0) !important; /* Erzwingt GPU-Rendering */
+  -webkit-transform: translateZ(0) !important;
 
   min-height: 48px;
   min-width: auto;
@@ -143,6 +150,8 @@
   opacity: 1 !important;
   backface-visibility: hidden;
   object-fit: contain;
+  position: relative !important;
+  z-index: 2 !important;
 }
 
 /* Moderne Header-Styles für alle Templates */
