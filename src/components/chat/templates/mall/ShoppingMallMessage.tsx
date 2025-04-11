@@ -7,6 +7,7 @@ import MallIntroSection from './components/MallIntroSection';
 import ShopSlider from './components/ShopSlider';
 import StableShopSlider from './components/StableShopSlider';
 import CSSStableShopSlider from './components/CSSStableShopSlider';
+import FixedShopSlider from './components/FixedShopSlider';
 import RestaurantSlider from './components/RestaurantSlider';
 import EventSlider from './components/EventSlider';
 import OpeningHoursCard from './components/OpeningHoursCard';
@@ -787,7 +788,7 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
 
             case 'shops':
               return (
-                <CSSStableShopSlider
+                <FixedShopSlider
                   key={`section-${index}-shops`}
                   title={section.title}
                   shops={section.items || []}

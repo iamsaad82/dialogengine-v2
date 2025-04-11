@@ -57,7 +57,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
               // Verzögere das Setzen der Sektionen, um Flackern zu vermeiden
               setTimeout(() => {
                 setSections(newSections);
-              }, 100);
+              }, 300);
             }
           }
         } else {
@@ -81,7 +81,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
 
           streamingTimeoutRef.current = setTimeout(() => {
             setIsComplete(true);
-          }, 800); // 0,8 Sekunden Verzögerung für stabilere Anzeige
+          }, 1000); // 1 Sekunde Verzögerung für stabilere Anzeige
         } else {
           // Wenn kein Streaming aktiv ist, setze isComplete sofort auf true
           setIsComplete(true);
@@ -90,7 +90,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
         console.error('Fehler bei der Mall-Content-Verarbeitung:', error);
         setIsComplete(true); // Bei Fehlern immer als abgeschlossen markieren
       }
-    }, 200); // 200ms Debounce-Zeit für stabilere Anzeige
+    }, 300); // 300ms Debounce-Zeit für stabilere Anzeige
   }, [content, isStreaming, query]);
 
   // Zusätzlicher Effekt, um sicherzustellen, dass isComplete nach einer bestimmten Zeit auf true gesetzt wird
