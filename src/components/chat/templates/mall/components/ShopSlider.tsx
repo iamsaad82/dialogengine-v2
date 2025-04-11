@@ -28,12 +28,13 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
   const [startX, setStartX] = useState<number>(0);
   const [scrollLeft, setScrollLeft] = useState<number>(0);
 
-  // Berechne die Anzahl der sichtbaren Elemente
+  // Berechne die Anzahl der sichtbaren Elemente - immer 3 anzeigen
   const getVisibleItemCount = () => {
     if (!sliderRef.current) return 1;
     const containerWidth = sliderRef.current.clientWidth;
-    const itemWidth = 220; // Ungefähre Breite einer Karte
-    const count = Math.floor(containerWidth / itemWidth);
+    const itemWidth = 300; // Breitere Karten
+    // Maximal 3 Karten anzeigen
+    const count = Math.min(3, Math.floor(containerWidth / itemWidth));
     // Stelle sicher, dass mindestens 1 zurückgegeben wird, um Division durch Null zu vermeiden
     return Math.max(1, count);
   };
@@ -44,16 +45,18 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
 
     const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
 
-    // Linker Pfeil nur anzeigen, wenn bereits gescrollt wurde
+    // Linker Pfeil immer anzeigen, aber mit unterschiedlicher Opazität
     setShowLeftArrow(scrollLeft > 20);
 
-    // Rechter Pfeil nur anzeigen, wenn noch nicht am Ende
+    // Rechter Pfeil immer anzeigen, aber mit unterschiedlicher Opazität
     setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 20);
 
     // Aktuellen Index berechnen
-    const itemWidth = 220; // Ungefähre Breite einer Karte
+    const itemWidth = 300; // Breitere Karten
     const newIndex = Math.round(scrollLeft / itemWidth);
     setCurrentIndex(newIndex);
+
+    console.log('Slider Arrows:', { showLeft: scrollLeft > 20, showRight: scrollLeft + clientWidth < scrollWidth - 20 });
   };
 
   // Beim Laden und Resize die Pfeile prüfen
@@ -143,24 +146,58 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
     setIsDragging(false);
   };
 
-  // Alle Stile inline definieren
+  // Funktion zum Behandeln von Dot-Klicks
+  const handleDotClick = (index: number) => {
+    if (!sliderRef.current) return;
+
+    // Berechne die Position, zu der gescrollt werden soll
+    const itemsPerPage = getVisibleItemCount();
+    const targetIndex = index * itemsPerPage;
+
+    if (targetIndex < shops.length) {
+      // Finde das Element an der Zielposition
+      const targetElement = sliderRef.current.children[targetIndex] as HTMLElement;
+      if (targetElement) {
+        // Scrolle zum Element
+        sliderRef.current.scrollTo({
+          left: targetElement.offsetLeft - sliderRef.current.offsetLeft,
+          behavior: 'smooth'
+        });
+
+        // Aktualisiere den aktuellen Index
+        setCurrentIndex(targetIndex);
+      }
+    }
+  };
+
+  // Moderne Stile inline definieren
   const sectionStyle = {
     ...style,
-    margin: '1.25rem 0',
+    margin: '1.5rem 0',
     padding: '0 1.5rem',
     position: 'relative' as React.CSSProperties['position'],
   };
 
   const titleStyle = {
-    fontSize: '1.3rem',
+    fontSize: '1.4rem',
     fontWeight: 700,
     color: 'var(--mall-primary, #3b1c60)',
-    margin: '0 0 1rem 0'
+    margin: '0 0 1.2rem 0',
+    display: 'flex',
+    alignItems: 'center',
+  };
+
+  // Icon-Stil
+  const iconStyle = {
+    marginRight: '0.5rem',
+    fontSize: '1.2rem',
+    color: 'var(--mall-primary, #3b1c60)',
+    opacity: 0.7,
   };
 
   const sliderStyle = {
     margin: 0,
-    padding: '0.5rem 0',
+    padding: '0.75rem 0.25rem',
     overflowX: 'auto' as React.CSSProperties['overflowX'],
     display: 'flex',
     WebkitOverflowScrolling: 'touch' as any,
@@ -171,6 +208,11 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
     touchAction: 'pan-x' as React.CSSProperties['touchAction'], // Verbesserte Touch-Unterstützung
     WebkitUserSelect: 'none' as any, // Verhindert Textauswahl während des Swipens
     userSelect: 'none' as any, // Verhindert Textauswahl während des Swipens
+    scrollSnapType: 'x mandatory' as React.CSSProperties['scrollSnapType'],
+    gap: '1rem',
+    position: 'relative' as React.CSSProperties['position'],
+    backgroundColor: 'transparent', // Transparenter Hintergrund
+    borderRadius: '8px',
     '&::-webkit-scrollbar': {
       display: 'none' // Chrome/Safari/Opera
     },
@@ -180,36 +222,47 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
     position: 'absolute',
     top: '50%',
     transform: 'translateY(-50%)',
-    width: '36px',
-    height: '36px',
+    width: '40px',
+    height: '40px',
     borderRadius: '50%',
     backgroundColor: 'white',
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
-    display: isVisible ? 'flex' : 'none',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    display: 'flex', // Immer anzeigen
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    zIndex: 2,
+    zIndex: 100, // Sehr hoher z-index damit die Pfeile immer sichtbar sind
     border: 'none',
     outline: 'none',
     color: 'var(--mall-primary, #3b1c60)',
-    fontSize: '1.2rem',
+    fontSize: '1.4rem',
     fontWeight: 'bold',
+    opacity: 1, // Immer voll sichtbar
+    transition: 'none', // Keine Transition um Flackern zu vermeiden
   });
 
   const paginationStyle: React.CSSProperties = {
     display: 'flex',
     justifyContent: 'center',
-    marginTop: '0.5rem',
-    gap: '6px'
+    marginTop: '0.75rem',
+    gap: '8px',
+    padding: '0.5rem 0',
   };
 
   const dotStyle = (isActive: boolean): React.CSSProperties => ({
-    width: '8px',
-    height: '8px',
+    width: '10px',
+    height: '10px',
     borderRadius: '50%',
-    backgroundColor: isActive ? 'var(--mall-primary, #3b1c60)' : '#ccc',
-    transition: 'background-color 0.3s ease'
+    backgroundColor: isActive
+      ? 'var(--mall-primary, #3b1c60)'
+      : 'rgba(var(--mall-primary-rgb, 59, 28, 96), 0.15)',
+    transition: 'all 0.3s ease',
+    transform: isActive ? 'scale(1.2)' : 'scale(1)',
+    boxShadow: isActive ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
+    cursor: 'pointer',
+    border: 'none',
+    outline: 'none',
+    margin: '0 2px',
   });
 
   // Swipe-Hinweis-Stil mit Timeout statt Animation
@@ -227,29 +280,37 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
 
   const swipeHintStyle: React.CSSProperties = {
     position: 'absolute',
-    bottom: '10px',
-    right: '10px',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    bottom: '15px',
+    right: '15px',
+    backgroundColor: 'rgba(var(--mall-primary-rgb, 59, 28, 96), 0.8)',
     color: 'white',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    fontSize: '0.8rem',
-    opacity: 0.8,
+    padding: '6px 12px',
+    borderRadius: '20px',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    opacity: 0.9,
     pointerEvents: 'none',
-    transition: 'opacity 0.5s ease',
-    display: (shops.length > getVisibleItemCount() && showSwipeHint) ? 'block' : 'none'
+    transition: 'opacity 0.5s ease, transform 0.5s ease',
+    transform: 'translateY(0)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+    display: (shops.length > getVisibleItemCount() && showSwipeHint) ? 'flex' : 'none',
+    alignItems: 'center',
+    gap: '6px',
   };
 
   return (
     <div style={sectionStyle}>
-      <h2 style={titleStyle}>{title}</h2>
+      <h2 style={titleStyle}>
+        <span style={iconStyle}>🛒</span>
+        {title}
+      </h2>
 
       {/* Navigationspfeile */}
       <button
         onClick={handleScrollLeft}
         style={{
           ...arrowStyle(showLeftArrow),
-          left: '0',
+          left: '-10px',
         }}
         aria-label="Nach links scrollen"
       >
@@ -260,7 +321,7 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
         onClick={handleScrollRight}
         style={{
           ...arrowStyle(showRightArrow),
-          right: '0',
+          right: '-10px',
         }}
         aria-label="Nach rechts scrollen"
       >
@@ -289,20 +350,23 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
         ))}
       </div>
 
-      {/* Pagination-Indikatoren */}
-      {shops.length > 1 && getVisibleItemCount() > 0 && (
-        <div style={paginationStyle}>
-          {Array.from({ length: Math.max(1, Math.ceil(shops.length / getVisibleItemCount())) }).map((_, index) => (
-            <div
-              key={`dot-${index}`}
-              style={dotStyle(Math.floor(currentIndex / Math.max(1, getVisibleItemCount())) === index)}
-            />
-          ))}
-        </div>
-      )}
+      {/* Pagination-Indikatoren - immer anzeigen */}
+      <div style={paginationStyle}>
+        {Array.from({ length: Math.max(1, Math.ceil(shops.length / getVisibleItemCount())) }).map((_, index) => (
+          <button
+            key={`dot-${index}`}
+            onClick={() => handleDotClick(index)}
+            style={dotStyle(Math.floor(currentIndex / Math.max(1, getVisibleItemCount())) === index)}
+            aria-label={`Zu Seite ${index + 1} springen`}
+          />
+        ))}
+      </div>
 
       {/* Swipe-Hinweis */}
-      <div style={swipeHintStyle}>Wischen zum Scrollen</div>
+      <div style={swipeHintStyle}>
+        <span style={{fontSize: '1.1rem'}}>⇄</span>
+        Wischen zum Scrollen
+      </div>
     </div>
   );
 };

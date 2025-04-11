@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { MallSection, parseMallContent, incrementalParseMallContent } from '../utils/contentParser';
 
 /**
- * Hook für die Verarbeitung von Streaming-Inhalten für das Mall-Template
- * Mit verbesserter Streaming-Unterstützung und Berücksichtigung der Nutzeranfrage
+ * Verbesserte Hook für die Verarbeitung von Streaming-Inhalten für das Mall-Template
+ * Mit optimierter Performance und flackerfreiem Streaming
  */
 export function useMallContentStreaming(content: string, isStreaming: boolean, query: string = '') {
   const [sections, setSections] = useState<MallSection[]>([]);
@@ -13,66 +13,84 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
   const [processedHtml, setProcessedHtml] = useState<string>('');
   const previousContentRef = useRef<string>('');
   const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const contentChunksRef = useRef<string[]>([]);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Verarbeite den Content bei Änderungen
+  // Verarbeite den Content bei Änderungen mit Debouncing für flackerfreies Streaming
   useEffect(() => {
     // Wenn sich der Content nicht geändert hat, überspringe
     if (content === previousContentRef.current) return;
 
+    // Speichere den neuen Content-Chunk
+    if (isStreaming && content.length > previousContentRef.current.length) {
+      contentChunksRef.current.push(
+        content.slice(previousContentRef.current.length)
+      );
+    }
+
     // Aktualisiere den gespeicherten Content
     previousContentRef.current = content;
 
-    try {
-      // Wenn Streaming aktiv ist, verwende inkrementelles Parsen
-      if (isStreaming) {
-        // Inkrementelles Parsen für bessere Streaming-Erfahrung
-        const newSections = incrementalParseMallContent(content, query);
+    // Setze den HTML-Inhalt sofort, um die Anzeige zu aktualisieren
+    setProcessedHtml(content);
 
-        // Setze die Sektionen und den Original-Content
-        // Nur aktualisieren, wenn wir neue Sektionen haben
-        if (newSections.length > 0) {
+    // Debounce die Sektionsverarbeitung, um Flackern zu reduzieren
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Verwende ein kürzeres Debounce für schnellere Anzeige
+    debounceTimerRef.current = setTimeout(() => {
+      try {
+        // Wenn Streaming aktiv ist, verwende inkrementelles Parsen
+        if (isStreaming) {
+          // Inkrementelles Parsen für bessere Streaming-Erfahrung
+          const newSections = incrementalParseMallContent(content, query);
+          console.log('Parsed sections during streaming:', newSections);
+
+          // Setze die Sektionen immer, auch wenn wir nur wenige haben
+          if (newSections.length > 0) {
+            setSections(newSections);
+          }
+        } else {
+          // Wenn kein Streaming aktiv ist, verwende normales Parsen
+          const newSections = parseMallContent(content, query);
+          console.log('Parsed sections after streaming:', newSections);
+
+          // Setze die Sektionen und den Original-Content
           setSections(newSections);
         }
-        setProcessedHtml(content);
-      } else {
-        // Wenn kein Streaming aktiv ist, verwende normales Parsen
-        const newSections = parseMallContent(content, query);
 
-        // Setze die Sektionen und den Original-Content
-        setSections(newSections);
-        setProcessedHtml(content);
-      }
+        // Wenn Streaming aktiv ist, setze isComplete auf false
+        if (isStreaming) {
+          setIsComplete(false);
 
-      // Wenn Streaming aktiv ist, setze isComplete auf false
-      if (isStreaming) {
-        setIsComplete(false);
+          // Setze einen Timeout, um isComplete nach einer kurzen Verzögerung auf true zu setzen
+          // Dies gibt dem Benutzer Zeit, den Streaming-Indikator zu sehen
+          if (streamingTimeoutRef.current) {
+            clearTimeout(streamingTimeoutRef.current);
+          }
 
-        // Setze einen Timeout, um isComplete nach einer kurzen Verzögerung auf true zu setzen
-        // Dies gibt dem Benutzer Zeit, den Streaming-Indikator zu sehen
-        if (streamingTimeoutRef.current) {
-          clearTimeout(streamingTimeoutRef.current);
-        }
-
-        streamingTimeoutRef.current = setTimeout(() => {
+          streamingTimeoutRef.current = setTimeout(() => {
+            setIsComplete(true);
+          }, 200); // Reduziert auf 0,2 Sekunden Verzögerung für schnellere Anzeige
+        } else {
+          // Wenn kein Streaming aktiv ist, setze isComplete sofort auf true
           setIsComplete(true);
-        }, 500); // Reduziert auf 0,5 Sekunden Verzögerung
-      } else {
-        // Wenn kein Streaming aktiv ist, setze isComplete sofort auf true
-        setIsComplete(true);
+        }
+      } catch (error) {
+        console.error('Fehler bei der Mall-Content-Verarbeitung:', error);
+        setIsComplete(true); // Bei Fehlern immer als abgeschlossen markieren
       }
-    } catch (error) {
-      console.error('Fehler bei der Mall-Content-Verarbeitung:', error);
-      setProcessedHtml(content);
-      setIsComplete(true); // Bei Fehlern immer als abgeschlossen markieren
-    }
-  }, [content, isStreaming]);
+    }, 10); // 10ms Debounce-Zeit für sofortige Anzeige
+  }, [content, isStreaming, query]);
 
   // Zusätzlicher Effekt, um sicherzustellen, dass isComplete nach einer bestimmten Zeit auf true gesetzt wird
   useEffect(() => {
-    // Sicherheits-Timeout: Setze isComplete nach 2 Sekunden auf true, falls es noch nicht geschehen ist
+    // Sicherheits-Timeout: Setze isComplete nach 1,5 Sekunden auf true, falls es noch nicht geschehen ist
     const safetyTimer = setTimeout(() => {
       setIsComplete(true);
-    }, 2000);
+    }, 300); // Reduziert auf 0,3 Sekunden für schnellere Anzeige
 
     return () => clearTimeout(safetyTimer);
   }, [content]);
@@ -82,6 +100,9 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
     return () => {
       if (streamingTimeoutRef.current) {
         clearTimeout(streamingTimeoutRef.current);
+      }
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
     };
   }, []);
