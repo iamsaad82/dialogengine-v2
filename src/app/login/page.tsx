@@ -13,30 +13,37 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!email || !password) {
       setError('Bitte geben Sie Ihre E-Mail und Ihr Passwort ein')
       return
     }
-    
+
     try {
       setLoading(true)
       setError(null)
-      
+
+      console.log('Login-Versuch mit E-Mail:', email)
+
       const result = await signIn('credentials', {
         redirect: false,
         email,
         password
       })
-      
+
+      console.log('Login-Ergebnis:', result)
+
       if (result?.error) {
+        console.error('Login fehlgeschlagen:', result.error)
         setError('Ungültige Anmeldedaten')
         return
       }
-      
+
+      console.log('Login erfolgreich, leite weiter zur Admin-Seite')
+
       // Erfolgreiche Anmeldung, zur Admin-Seite weiterleiten
-      router.push('/admin')
-      router.refresh()
+      // Verwende window.location für eine vollständige Seitenaktualisierung
+      window.location.href = '/admin'
     } catch (error) {
       setError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.')
       console.error('Login-Fehler:', error)
@@ -54,13 +61,13 @@ export default function LoginPage() {
             Bitte melden Sie sich an, um auf den Admin-Bereich zuzugreifen
           </p>
         </div>
-        
+
         {error && (
           <div className="p-3 bg-destructive/10 border border-destructive rounded-md text-destructive text-sm">
             {error}
           </div>
         )}
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -78,7 +85,7 @@ export default function LoginPage() {
               placeholder="admin@beispiel.de"
             />
           </div>
-          
+
           <div>
             <label htmlFor="password" className="block text-sm font-medium mb-1">
               Passwort
@@ -95,7 +102,7 @@ export default function LoginPage() {
               placeholder="••••••••"
             />
           </div>
-          
+
           <div>
             <button
               type="submit"
@@ -116,7 +123,7 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        
+
         <div className="mt-6 text-center">
           <a href="/" className="text-sm text-primary hover:underline">
             Zurück zur Website
@@ -125,4 +132,4 @@ export default function LoginPage() {
       </div>
     </div>
   )
-} 
+}

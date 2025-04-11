@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import ConversationDetailsModal from './components/ConversationDetailsModal'
 
@@ -66,9 +68,9 @@ function TimeRangeSelector({ value, onChange }: { value: string; onChange: (valu
 }
 
 // Neue Komponente für die Bot-Auswahl
-function BotSelector({ value, onChange, bots }: { 
-  value: string; 
-  onChange: (value: string) => void; 
+function BotSelector({ value, onChange, bots }: {
+  value: string;
+  onChange: (value: string) => void;
   bots: Array<{id: string; name: string}>;
 }) {
   return (
@@ -99,62 +101,91 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null)
   // State für die Detailansicht
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
-  
+
+  // Session-Status überprüfen
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  // Wenn nicht authentifiziert, zur Login-Seite umleiten
+  useEffect(() => {
+    console.log('Admin Dashboard - Session Status:', status)
+    console.log('Admin Dashboard - Session Data:', session)
+
+    if (status === 'unauthenticated') {
+      console.log('Admin Dashboard - Nicht authentifiziert, leite zur Login-Seite um')
+      router.push('/login')
+    }
+  }, [status, session, router])
+
   // Lade den Markennamen und die Statistiken
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Admin Dashboard - Lade Daten...');
         setLoading(true)
-        
+
         // Parallele Anfragen für bessere Performance
+        console.log(`Admin Dashboard - Anfrage an API-Endpunkte: /api/settings und /admin/api/stats?botId=${selectedBot}&timeRange=${timeRange}`);
+
         const [settingsResponse, statsResponse] = await Promise.all([
           fetch('/api/settings'),
           fetch(`/admin/api/stats?botId=${selectedBot}&timeRange=${timeRange}`)
         ])
-        
+
+        console.log('Admin Dashboard - Settings Response Status:', settingsResponse.status);
+        console.log('Admin Dashboard - Stats Response Status:', statsResponse.status);
+
         if (settingsResponse.ok) {
           const settingsData = await settingsResponse.json()
+          console.log('Admin Dashboard - Settings Data:', settingsData);
           setBrandName(settingsData.brandName)
+        } else {
+          console.error('Admin Dashboard - Fehler beim Laden der Einstellungen:', settingsResponse.statusText);
         }
-        
+
         if (statsResponse.ok) {
           const statsData = await statsResponse.json()
+          console.log('Admin Dashboard - Stats Data erhalten');
           setStats(statsData)
           setError(null)
         } else {
-          throw new Error(`Fehler beim Laden der Statistiken: ${statsResponse.status}`)
+          console.error('Admin Dashboard - Fehler beim Laden der Statistiken:', statsResponse.statusText);
+          const errorText = await statsResponse.text().catch(() => 'Keine Fehlerdetails verfügbar');
+          console.error('Admin Dashboard - Fehlerdetails:', errorText);
+          throw new Error(`Fehler beim Laden der Statistiken: ${statsResponse.status} - ${errorText}`)
         }
       } catch (err) {
-        console.error('Fehler beim Laden der Daten:', err)
+        console.error('Admin Dashboard - Fehler beim Laden der Daten:', err)
         setError(err instanceof Error ? err.message : 'Unbekannter Fehler')
       } finally {
         setLoading(false)
+        console.log('Admin Dashboard - Laden der Daten abgeschlossen');
       }
     }
-    
+
     fetchData()
   }, [selectedBot, timeRange])
-  
+
   // Fallback für leere Daten
   const recentQuestions = stats?.recentQuestions || []
   const topQuestions = stats?.topQuestions || []
   const systemStats = stats?.systemStats || {}
   const botsList = stats?.bots || []
-  
+
   return (
     <div className="min-h-screen bg-background">
       {/* Modal für Konversationsdetails */}
       {selectedMessageId && (
-        <ConversationDetailsModal 
+        <ConversationDetailsModal
           messageId={selectedMessageId}
           onClose={() => setSelectedMessageId(null)}
         />
       )}
-      
+
       <header className="bg-primary text-primary-foreground p-4">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">{brandName} - Admin Dashboard</h1>
-          <a 
+          <a
             href="/"
             className="bg-primary-foreground/10 hover:bg-primary-foreground/20 px-4 py-2 rounded-md text-primary-foreground transition"
           >
@@ -162,21 +193,21 @@ export default function AdminDashboard() {
           </a>
         </div>
       </header>
-      
+
       <main className="container mx-auto p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          
+
           <div className="flex flex-col sm:flex-row gap-4">
-            <BotSelector 
-              value={selectedBot} 
+            <BotSelector
+              value={selectedBot}
               onChange={setSelectedBot}
               bots={botsList.map((b: any) => ({ id: b.id, name: b.name }))}
             />
             <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
           </div>
         </div>
-        
+
         {loading ? (
           <div className="flex justify-center my-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -184,7 +215,7 @@ export default function AdminDashboard() {
         ) : error ? (
           <div className="bg-destructive/10 border border-destructive text-destructive rounded-md p-4 my-4">
             <p>{error}</p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="mt-2 bg-destructive text-destructive-foreground px-3 py-1 rounded-md text-sm"
             >
@@ -194,56 +225,56 @@ export default function AdminDashboard() {
         ) : (
           <>
             <div className="flex flex-wrap gap-6 mb-6">
-              <DashboardCard 
-                title="Bots" 
-                value={systemStats.totalBots || 0} 
-                icon="🤖" 
+              <DashboardCard
+                title="Bots"
+                value={systemStats.totalBots || 0}
+                icon="🤖"
               />
-              <DashboardCard 
-                title="Gespräche" 
-                value={systemStats.totalConversations || 0} 
-                icon="💬" 
+              <DashboardCard
+                title="Gespräche"
+                value={systemStats.totalConversations || 0}
+                icon="💬"
               />
-              <DashboardCard 
-                title="Erfolgsrate" 
-                value={systemStats.successRate || '0%'} 
-                icon="✅" 
+              <DashboardCard
+                title="Erfolgsrate"
+                value={systemStats.successRate || '0%'}
+                icon="✅"
               />
-              <DashboardCard 
-                title="Ø Antwortzeit" 
-                value={systemStats.averageResponseTime || '0s'} 
-                icon="⏱️" 
+              <DashboardCard
+                title="Ø Antwortzeit"
+                value={systemStats.averageResponseTime || '0s'}
+                icon="⏱️"
               />
-              <DashboardCard 
-                title="Aktive Nutzer" 
-                value={systemStats.uniqueUsers || 0} 
-                icon="👥" 
+              <DashboardCard
+                title="Aktive Nutzer"
+                value={systemStats.uniqueUsers || 0}
+                icon="👥"
               />
             </div>
-            
+
             <div className="flex mb-4 border-b">
-              <TabButton 
-                isActive={activeTab === 'overview'} 
+              <TabButton
+                isActive={activeTab === 'overview'}
                 onClick={() => setActiveTab('overview')}
                 label="Übersicht"
               />
-              <TabButton 
-                isActive={activeTab === 'questions'} 
+              <TabButton
+                isActive={activeTab === 'questions'}
                 onClick={() => setActiveTab('questions')}
                 label="Häufige Fragen"
               />
-              <TabButton 
-                isActive={activeTab === 'stats'} 
+              <TabButton
+                isActive={activeTab === 'stats'}
                 onClick={() => setActiveTab('stats')}
                 label="Statistiken"
               />
-              <TabButton 
-                isActive={activeTab === 'bots'} 
+              <TabButton
+                isActive={activeTab === 'bots'}
                 onClick={() => setActiveTab('bots')}
                 label="Bots"
               />
             </div>
-            
+
             <div className="flex flex-col lg:flex-row gap-6 mt-4">
               {activeTab === 'overview' && (
                 <>
@@ -274,7 +305,7 @@ export default function AdminDashboard() {
                                 )}
                               </div>
                             </div>
-                            <button 
+                            <button
                               className="text-primary hover:underline text-sm"
                               onClick={() => setSelectedMessageId(item.id)}
                             >
@@ -289,11 +320,11 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="w-full lg:w-1/2 bg-card rounded-lg shadow p-6">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl font-bold">Top Fragen</h2>
-                      <button 
+                      <button
                         className="text-sm text-primary hover:underline"
                         onClick={() => alert('Bericht wird erstellt... (Funktion noch in Entwicklung)')}
                       >
@@ -319,14 +350,14 @@ export default function AdminDashboard() {
                   </div>
                 </>
               )}
-              
+
               {activeTab === 'bots' && (
                 <div className="w-full bg-card rounded-lg shadow p-6">
                   <h2 className="text-xl font-bold mb-4">Bot-Performance</h2>
                   <p className="text-muted-foreground mb-4">
                     Übersicht über die Performance aller Bots im System.
                   </p>
-                  
+
                   <div className="overflow-x-auto mb-6">
                     <table className="w-full border-collapse">
                       <thead>
@@ -355,7 +386,7 @@ export default function AdminDashboard() {
                       </tbody>
                     </table>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="border rounded-md p-4 bg-card">
                       <div className="flex items-center gap-3 mb-3">
@@ -377,7 +408,7 @@ export default function AdminDashboard() {
                         Einbettungscode generieren →
                       </a>
                     </div>
-                    
+
                     <div className="border rounded-md p-4 bg-card">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -404,12 +435,12 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               )}
-              
+
               {activeTab === 'questions' && (
                 <div className="w-full bg-card rounded-lg shadow p-6">
                   <h2 className="text-xl font-bold mb-4">Häufig gestellte Fragen verwalten</h2>
                   <p className="text-muted-foreground mb-6">
-                    Hier können Sie die häufigsten Fragen und Antworten verwalten, 
+                    Hier können Sie die häufigsten Fragen und Antworten verwalten,
                     die in der Wissensdatenbank vorkommen.
                   </p>
                   <div className="border rounded-md p-4 mb-4 bg-card">
@@ -417,12 +448,12 @@ export default function AdminDashboard() {
                       Wissensdatenbank-Verbindungsstatus: <span className="text-green-500">Verbunden</span>
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Letzte Aktualisierung: {stats?.meta?.lastUpdated 
+                      Letzte Aktualisierung: {stats?.meta?.lastUpdated
                         ? new Date(stats.meta.lastUpdated).toLocaleString('de-DE')
                         : 'Unbekannt'}
                     </p>
                   </div>
-                  
+
                   {topQuestions.length > 0 ? (
                     <div className="divide-y">
                       {topQuestions.map((item: any, index: number) => (
@@ -451,14 +482,14 @@ export default function AdminDashboard() {
                   )}
                 </div>
               )}
-              
+
               {activeTab === 'stats' && (
                 <div className="w-full bg-card rounded-lg shadow p-6">
                   <h2 className="text-xl font-bold mb-4">Analytics & Statistiken</h2>
                   <p className="text-muted-foreground mb-6">
                     Detaillierte Statistiken über die Nutzung des Chatbots.
                   </p>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="border rounded-md p-4">
                       <h3 className="font-medium mb-2">Nutzungsstatistiken</h3>
@@ -481,48 +512,48 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="border rounded-md p-4">
                       <h3 className="font-medium mb-2">Zeitraum-Informationen</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Ausgewählter Zeitraum:</span>
                           <span className="font-medium">{
-                            timeRange === '1d' ? 'Letzte 24 Stunden' : 
-                            timeRange === '7d' ? 'Letzte 7 Tage' : 
-                            timeRange === '30d' ? 'Letzte 30 Tage' : 
+                            timeRange === '1d' ? 'Letzte 24 Stunden' :
+                            timeRange === '7d' ? 'Letzte 7 Tage' :
+                            timeRange === '30d' ? 'Letzte 30 Tage' :
                             'Letzte 90 Tage'
                           }</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Ausgewählter Bot:</span>
                           <span className="font-medium">{
-                            selectedBot === 'all' ? 'Alle Bots' : 
+                            selectedBot === 'all' ? 'Alle Bots' :
                             botsList.find((b: any) => b.id === selectedBot)?.name || 'Unbekannt'
                           }</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Letzte Aktualisierung:</span>
                           <span className="font-medium">{
-                            stats?.meta?.lastUpdated ? 
-                            new Date(stats.meta.lastUpdated).toLocaleString('de-DE') : 
+                            stats?.meta?.lastUpdated ?
+                            new Date(stats.meta.lastUpdated).toLocaleString('de-DE') :
                             'Unbekannt'
                           }</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="border rounded-md p-4 mb-6">
                     <h3 className="font-medium mb-4">Gespräche pro Tag (letzte 7 Tage)</h3>
                     <div className="h-64 flex items-end justify-between">
                       {stats?.timeSeries?.daily.map((day: any, i: number) => {
                         const maxValue = Math.max(...stats.timeSeries.daily.map((d: any) => d.conversations));
                         const percentage = day.conversations / maxValue * 100;
-                        
+
                         return (
                           <div key={i} className="flex flex-col items-center w-1/8">
-                            <div 
+                            <div
                               className="bg-primary/80 w-12 rounded-t-md hover:bg-primary transition-all"
                               style={{ height: `${percentage}%` }}
                             ></div>
@@ -535,7 +566,7 @@ export default function AdminDashboard() {
                       })}
                     </div>
                   </div>
-                  
+
                   <div className="text-center py-4">
                     <p className="text-muted-foreground mb-2">
                       Komplette Statistiken und erweiterte Analysen
@@ -549,10 +580,10 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
-        
+
         <div className="fixed bottom-10 right-10">
-          <a 
-            href="/admin/embed" 
+          <a
+            href="/admin/embed"
             className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg hover:bg-primary/90 transition"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -565,4 +596,4 @@ export default function AdminDashboard() {
       </main>
     </div>
   )
-} 
+}

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 
 export default function AdminLayout({
@@ -10,8 +10,21 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+
+  // Debug-Ausgabe für Session-Status
+  useEffect(() => {
+    console.log('Admin Layout - Session Status:', status)
+    console.log('Admin Layout - Session Data:', session)
+
+    // Wenn nicht authentifiziert, zur Login-Seite umleiten
+    if (status === 'unauthenticated') {
+      console.log('Nicht authentifiziert, leite zur Login-Seite um')
+      router.push('/login')
+    }
+  }, [status, session, router])
 
   // Funktion zum Prüfen, ob der aktuelle Pfad mit dem Link übereinstimmt
   const isActive = (path: string) => {
@@ -24,7 +37,7 @@ export default function AdminLayout({
   return (
     <div className="admin-layout min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`bg-card border-r transition-all duration-300 flex flex-col ${
           sidebarCollapsed ? 'w-16' : 'w-64'
         }`}
@@ -34,7 +47,7 @@ export default function AdminLayout({
           <div className={`flex items-center ${sidebarCollapsed ? 'hidden' : ''}`}>
             <span className="text-xl font-semibold">Admin</span>
           </div>
-          <button 
+          <button
             className="p-1 rounded-md hover:bg-muted"
             onClick={() => setSidebarCollapsed(prev => !prev)}
           >
@@ -49,7 +62,7 @@ export default function AdminLayout({
             )}
           </button>
         </div>
-        
+
         <nav className="flex-1 py-4">
           <ul className="space-y-1">
             <li>
@@ -119,7 +132,7 @@ export default function AdminLayout({
             </li>
           </ul>
         </nav>
-        
+
         {/* Sidebar Footer */}
         <div className="border-t p-4">
           {!sidebarCollapsed && session?.user && (
@@ -128,7 +141,7 @@ export default function AdminLayout({
               <p className="font-medium">{session.user.name || session.user.email}</p>
             </div>
           )}
-          
+
           <div className="flex flex-col space-y-2">
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
@@ -141,7 +154,7 @@ export default function AdminLayout({
               </svg>
               {!sidebarCollapsed && <span>Abmelden</span>}
             </button>
-            
+
             <a
               href="/"
               className="flex items-center text-sm text-muted-foreground hover:text-foreground"
@@ -155,11 +168,11 @@ export default function AdminLayout({
           </div>
         </div>
       </aside>
-      
+
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         {children}
       </main>
     </div>
   )
-} 
+}
