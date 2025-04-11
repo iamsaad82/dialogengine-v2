@@ -6,6 +6,7 @@ import MallHeader from './components/MallHeader';
 import MallIntroSection from './components/MallIntroSection';
 import ShopSlider from './components/ShopSlider';
 import StableShopSlider from './components/StableShopSlider';
+import CSSStableShopSlider from './components/CSSStableShopSlider';
 import RestaurantSlider from './components/RestaurantSlider';
 import EventSlider from './components/EventSlider';
 import OpeningHoursCard from './components/OpeningHoursCard';
@@ -70,6 +71,31 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
 }) => {
   // Globale Styles für Animationen hinzufügen
   useGlobalStyles();
+
+  // Importiere CSS für Streaming-Stabilität
+  useEffect(() => {
+    // Nur im Browser ausführen
+    if (typeof document === 'undefined') return;
+
+    // Prüfen, ob die Styles bereits existieren
+    const existingStyle = document.getElementById('streaming-stability-styles');
+    if (existingStyle) return;
+
+    // Styles erstellen und hinzufügen
+    const styleElement = document.createElement('link');
+    styleElement.id = 'streaming-stability-styles';
+    styleElement.rel = 'stylesheet';
+    styleElement.href = '/styles/streaming-stability.css';
+    document.head.appendChild(styleElement);
+
+    // Cleanup beim Unmount
+    return () => {
+      const styleToRemove = document.getElementById('streaming-stability-styles');
+      if (styleToRemove) {
+        document.head.removeChild(styleToRemove);
+      }
+    };
+  }, []);
 
   // Füge Followup-Fragen hinzu, wenn die Anfrage unklar ist
   const processedContent = useMemo(() => {
@@ -721,17 +747,16 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
       <style dangerouslySetInnerHTML={{ __html: inlineCSS }} />
       {/* Keine Nachrichtensteuerung mehr hier, wird jetzt in der Message-Komponente angezeigt */}
 
-      {/* Skeleton-Loader anzeigen, wenn noch keine Sektionen erkannt wurden oder während des Streamings */}
-      {(isStreaming || sections.length === 0) && (
+      {/* Skeleton-Loader anzeigen, wenn noch keine Sektionen erkannt wurden */}
+      {sections.length === 0 && (
         <div className="mall-skeleton-container" style={{
           position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
-          zIndex: sections.length === 0 ? 2 : 1,
-          opacity: sections.length === 0 ? 1 : 0.3,
+          zIndex: 2,
+          opacity: 1,
           pointerEvents: 'none',
-          transition: 'opacity 0.3s ease-out',
           padding: '1rem',
         }}>
           <SkeletonLoader type="intro" />
@@ -762,7 +787,7 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
 
             case 'shops':
               return (
-                <StableShopSlider
+                <CSSStableShopSlider
                   key={`section-${index}-shops`}
                   title={section.title}
                   shops={section.items || []}

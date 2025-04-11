@@ -39,7 +39,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Verwende ein kürzeres Debounce für schnellere Anzeige
+    // Verwende ein längeres Debounce für stabilere Anzeige
     debounceTimerRef.current = setTimeout(() => {
       try {
         // Wenn Streaming aktiv ist, verwende inkrementelles Parsen
@@ -51,9 +51,13 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
           // Setze die Sektionen nur, wenn wir mehr als 0 haben und wenn sie sich geändert haben
           if (newSections.length > 0) {
             // Vergleiche die neuen Sektionen mit den alten, um unnötige Renders zu vermeiden
+            // Tiefe Vergleichsfunktion für bessere Stabilität
             const sectionsChanged = JSON.stringify(newSections) !== JSON.stringify(sections);
             if (sectionsChanged) {
-              setSections(newSections);
+              // Verzögere das Setzen der Sektionen, um Flackern zu vermeiden
+              setTimeout(() => {
+                setSections(newSections);
+              }, 100);
             }
           }
         } else {
@@ -77,7 +81,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
 
           streamingTimeoutRef.current = setTimeout(() => {
             setIsComplete(true);
-          }, 500); // 0,5 Sekunden Verzögerung für stabilere Anzeige
+          }, 800); // 0,8 Sekunden Verzögerung für stabilere Anzeige
         } else {
           // Wenn kein Streaming aktiv ist, setze isComplete sofort auf true
           setIsComplete(true);
@@ -86,7 +90,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
         console.error('Fehler bei der Mall-Content-Verarbeitung:', error);
         setIsComplete(true); // Bei Fehlern immer als abgeschlossen markieren
       }
-    }, 50); // 50ms Debounce-Zeit für stabilere Anzeige
+    }, 200); // 200ms Debounce-Zeit für stabilere Anzeige
   }, [content, isStreaming, query]);
 
   // Zusätzlicher Effekt, um sicherzustellen, dass isComplete nach einer bestimmten Zeit auf true gesetzt wird
