@@ -28,11 +28,17 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
   const [startX, setStartX] = useState<number>(0);
   const [scrollLeft, setScrollLeft] = useState<number>(0);
 
-  // Berechne die Anzahl der sichtbaren Elemente - immer 3 anzeigen
+  // Berechne die Anzahl der sichtbaren Elemente - dynamisch anpassen
   const getVisibleItemCount = () => {
     if (!sliderRef.current) return 1;
     const containerWidth = sliderRef.current.clientWidth;
-    const itemWidth = 300; // Breitere Karten
+    const itemWidth = 300; // Standardbreite einer Karte
+
+    // Wenn weniger als 3 Shops vorhanden sind, passe die Breite an
+    if (shops.length < 3) {
+      return shops.length; // Zeige nur so viele wie vorhanden
+    }
+
     // Maximal 3 Karten anzeigen
     const count = Math.min(3, Math.floor(containerWidth / itemWidth));
     // Stelle sicher, dass mindestens 1 zurückgegeben wird, um Division durch Null zu vermeiden
@@ -213,6 +219,7 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
     position: 'relative' as React.CSSProperties['position'],
     backgroundColor: 'transparent', // Transparenter Hintergrund
     borderRadius: '8px',
+    justifyContent: shops.length < 3 ? 'center' : 'flex-start', // Zentriere Karten wenn weniger als 3
     '&::-webkit-scrollbar': {
       display: 'none' // Chrome/Safari/Opera
     },

@@ -55,6 +55,9 @@ export function extractShopsFromHtml(html: string): ShopData[] {
       .replace(/(?:Öffnungszeiten|Zeiten):\s*(.*?)(?:<br>|<\/p>|$)/, '')
       .trim();
 
+    // HTML-Tags in der Beschreibung durch tatsächliche Zeilenumbrüche ersetzen
+    description = description.replace(/<br\s*\/?>/gi, ' ').replace(/<\/?p>/gi, ' ');
+
     // Bild extrahieren, falls vorhanden
     const imageMatch = description.match(/src="(.*?)"/) || [];
     const image = imageMatch[1] || '';

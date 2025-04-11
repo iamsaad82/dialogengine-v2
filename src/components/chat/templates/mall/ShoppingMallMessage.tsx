@@ -169,15 +169,10 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
 
     // Wenn wir eine endgültige Höhe haben und das Streaming abgeschlossen ist,
     // verwenden wir eine feste Höhe, um Layout-Shifts zu verhindern
-    if (finalHeight !== null && isComplete) {
-      style.height = `${finalHeight}px`;
-      // Setze auch eine CSS-Variable für die Höhe
-      style['--final-height' as any] = `${finalHeight}px`;
-      console.log('Mall Template: Verwende feste Höhe:', finalHeight);
-    } else {
-      // Sonst verwenden wir eine Mindesthöhe
-      style.minHeight = '100px';
-    }
+    // Wir verwenden keine feste Höhe mehr, um zu hohe Antwortfenster zu vermeiden
+    style.minHeight = '100px';
+    style.maxHeight = 'fit-content';
+    style.height = 'auto';
 
     return style;
   }, [primaryColor, secondaryColor, tertiaryColor, botTextColor, finalHeight, isComplete]);
@@ -192,6 +187,8 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
       font-size: 16px;
       position: relative;
       min-height: 100px;
+      max-height: fit-content !important; /* Passt die Höhe an den Inhalt an */
+      height: auto !important; /* Verhindert zu hohe Antwortfenster */
       overflow: hidden;
       background-color: transparent !important;
       padding: 0;
@@ -429,6 +426,7 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
       line-height: 1.5;
       min-height: 1.5rem; /* Verhindert Größenänderungen während des Streamings */
       transition: none !important; /* Keine Übergänge während des Streamings */
+      max-height: fit-content; /* Verhindert zu hohe Antwortfenster */
     }
 
     /* Sections */
