@@ -128,6 +128,9 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
     tipContent = tipMatch[0];
   }
 
+  // Verfolge bereits hinzugefügte Sektionstypen, um Duplikate zu vermeiden
+  const addedSectionTypes = new Set<string>();
+
   // Konvertiere die analysierten Sektionen in Mall-Sektionen
   for (const section of analyzedSections) {
     // Prüfe, ob die Sektion für die aktuelle Anfrage relevant ist
@@ -135,6 +138,14 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
 
     // Wenn die Sektion nicht relevant ist, überspringe sie
     if (!isRelevant && section.type !== 'intro' && section.type !== 'other') {
+      continue;
+    }
+
+    // Wenn wir bereits eine Sektion dieses Typs mit ähnlichem Titel haben, überspringe sie
+    // Ausnahme: 'intro' und 'other' können mehrfach vorkommen
+    if (section.type !== 'intro' && section.type !== 'other' &&
+        addedSectionTypes.has(section.type)) {
+      console.log(`Überspringe doppelte Sektion vom Typ: ${section.type}`);
       continue;
     }
 
@@ -167,6 +178,8 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
               relevanceScore: section.relevanceScore,
               query
             });
+            // Markiere diesen Sektionstyp als hinzugefügt
+            addedSectionTypes.add('shops');
           } else {
             // Wenn keine Shops gefunden wurden, erstelle Dummy-Daten
             console.log('Keine Shops gefunden, erstelle Dummy-Daten');
@@ -235,6 +248,12 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
         // Erstelle Dummy-Restaurant-Daten, wenn keine echten Daten vorhanden sind
         const restaurants = extractShopsFromHtml(section.content || '');
 
+        // Prüfe, ob wir bereits eine Restaurant-Sektion haben
+        if (addedSectionTypes.has('restaurants')) {
+          console.log('Überspringe doppelte Restaurant-Sektion');
+          break;
+        }
+
         // Wenn keine Restaurants gefunden wurden, erstelle Dummy-Daten
         if (restaurants.length === 0 && query.toLowerCase().includes('hunger')) {
           // Dummy-Restaurants für "Ich habe Hunger"-Anfragen
@@ -267,6 +286,8 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
             relevanceScore: 90, // Hohe Relevanz für Hunger-Anfragen
             query
           });
+          // Markiere diesen Sektionstyp als hinzugefügt
+          addedSectionTypes.add('restaurants');
         } else if (restaurants.length > 0) {
           // Wenn Restaurants gefunden wurden, verwende diese
           mallSections.push({
@@ -276,10 +297,18 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
             relevanceScore: section.relevanceScore,
             query
           });
+          // Markiere diesen Sektionstyp als hinzugefügt
+          addedSectionTypes.add('restaurants');
         }
         break;
 
       case 'events':
+        // Prüfe, ob wir bereits eine Events-Sektion haben
+        if (addedSectionTypes.has('events')) {
+          console.log('Überspringe doppelte Events-Sektion');
+          break;
+        }
+
         // Extrahiere Events aus dem HTML-Inhalt
         const events = extractEventsFromHtml(section.content || '');
 
@@ -291,10 +320,18 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
             relevanceScore: section.relevanceScore,
             query
           });
+          // Markiere diesen Sektionstyp als hinzugefügt
+          addedSectionTypes.add('events');
         }
         break;
 
       case 'openingHours':
+        // Prüfe, ob wir bereits eine Öffnungszeiten-Sektion haben
+        if (addedSectionTypes.has('openingHours')) {
+          console.log('Überspringe doppelte Öffnungszeiten-Sektion');
+          break;
+        }
+
         // Extrahiere Öffnungszeiten aus dem HTML-Inhalt
         const openingHoursData = extractOpeningHoursFromHtml(section.content || '');
 
@@ -306,10 +343,18 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
             relevanceScore: section.relevanceScore,
             query
           });
+          // Markiere diesen Sektionstyp als hinzugefügt
+          addedSectionTypes.add('openingHours');
         }
         break;
 
       case 'parking':
+        // Prüfe, ob wir bereits eine Parking-Sektion haben
+        if (addedSectionTypes.has('parking')) {
+          console.log('Überspringe doppelte Parking-Sektion');
+          break;
+        }
+
         // Extrahiere Parkgebühren aus dem HTML-Inhalt
         const parkingData = extractParkingInfoFromHtml(section.content || '');
 
@@ -321,12 +366,20 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
             relevanceScore: section.relevanceScore,
             query
           });
+          // Markiere diesen Sektionstyp als hinzugefügt
+          addedSectionTypes.add('parking');
         }
         break;
 
       case 'news':
       case 'services':
       case 'offers':
+        // Prüfe, ob wir bereits eine Sektion dieses Typs haben
+        if (addedSectionTypes.has(mallSectionType)) {
+          console.log(`Überspringe doppelte ${mallSectionType}-Sektion`);
+          break;
+        }
+
         // Für diese Sektionstypen könnten wir später spezielle Extraktoren hinzufügen
         mallSections.push({
           type: mallSectionType,
@@ -335,6 +388,8 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
           relevanceScore: section.relevanceScore,
           query
         });
+        // Markiere diesen Sektionstyp als hinzugefügt
+        addedSectionTypes.add(mallSectionType);
         break;
 
       case 'other':
@@ -352,8 +407,8 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
     }
   }
 
-  // Füge den Tipp als letzte Sektion hinzu, wenn vorhanden
-  if (tipContent) {
+  // Füge den Tipp als letzte Sektion hinzu, wenn vorhanden und noch nicht hinzugefügt
+  if (tipContent && !addedSectionTypes.has('tip')) {
     mallSections.push({
       type: 'tip',
       title: 'Tipp',
@@ -361,6 +416,7 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
       relevanceScore: 50, // Mittlere Relevanz für Tipps
       query
     });
+    addedSectionTypes.add('tip');
   }
 
   // Falls keine Sektionen gefunden wurden, füge den gesamten Inhalt als generische Sektion hinzu
