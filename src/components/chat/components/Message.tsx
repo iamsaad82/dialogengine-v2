@@ -102,7 +102,7 @@ export const Message: React.FC<{
     color: isBot
       ? colorStyle?.botTextColor || 'var(--bot-text-color)'
       : colorStyle?.userTextColor || 'var(--user-text-color, #1e293b)', // Verwende die Textfarbe aus den Bot-Einstellungen
-    width: 'fit-content', // Begrenze die Breite auf den Inhalt
+    width: isBot ? 'fit-content' : 'auto', // Für User-Nachrichten auto statt fit-content
     maxWidth: isBot ? '80%' : '70%', // User-Nachrichten etwas schmaler als Bot-Nachrichten
     '--bot-primary-color-rgb': primaryColorRgb,
     '--bot-accent-color-rgb': accentColorRgb,
@@ -163,7 +163,7 @@ export const Message: React.FC<{
   // User-Nachricht ohne Wrapper, um Abstände zu vermeiden
   return (
     <div className="message user" style={messageStyles}>
-      <div className={contentClass} style={{ width: '100%', minWidth: '60px' }}>
+      <div className={contentClass} style={{ width: 'auto', display: 'inline-block' }}>
         <MessageContent content={content} role={role} messageTemplate={null} />
       </div>
     </div>

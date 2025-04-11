@@ -297,20 +297,21 @@
   max-width: 70%;
   min-width: 60px; /* Mindestbreite für kurze Nachrichten */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  display: flex !important; /* Erzwingen der Anzeige */
-  justify-content: flex-end !important; /* Rechts ausrichten */
-  width: fit-content !important; /* Anpassung an den Inhalt */
+  display: inline-block !important; /* Inline-Block für bessere Anpassung an den Inhalt */
+  width: auto !important; /* Automatische Breite basierend auf dem Inhalt */
   opacity: 1 !important; /* Immer sichtbar */
   visibility: visible !important; /* Immer sichtbar */
   white-space: pre-wrap !important; /* Zeilenumbrüche beibehalten */
   word-break: break-word !important; /* Lange Wörter umbrechen */
   padding: 0.75rem 1rem !important; /* Direktes Padding ohne Wrapper */
+  border-radius: 18px !important; /* Abgerundete Ecken */
 }
 
 /* Zusätzliche Regel für den Inhalt der Benutzer-Nachricht */
 .message.user .message-content,
 .message.user .message-content * {
   color: var(--user-text-color, #ffffff) !important;
+  display: inline !important; /* Inline-Anzeige für bessere Anpassung */
 }
 
 /* Message Header */
