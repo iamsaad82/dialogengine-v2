@@ -178,8 +178,8 @@ const CreditreformMessage: React.FC<CreditreformMessageProps> = ({
         />
       )}
 
-      {/* Streaming-Indikator */}
-      {isStreaming && (
+      {/* Streaming-Indikator - nur anzeigen, wenn aktiv gestreamt wird und nicht vollständig */}
+      {isStreaming && !isComplete && (
         <div className="creditreform-streaming-indicator">...</div>
       )}
     </div>

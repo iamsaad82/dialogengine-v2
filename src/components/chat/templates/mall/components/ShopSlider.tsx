@@ -33,7 +33,9 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
     if (!sliderRef.current) return 1;
     const containerWidth = sliderRef.current.clientWidth;
     const itemWidth = 220; // Ungefähre Breite einer Karte
-    return Math.floor(containerWidth / itemWidth);
+    const count = Math.floor(containerWidth / itemWidth);
+    // Stelle sicher, dass mindestens 1 zurückgegeben wird, um Division durch Null zu vermeiden
+    return Math.max(1, count);
   };
 
   // Überprüfe, ob Pfeile angezeigt werden sollen
@@ -97,9 +99,17 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!sliderRef.current) return;
+
+    // Verhindere das Standardverhalten (z.B. Scrollen der Seite)
+    e.preventDefault();
+    e.stopPropagation();
+
     setIsDragging(true);
     setStartX(e.touches[0].pageX - sliderRef.current.offsetLeft);
     setScrollLeft(sliderRef.current.scrollLeft);
+
+    // Debug-Ausgabe
+    console.log('Touch Start:', e.touches[0].pageX);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -112,9 +122,17 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || !sliderRef.current) return;
+
+    // Verhindert das Scrollen der Seite
+    e.preventDefault();
+    e.stopPropagation();
+
     const x = e.touches[0].pageX - sliderRef.current.offsetLeft;
     const walk = (x - startX) * 2; // Scroll-Geschwindigkeit
     sliderRef.current.scrollLeft = scrollLeft - walk;
+
+    // Debug-Ausgabe
+    console.log('Touch Move:', x, 'Walk:', walk, 'New ScrollLeft:', sliderRef.current.scrollLeft);
   };
 
   const handleMouseUp = () => {
@@ -150,6 +168,9 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
     msOverflowStyle: 'none' as any, // IE/Edge
     scrollbarWidth: 'none' as any, // Firefox
     cursor: isDragging ? 'grabbing' : 'grab',
+    touchAction: 'pan-x' as React.CSSProperties['touchAction'], // Verbesserte Touch-Unterstützung
+    WebkitUserSelect: 'none' as any, // Verhindert Textauswahl während des Swipens
+    userSelect: 'none' as any, // Verhindert Textauswahl während des Swipens
     '&::-webkit-scrollbar': {
       display: 'none' // Chrome/Safari/Opera
     },
@@ -258,6 +279,7 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleMouseUp}
+        onTouchCancel={handleMouseUp}
       >
         {shops.map((shop, index) => (
           <ShopCard
@@ -268,12 +290,12 @@ const ShopSlider: React.FC<ShopSliderProps> = ({
       </div>
 
       {/* Pagination-Indikatoren */}
-      {shops.length > 1 && (
+      {shops.length > 1 && getVisibleItemCount() > 0 && (
         <div style={paginationStyle}>
-          {Array.from({ length: Math.ceil(shops.length / getVisibleItemCount()) }).map((_, index) => (
+          {Array.from({ length: Math.max(1, Math.ceil(shops.length / getVisibleItemCount())) }).map((_, index) => (
             <div
               key={`dot-${index}`}
-              style={dotStyle(Math.floor(currentIndex / getVisibleItemCount()) === index)}
+              style={dotStyle(Math.floor(currentIndex / Math.max(1, getVisibleItemCount())) === index)}
             />
           ))}
         </div>

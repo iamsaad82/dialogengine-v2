@@ -1,0 +1,251 @@
+/* 
+ * AOK MESSAGE TEMPLATE STYLES 
+ * Zuletzt aktualisiert: 02.11.2023
+ */
+
+/* AOK Message Styles - Vereinfachte Version basierend auf AOK-Design */
+:root {
+  --aok-primary: #009fe3; /* Hellblau - Primärfarbe */
+  --aok-secondary: #e30613; /* Rot - Akzentfarbe */
+  --aok-dark-blue: #003c74; /* Dunkelblau für Überschriften */
+  --aok-light-blue: #e1f4fa; /* Hellblau für Hintergründe */
+  --aok-light-grey: #f5f5f5; /* Hellgrau für Hintergründe */
+  --aok-dark-green: #006d4e; /* Dunkelgrün für CTA-Hintergrund */
+  --aok-light-green: #8bdc24; /* Hellgrün für Buttons */
+  --aok-text: #333333; /* Textfarbe */
+  --aok-border-radius: 8px; /* Abgerundete Ecken */
+  --aok-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Schatten */
+}
+
+.aok-message {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--aok-text);
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Grundlegende Typografie */
+.aok-message h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--aok-dark-blue);
+  margin: 1.5rem 0 1rem 0;
+  line-height: 1.3;
+}
+
+.aok-message h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--aok-dark-blue);
+  margin: 1.2rem 0 0.8rem 0;
+  line-height: 1.3;
+}
+
+.aok-message h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--aok-dark-blue);
+  margin: 1rem 0 0.6rem 0;
+  line-height: 1.3;
+}
+
+.aok-message p {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Kurzantwort am Anfang der Nachricht */
+.aok-short-answer {
+  font-size: 1.15rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  margin-bottom: 1.5rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px solid rgba(0, 159, 227, 0.25) !important;
+  color: var(--aok-dark-blue) !important;
+}
+
+/* Links */
+.aok-message a {
+  color: var(--aok-primary) !important;
+  text-decoration: none !important;
+  border-bottom: 1px solid rgba(0, 159, 227, 0.3) !important;
+  transition: color 0.2s ease, border-color 0.2s ease !important;
+  padding-bottom: 1px !important;
+  font-weight: 500 !important;
+}
+
+.aok-message a:hover {
+  color: var(--aok-secondary) !important;
+  border-bottom: 1px solid var(--aok-primary) !important;
+}
+
+/* Spezielle Link-Typen */
+.aok-tel-link::before {
+  content: "📞" !important;
+  margin-right: 6px !important;
+}
+
+.aok-mail-link::before {
+  content: "✉️" !important;
+  margin-right: 6px !important;
+}
+
+/* Listen */
+.aok-message ul, .aok-message ol {
+  padding-left: 1.5rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.aok-message li {
+  margin-bottom: 0.5rem;
+}
+
+/* AOK-Box - Allgemeine Box für verschiedene Inhalte */
+.aok-box {
+  background-color: var(--aok-light-blue);
+  border-radius: var(--aok-border-radius);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--aok-shadow);
+  position: relative;
+}
+
+.aok-box-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--aok-dark-blue);
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+}
+
+.aok-box-title::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-color: var(--aok-primary);
+  border-radius: 50%;
+  margin-right: 0.8rem;
+  flex-shrink: 0;
+}
+
+.aok-box-content {
+  margin: 0;
+}
+
+/* AOK-Info-Box - Für Hinweise und Informationen */
+.aok-info-box {
+  background-color: var(--aok-light-blue);
+  border-left: 4px solid var(--aok-primary);
+  border-radius: var(--aok-border-radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--aok-shadow);
+}
+
+.aok-info-box-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--aok-dark-blue);
+  margin: 0 0 0.5rem 0;
+}
+
+/* AOK-Fakten-Box - Für Key Facts */
+.aok-facts-box {
+  background-color: white;
+  border-radius: var(--aok-border-radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--aok-shadow);
+  border: 1px solid rgba(0, 159, 227, 0.15);
+}
+
+.aok-facts-list {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.aok-facts-list li {
+  position: relative;
+  padding-left: 1.8rem;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.aok-facts-list li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--aok-primary);
+  font-weight: bold;
+}
+
+/* AOK-CTA-Button */
+.aok-button {
+  display: inline-block;
+  background-color: var(--aok-primary);
+  color: white !important;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  text-decoration: none !important;
+  border: none !important;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.aok-button:hover {
+  background-color: #0080b5;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  text-decoration: none !important;
+  border: none !important;
+  color: white !important;
+}
+
+/* AOK-Sicherheitshinweis */
+.aok-security-notice {
+  display: flex;
+  align-items: center;
+  background-color: var(--aok-light-grey);
+  border-radius: var(--aok-border-radius);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.aok-security-notice svg {
+  flex-shrink: 0;
+  color: var(--aok-light-green);
+  width: 24px;
+  height: 24px;
+  margin-right: 1rem;
+}
+
+.aok-security-notice-text {
+  font-size: 0.95rem;
+  color: var(--aok-text);
+  margin: 0;
+}
+
+/* Streaming-Indikator */
+.aok-streaming-indicator {
+  opacity: 0.7 !important;
+  font-size: 1.25rem !important;
+  margin-top: 1rem !important;
+  animation: blink 1s infinite !important;
+}
+
+@keyframes blink {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+} 

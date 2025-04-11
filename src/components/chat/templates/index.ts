@@ -34,6 +34,7 @@ export interface TemplateComponents {
     messageControls?: React.ReactNode;
     colorStyle?: Record<string, string>;
     isComplete: boolean;
+    query?: string; // Die ursprüngliche Anfrage des Nutzers für bessere Relevanzfilterung
   }>;
   KeyFacts?: React.ComponentType<{
     content: string;

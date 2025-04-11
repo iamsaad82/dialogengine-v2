@@ -11,6 +11,7 @@
 @import '../styles/bot-templates/mall-message-styles.css';
 @import '../styles/bot-templates/modern-default-styles.css';
 @import '../styles/bot-templates/ninfly-message-styles.css';
+@import '../styles/streaming-stability.css'; /* Neue CSS für Streaming-Stabilität */
 
 @tailwind base;
 @tailwind components;

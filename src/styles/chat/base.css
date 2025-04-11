@@ -251,10 +251,11 @@
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
   border-radius: 12px;
-  max-width: 80%;
+  max-width: 90%;
   word-wrap: break-word;
   width: fit-content;
   display: flex; /* Wichtig für konsistente Anzeige */
+  flex-direction: column;
 }
 
 /* Bot-Nachrichten */
@@ -265,6 +266,9 @@
   margin-left: 0;
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  max-width: 95%;
+  width: auto;
+  overflow: hidden;
 }
 
 /* Benutzer-Nachrichten */
@@ -275,10 +279,15 @@
   margin-right: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
   max-width: 70%;
+  min-width: 60px; /* Mindestbreite für kurze Nachrichten */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex !important; /* Erzwingen der Anzeige */
   justify-content: flex-end !important; /* Rechts ausrichten */
-  width: 100% !important; /* Volle Breite für korrekte Ausrichtung */
+  width: fit-content !important; /* Anpassung an den Inhalt */
+  opacity: 1 !important; /* Immer sichtbar */
+  visibility: visible !important; /* Immer sichtbar */
+  white-space: pre-wrap !important; /* Zeilenumbrüche beibehalten */
+  word-break: break-word !important; /* Lange Wörter umbrechen */
 }
 
 /* Zusätzliche Regel für den Inhalt der Benutzer-Nachricht */
@@ -311,9 +320,22 @@
   containment: content;
   column-gap: 0;
   word-wrap: break-word;
-  word-break: normal;
+  word-break: break-word;
   font-size: 0.9375rem;
   line-height: 1.5;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+
+/* Message Content Wrapper */
+.message-content-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Streaming Message spezifische Stabilisierung */
@@ -373,16 +395,19 @@
 /* Mobile Anpassungen */
 @media (max-width: 640px) {
   .message {
-    max-width: 90%;
+    max-width: 95%;
     padding: 0.5rem 0.75rem;
+    width: auto !important;
+    overflow: hidden !important;
   }
 
   /* Sicherstellen, dass Benutzernachrichten auch auf mobilen Geräten angezeigt werden */
   .message.user {
     display: flex !important;
     justify-content: flex-end !important;
-    width: 100% !important;
-    max-width: 85%;
+    width: auto !important;
+    max-width: 80%;
+    overflow: hidden !important;
   }
 
   .message-header {
@@ -391,6 +416,11 @@
 
   .message-content {
     font-size: 0.875rem;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 
   .message-actions {
@@ -591,17 +621,20 @@
   margin: 1rem auto;
   max-width: 85%;
   overflow: hidden;
+  width: 100%;
 }
 
 .welcome-message h2 {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font-size: 1.25rem;
   margin-bottom: 1rem;
   color: var(--bot-text-color);
   text-align: center;
   font-weight: 500;
+  width: 100%;
 }
 
 .bot-avatar-container {
@@ -616,7 +649,9 @@
   display: block;
   object-fit: contain;
   border-radius: 0;
-  background: white;
+  background: transparent;
+  box-shadow: none;
+  max-width: 100%;
 }
 
 .welcome-message .bot-avatar {
@@ -628,15 +663,15 @@
 }
 
 .message-header .bot-avatar {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   margin-right: 10px;
 }
 
 @media (max-width: 640px) {
   .message-header .bot-avatar {
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
   }
 }
 
@@ -696,10 +731,12 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  max-width: 100%;
+  width: 100%;
+  max-width: 600px;
   overflow: hidden;
   animation: fadeIn 0.5s ease-out;
   transform-origin: top center;
+  margin: 0 auto;
 }
 
 .welcome-message .prose {
@@ -708,6 +745,9 @@
   font-size: 1rem;
   line-height: 1.5;
   color: var(--bot-text-color);
+  width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Gradient Overlays für visuelle Effekte */
@@ -788,7 +828,13 @@
   }
 
   .bot-avatar-container img {
-    width: 60px !important;
-    height: 60px !important;
+    width: 150px !important;
+    height: auto !important;
+    max-height: 150px !important;
+  }
+
+  .welcome-message .message-bubble {
+    width: 100%;
+    max-width: 100%;
   }
 }

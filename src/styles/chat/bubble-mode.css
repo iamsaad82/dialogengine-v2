@@ -87,6 +87,8 @@
   max-height: calc(100% - 110px);
   scrollbar-width: thin;
   touch-action: pan-y;
+  /* Verbesserte Darstellung von Nachrichten */
+  contain: none !important; /* Verhindert Probleme mit der Sichtbarkeit */
 }
 
 /* Chat Input Container im Bubble Mode - veraltet */
@@ -174,4 +176,4 @@
 
 .dark .bubble-mode .mode-toggle-button:hover {
   background: rgba(0, 0, 0, 0.3);
-} 
+}

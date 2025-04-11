@@ -293,34 +293,48 @@ export function MessageList({
       onScroll={handleScroll}
       style={{ WebkitOverflowScrolling: 'touch' }} /* Verbessert Scrolling auf iOS */
     >
-      {/* Nachrichtenliste */}
-      <AnimatePresence initial={false}>
+      {/* Nachrichtenliste mit erzwungener Sichtbarkeit für alle Nachrichten */}
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         {messages.map((msg, index) => (
-          <Message
-            key={`${msg.id || index}-${msg.role}`}
-            message={msg}
-            isLast={index === messages.length - 1}
-            botName={botName}
-            botAvatarUrl={botAvatarUrl}
-            isStreaming={isStreaming && index === messages.length - 1 && msg.role === 'assistant'}
-            colorStyle={{
-              primaryColor: settings?.primaryColor || botPrimaryColor || '#3b82f6',
-              botBgColor: settings?.botBgColor || botBgColor || 'rgba(245, 247, 250, 0.8)',
-              botTextColor: settings?.botTextColor || botTextColor || '#1a202c',
-              botAccentColor: settings?.botAccentColor || botAccentColor || '#3b82f6',
-              userBgColor: settings?.userBgColor || userBgColor || settings?.primaryColor || botPrimaryColor || '#3b82f6',
-              userTextColor: settings?.userTextColor || userTextColor || '#ffffff',
+          <div
+            key={`${msg.id || index}-${msg.role}-container`}
+            style={{
+              opacity: 1,
+              visibility: 'visible',
+              display: 'block',
+              width: '100%',
+              marginBottom: '1rem',
+              position: 'relative',
+              zIndex: 10
             }}
-            settings={{
-              messageTemplate: settings?.messageTemplate || null,
-              enableFeedback: enableFeedback,
-              showCopyButton: showCopyButton,
-              showNameInHeader: settings?.showNameInHeader !== undefined ? settings.showNameInHeader : showNameInHeader,
-              botId: botId
-            }}
-          />
+          >
+            <Message
+              key={`${msg.id || index}-${msg.role}`}
+              message={msg}
+              isLast={index === messages.length - 1}
+              botName={botName}
+              botAvatarUrl={botAvatarUrl}
+              isStreaming={isStreaming && index === messages.length - 1 && msg.role === 'assistant'}
+              colorStyle={{
+                primaryColor: settings?.primaryColor || botPrimaryColor || '#3b82f6',
+                botBgColor: settings?.botBgColor || botBgColor || 'rgba(245, 247, 250, 0.8)',
+                botTextColor: settings?.botTextColor || botTextColor || '#1a202c',
+                botAccentColor: settings?.botAccentColor || botAccentColor || '#3b82f6',
+                userBgColor: settings?.userBgColor || userBgColor || settings?.primaryColor || botPrimaryColor || '#3b82f6',
+                userTextColor: settings?.userTextColor || userTextColor || '#ffffff',
+              }}
+              settings={{
+                messageTemplate: settings?.messageTemplate || null,
+                enableFeedback: enableFeedback,
+                showCopyButton: showCopyButton,
+                showNameInHeader: settings?.showNameInHeader !== undefined ? settings.showNameInHeader : showNameInHeader,
+                botId: botId
+              }}
+            />
+          </div>
         ))}
-      </AnimatePresence>
+      </div>
+
 
       {/* Ladeindikator - wird angezeigt, wenn isLoading true ist und keine Nachricht gerade gestreamt wird */}
       {isLoading && !messages.some(msg => msg.streaming === true) && (

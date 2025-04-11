@@ -36,11 +36,13 @@
 }
 
 .fullscreenSearch-intro img {
-  max-width: 180px;
+  max-width: 200px;
   height: auto;
   margin-bottom: 1.5rem;
   transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+  background: transparent;
+  box-shadow: none;
+  border: none;
 }
 
 .fullscreenSearch-intro h1 {
@@ -51,6 +53,8 @@
   transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
   letter-spacing: -0.02em;
   line-height: 1.2;
+  text-align: center;
+  width: 100%;
 }
 
 .fullscreenSearch-intro p {
@@ -263,6 +267,10 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   background: linear-gradient(135deg, rgba(var(--bot-primary-color-rgb, 59, 130, 246), 0.02) 0%, rgba(var(--bot-primary-color-rgb, 59, 130, 246), 0.05) 100%);
+  /* Verbesserte Darstellung von Nachrichten */
+  contain: none !important; /* Verhindert Probleme mit der Sichtbarkeit */
+  scrollbar-width: thin;
+  touch-action: pan-y;
 }
 
 /* Thought Canvas Animation */
@@ -628,19 +636,24 @@
 .search-user-query {
   margin: 0.5rem 0 1.5rem;
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end; /* Rechts ausrichten */
+  opacity: 1 !important; /* Immer sichtbar */
+  visibility: visible !important; /* Immer sichtbar */
 }
 
 .search-query-text {
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.03);
+  border-radius: 12px;
+  background: var(--bot-primary-color, #3b82f6);
   font-weight: 500;
   font-size: 1.1rem;
-  color: #333;
-  max-width: 100%;
+  color: white;
+  min-width: 60px; /* Mindestbreite für kurze Nachrichten */
+  max-width: 80%; /* Maximale Breite */
+  white-space: pre-wrap !important; /* Zeilenumbrüche beibehalten */
+  word-break: break-word !important; /* Lange Wörter umbrechen */
 }
 
 .search-query-icon {
@@ -735,7 +748,9 @@
 
 @media (max-width: 480px) {
   .fullscreenSearch-intro img {
-    max-width: 120px;
+    max-width: 150px;
+    height: auto;
+    max-height: 150px;
   }
 
   .fullscreenSearch-intro h1 {

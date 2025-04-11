@@ -7,6 +7,9 @@
   line-height: 1.6;
   color: var(--mall-text, #333333);
   /* Keine Überschreibung von background-color, border-radius, overflow, box-shadow oder margin */
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
 }
 
 /* Header - mit Präfix zum Vermeiden von Überschreibungen */
@@ -35,6 +38,11 @@
   margin: 1.5rem;
   font-size: 1.1rem;
   line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 /* Sections - mit Präfix */
@@ -260,5 +268,31 @@
 
   .mall-message .mall-section-title {
     font-size: 1.2rem;
+  }
+
+  .mall-message .mall-intro {
+    margin: 1rem;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .mall-message .mall-section {
+    margin: 1rem 0;
+  }
+
+  .mall-message .mall-shop-card-content h3 {
+    font-size: 0.9rem;
+  }
+
+  .mall-message .mall-shop-card-content p {
+    font-size: 0.8rem;
+  }
+
+  .mall-message .mall-shop-card-footer {
+    font-size: 0.8rem;
+  }
+
+  .mall-message .mall-tip-content {
+    font-size: 0.9rem;
   }
 }

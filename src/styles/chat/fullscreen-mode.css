@@ -97,6 +97,10 @@ html.dialog-mode {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   max-height: calc(100% - 110px); /* Angepasst für größeres Eingabefeld */
+  /* Verbesserte Darstellung von Nachrichten */
+  contain: none !important; /* Verhindert Probleme mit der Sichtbarkeit */
+  scrollbar-width: thin;
+  touch-action: pan-y;
 }
 
 /* Chat Input Container im Fullscreen Mode - veraltet */
@@ -175,13 +179,13 @@ html.dialog-mode {
     max-width: none;
     border-radius: 16px;
   }
-  
+
   .fullscreen-mode .message-list-container,
   .fullscreen-classic .message-list-container,
   .fullscreen-dialog .message-list-container {
     padding: 0.75rem;
   }
-  
+
   .fullscreen-mode .chat-input-container,
   .fullscreen-classic .chat-input-container,
   .fullscreen-dialog .chat-input-container,
@@ -227,4 +231,4 @@ html.dialog-mode {
 .dark .fullscreen-classic .mode-toggle-button:hover,
 .dark .fullscreen-dialog .mode-toggle-button:hover {
   background: rgba(0, 0, 0, 0.3);
-} 
+}

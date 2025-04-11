@@ -22,10 +22,18 @@ const MallIntroSection: React.FC<MallIntroSectionProps> = ({
     fontSize: '1rem',
     lineHeight: 1.5,
     padding: '0',
+    minHeight: '1.5rem', // Verhindert Größenänderungen während des Streamings
+    transition: 'none', // Keine Übergänge während des Streamings
+    willChange: 'contents', // Optimiert für Änderungen des Inhalts
+    whiteSpace: 'pre-wrap', // Zeilenumbrüche beibehalten
+    wordBreak: 'break-word', // Lange Wörter umbrechen
+    overflowWrap: 'break-word', // Alternative zu word-break
+    maxWidth: '100%', // Maximale Breite
+    overflow: 'hidden', // Verhindert Überlauf
   };
 
   return (
-    <div style={introStyle} dangerouslySetInnerHTML={{ __html: content }} />
+    <div style={introStyle} className="mall-intro-section" dangerouslySetInnerHTML={{ __html: content }} />
   );
 };
 

@@ -52,7 +52,8 @@ interface BotSettingsWithPrompt {
   enableAnalytics: boolean;
   showSuggestions: boolean;
   showCopyButton: boolean;
-  
+  showNameInHeader: boolean;
+
   // Erweiterte Felder für Prompt-Anpassungen
   botPersonality?: string;
   botContext?: string;
@@ -75,7 +76,7 @@ async function getOrCreateConversation(sessionId: string, botId: string) {
     let conversation = await prisma.conversation.findUnique({
       where: { sessionId }
     });
-    
+
     // Wenn keine Konversation gefunden wurde, erstelle eine neue
     if (!conversation) {
       conversation = await prisma.conversation.create({
@@ -86,7 +87,7 @@ async function getOrCreateConversation(sessionId: string, botId: string) {
       });
       console.log("CHAT-API-DEBUG-004: Neue Konversation erstellt:", conversation.id);
     }
-    
+
     return conversation;
   } catch (error) {
     console.error("CHAT-API-DEBUG-004: Fehler beim Erstellen/Finden der Konversation:", error);
@@ -115,11 +116,11 @@ async function saveMessage(conversationId: string, content: string, role: 'user'
 
 export async function POST(request: Request) {
   console.log("CHAT-API-DEBUG-004: POST-Anfrage erhalten");
-  
+
   try {
     const body = await request.json()
     console.log("CHAT-API-DEBUG-004: Request-Body:", JSON.stringify(body));
-    
+
     // Extrahiere die letzte Benutzernachricht für die Weiterverarbeitung
     let userQuestion = "";
     if (body.messages && body.messages.length > 0) {
@@ -136,13 +137,13 @@ export async function POST(request: Request) {
     const messages: Message[] = body.messages
     // Wir ignorieren den streaming-Parameter und setzen immer streaming=false
     const streaming = false
-    
+
     // Session-ID aus dem Request extrahieren oder generieren
     const sessionId = body.sessionId || uuidv4();
 
     if (!message && (!messages || messages.length === 0)) {
       console.error("CHAT-API-DEBUG-004: Keine Nachricht gefunden");
-      
+
       // FALLBACK: Sende eine freundliche Fehlermeldung zurück
       return NextResponse.json({
         text: "Entschuldigung, ich habe keine Frage erhalten. Wie kann ich Ihnen helfen?",
@@ -157,14 +158,14 @@ export async function POST(request: Request) {
     let bot = null;
     let botSettings: BotSettingsWithPrompt | null = null;
     let botId = body.botId;
-    
+
     if (botId) {
       try {
         bot = await prisma.bot.findUnique({
           where: { id: botId },
           include: { settings: true }
         });
-        
+
         if (bot) {
           flowiseId = bot.flowiseId;
           botSettings = bot.settings as BotSettingsWithPrompt;
@@ -178,7 +179,7 @@ export async function POST(request: Request) {
         botId = null;
       }
     }
-    
+
     // Wenn keine botId angegeben ist oder der angegebene Bot nicht gefunden wurde
     if (!botId) {
       try {
@@ -187,7 +188,7 @@ export async function POST(request: Request) {
           include: { settings: true },
           orderBy: { createdAt: 'asc' }
         });
-        
+
         if (bot) {
           flowiseId = bot.flowiseId;
           botId = bot.id;
@@ -202,7 +203,7 @@ export async function POST(request: Request) {
     // Prüfe ob eine Chatflow-ID verfügbar ist
     if (!flowiseId) {
       console.error("CHAT-API-DEBUG-004: Keine Flowise-Chatflow-ID verfügbar");
-      
+
       // FALLBACK: Sende eine Standardantwort zurück
       const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
       return NextResponse.json({
@@ -219,7 +220,7 @@ export async function POST(request: Request) {
     } else {
       // Konversation erstellen oder abrufen
       const conversation = await getOrCreateConversation(sessionId, botId);
-      
+
       // Speichere die Benutzernachricht
       if (message) {
         await saveMessage(conversation.id, message, 'user');
@@ -233,17 +234,17 @@ export async function POST(request: Request) {
 
     const apiUrl = `${FLOWISE_URL}/api/v1/prediction/${flowiseId}`
     console.log("CHAT-API-DEBUG-004: Flowise API URL:", apiUrl);
-    
+
     // Verbesserte Anfrage-Struktur basierend auf der Flowise API-Dokumentation
     let requestBody: FlowiseRequestBody;
-    
+
     if (messages && messages.length > 0) {
       // Extrahiere die letzte Benutzernachricht aus dem messages-Array
       const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
-      
+
       if (lastUserMessage) {
         console.log("CHAT-API-DEBUG-004: Letzte Benutzernachricht gefunden:", lastUserMessage.content);
-        
+
         // Formatiere messages für Flowise API
         const history: FlowiseMessage[] = messages
           .filter((m: Message) => m !== lastUserMessage) // Alle Nachrichten außer der letzten Benutzernachricht
@@ -251,13 +252,13 @@ export async function POST(request: Request) {
             role: m.role === 'assistant' ? 'apiMessage' : 'userMessage', // Konvertiere in Flowise-Format
             content: m.content
           }));
-          
-        requestBody = { 
+
+        requestBody = {
           question: lastUserMessage.content,
           history: history.length > 0 ? history : undefined,
-          streaming: false 
+          streaming: false
         };
-        
+
         // Wenn Bot-Einstellungen verfügbar sind, füge overrideConfig hinzu
         if (botSettings) {
           requestBody.overrideConfig = {
@@ -267,14 +268,14 @@ export async function POST(request: Request) {
             offerTip: botSettings.offerTip || "",
             closedDays: botSettings.closedDays || ""
           };
-          
+
           console.log("CHAT-API-DEBUG-004: overrideConfig hinzugefügt:", JSON.stringify(requestBody.overrideConfig));
         }
-        
+
         console.log("CHAT-API-DEBUG-004: Nachrichtenverlauf mit", history.length, "Einträgen");
       } else {
         console.error("CHAT-API-DEBUG-004: Keine Benutzernachricht im Verlauf gefunden");
-        
+
         // FALLBACK: Sende eine Standardantwort zurück
         const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
         return NextResponse.json({
@@ -295,27 +296,27 @@ export async function POST(request: Request) {
           offerTip: botSettings.offerTip || "",
           closedDays: botSettings.closedDays || ""
         };
-        
+
         console.log("CHAT-API-DEBUG-004: overrideConfig hinzugefügt:", JSON.stringify(requestBody.overrideConfig));
       }
       console.log("CHAT-API-DEBUG-004: Einzelnachricht wird verwendet:", message);
     }
-    
+
     console.log("CHAT-API-DEBUG-004: Flowise API Anfrage:", apiUrl);
     console.log("CHAT-API-DEBUG-004: Request Body:", JSON.stringify(requestBody));
-    
+
     try {
       console.log("CHAT-API-DEBUG-004: Starte Fetch zu Flowise...");
-      
+
       // Setze ein Timeout für die Anfrage
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // Auf 30 Sekunden erhöht, da Flowise manchmal länger braucht
-      
+
       const headers = {
         'Content-Type': 'application/json',
         'Authorization': FLOWISE_API_KEY ? `Bearer ${FLOWISE_API_KEY}` : ''
       };
-      
+
       // Füge einen speziellen Header hinzu, um die Rohformatierung in Flowise zu erhalten
       // Dies hilft, die identische Formatierung wie in der Flowise-Oberfläche zu erhalten
       const response = await fetch(apiUrl, {
@@ -324,16 +325,16 @@ export async function POST(request: Request) {
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });
-      
+
       // Timeout entfernen, da die Anfrage abgeschlossen ist
       clearTimeout(timeoutId);
-      
+
       console.log("CHAT-API-DEBUG-004: Flowise API Antwort Status:", response.status);
 
       if (!response.ok) {
         const errorData = await response.text()
         console.error('CHAT-API-DEBUG-004: Flowise API Fehler:', response.status, errorData)
-        
+
         // FALLBACK: Sende eine Standardantwort zurück
         const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
         return NextResponse.json({
@@ -345,14 +346,14 @@ export async function POST(request: Request) {
 
       // Bei normaler Antwort das JSON zurückgeben
       const data = await response.json()
-      console.log("CHAT-API-DEBUG-004: Flowise API Antwort erhalten:", 
+      console.log("CHAT-API-DEBUG-004: Flowise API Antwort erhalten:",
                   typeof data, data ? Object.keys(data) : "Keine Daten");
-      
+
       // Speichere die Bot-Antwort, wenn eine gültige Antwort und botId existieren
       if (botId && data && (data.text || data.response || data.content || data.assistant || data.message)) {
         try {
           const conversation = await getOrCreateConversation(sessionId, botId);
-          
+
           // Extrahiere die Antwort aus dem verschiedenen möglichen Formaten
           let botContent = '';
           if (data.text) {
@@ -366,7 +367,7 @@ export async function POST(request: Request) {
           } else if (data.message) {
             botContent = data.message;
           }
-          
+
           // Speichere die Bot-Antwort
           if (botContent) {
             await saveMessage(conversation.id, botContent, 'assistant');
@@ -376,15 +377,15 @@ export async function POST(request: Request) {
           // Fahre fort, auch wenn die Speicherung fehlschlägt
         }
       }
-      
+
       // Füge sessionId zur Antwort hinzu
       const enhancedData = { ...data, sessionId };
-      
+
       // Direkt die Antwort von Flowise zurückgeben mit der ergänzten sessionId
       return NextResponse.json(enhancedData)
     } catch (fetchError) {
       console.error("CHAT-API-DEBUG-004: Fetch-Fehler bei Flowise-Anfrage:", fetchError);
-      
+
       // FALLBACK: Wenn der Fetch fehlgeschlagen ist, sende eine Standardantwort zurück
       const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
       return NextResponse.json({
@@ -396,7 +397,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('CHAT-API-DEBUG-004: Chat API Fehler:', error)
-    
+
     // FALLBACK: Sende eine Standardantwort zurück
     const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
     return NextResponse.json({
@@ -405,4 +406,4 @@ export async function POST(request: Request) {
       sessionId: uuidv4() // Generiere eine neue Session-ID im Fehlerfall
     }, { status: 200 }) // Wichtig: Status 200 zurückgeben, um Frontend-Fehler zu vermeiden
   }
-} 
+}

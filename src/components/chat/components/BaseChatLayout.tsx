@@ -191,23 +191,24 @@ export function BaseChatLayout({
                 alt={`${botName} Logo`}
                 className="bot-avatar"
                 style={{
-                  width: '130px',
+                  width: '200px',
                   height: 'auto',
                   borderRadius: '0',
                   objectFit: 'contain',
                   margin: '0 auto 1rem auto',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: '3px solid white',
-                  maxHeight: '130px'
+                  background: 'transparent',
+                  boxShadow: 'none',
+                  border: 'none',
+                  maxHeight: '200px'
                 }}
               />
             </div>
           )}
-          <h2>
+          <h2 style={{ textAlign: 'center', width: '100%' }}>
             <span className="pulse-dot"></span>
             <span style={{ color: `var(--bot-primary-color)` }}>{botName}</span>
           </h2>
-          <div className="message-bubble">
+          <div className="message-bubble" style={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}>
             {/* Gradient Overlays für visuelle Effekte */}
             <div className="gradient-overlay-1"></div>
             <div className="gradient-overlay-2"></div>
@@ -216,7 +217,7 @@ export function BaseChatLayout({
 
             {/* Eigentlicher Nachrichtentext */}
             <div className="relative z-10">
-              <div className="prose">
+              <div className="prose" style={{ width: '100%', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                 {welcomeMessage}
               </div>
             </div>

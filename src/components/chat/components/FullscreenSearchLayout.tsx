@@ -187,8 +187,8 @@ const FullscreenSearchLayout: React.FC<FullscreenSearchLayoutProps> = ({
   const renderInitialState = () => (
     <div className="fullscreenSearch-initial">
       <div className="fullscreenSearch-intro">
-        {botAvatarUrl && <img src={botAvatarUrl} alt={botName} />}
-        <h1 style={{ color: botPrimaryColor || 'inherit' }}>MallPilot</h1>
+        {botAvatarUrl && <img src={botAvatarUrl} alt={botName} style={{ width: '200px', height: 'auto', maxHeight: '200px', background: 'transparent', boxShadow: 'none', border: 'none' }} />}
+        <h1 style={{ color: botPrimaryColor || 'inherit', textAlign: 'center', width: '100%' }}>{botName}</h1>
         <p>Ihr intelligenter Assistent für Orientierung und Information.</p>
         <div className="tagline">Powered by SawatzkiMühlenbruch</div>
       </div>

@@ -12,6 +12,9 @@ import '../../../../styles/bot-templates/mall-message-styles.css'
 import '../../../../styles/bot-templates/standard-message-styles.css'
 import '../../../../styles/bot-templates/creditreform-message-styles.css'
 
+// Streaming-Stabilität CSS
+import '../../../../styles/streaming-stability.css'
+
 // SEO-Metadaten
 export const metadata: Metadata = {
   title: 'Brandenburg Dialog',

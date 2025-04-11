@@ -5,9 +5,9 @@ import { MallSection, parseMallContent, incrementalParseMallContent } from '../u
 
 /**
  * Hook für die Verarbeitung von Streaming-Inhalten für das Mall-Template
- * Mit verbesserter Streaming-Unterstützung
+ * Mit verbesserter Streaming-Unterstützung und Berücksichtigung der Nutzeranfrage
  */
-export function useMallContentStreaming(content: string, isStreaming: boolean) {
+export function useMallContentStreaming(content: string, isStreaming: boolean, query: string = '') {
   const [sections, setSections] = useState<MallSection[]>([]);
   const [isComplete, setIsComplete] = useState<boolean>(!isStreaming);
   const [processedHtml, setProcessedHtml] = useState<string>('');
@@ -23,12 +23,25 @@ export function useMallContentStreaming(content: string, isStreaming: boolean) {
     previousContentRef.current = content;
 
     try {
-      // Analysiere den Content mit dem Parser
-      const newSections = parseMallContent(content);
+      // Wenn Streaming aktiv ist, verwende inkrementelles Parsen
+      if (isStreaming) {
+        // Inkrementelles Parsen für bessere Streaming-Erfahrung
+        const newSections = incrementalParseMallContent(content, query);
 
-      // Setze die Sektionen und den Original-Content
-      setSections(newSections);
-      setProcessedHtml(content);
+        // Setze die Sektionen und den Original-Content
+        // Nur aktualisieren, wenn wir neue Sektionen haben
+        if (newSections.length > 0) {
+          setSections(newSections);
+        }
+        setProcessedHtml(content);
+      } else {
+        // Wenn kein Streaming aktiv ist, verwende normales Parsen
+        const newSections = parseMallContent(content, query);
+
+        // Setze die Sektionen und den Original-Content
+        setSections(newSections);
+        setProcessedHtml(content);
+      }
 
       // Wenn Streaming aktiv ist, setze isComplete auf false
       if (isStreaming) {
@@ -76,6 +89,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean) {
   return {
     sections,
     isComplete,
-    processedHtml
+    processedHtml,
+    query // Gib die Anfrage zurück, damit sie in der Komponente verwendet werden kann
   };
 }

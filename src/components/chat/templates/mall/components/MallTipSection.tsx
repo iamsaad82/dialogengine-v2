@@ -45,7 +45,7 @@ const MallTipSection: React.FC<MallTipSectionProps> = ({
   const cleanContent = content.replace(/<p>(?:💡\s*|Tipp:\s*|Hinweis:\s*)/i, '<p>');
 
   return (
-    <div style={tipStyle}>
+    <div style={tipStyle} className="mall-tip-section">
       <h3 style={titleStyle}>
         <span style={{ marginRight: '0.5rem' }}>💡</span> {title || 'Tipp'}
       </h3>
