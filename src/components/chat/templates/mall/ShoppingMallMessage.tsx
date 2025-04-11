@@ -5,6 +5,7 @@ import { useMallContentStreaming } from './hooks/useMallContentStreaming';
 import MallHeader from './components/MallHeader';
 import MallIntroSection from './components/MallIntroSection';
 import ShopSlider from './components/ShopSlider';
+import StableShopSlider from './components/StableShopSlider';
 import RestaurantSlider from './components/RestaurantSlider';
 import EventSlider from './components/EventSlider';
 import OpeningHoursCard from './components/OpeningHoursCard';
@@ -761,10 +762,11 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
 
             case 'shops':
               return (
-                <ShopSlider
+                <StableShopSlider
                   key={`section-${index}-shops`}
                   title={section.title}
                   shops={section.items || []}
+                  isStreaming={isStreaming}
                 />
               );
 
