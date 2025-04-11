@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useTransition } from 'react';
 import { MallSection, parseMallContent, incrementalParseMallContent } from '../utils/contentParser';
 
 /**
@@ -11,15 +11,20 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
   const [sections, setSections] = useState<MallSection[]>([]);
   const [isComplete, setIsComplete] = useState<boolean>(!isStreaming);
   const [processedHtml, setProcessedHtml] = useState<string>('');
+  const [isPending, startTransition] = useTransition();
+
   const previousContentRef = useRef<string>('');
   const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentChunksRef = useRef<string[]>([]);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Memoize den Content für Vergleiche
+  const memoizedContent = useMemo(() => content, [content]);
+
   // Verarbeite den Content bei Änderungen mit Debouncing für flackerfreies Streaming
   useEffect(() => {
-    // Wenn sich der Content nicht geändert hat, überspringe
-    if (content === previousContentRef.current) return;
+    // Verwende memoizedContent für Vergleiche
+    if (memoizedContent === previousContentRef.current) return;
 
     // Speichere den neuen Content-Chunk
     if (isStreaming && content.length > previousContentRef.current.length) {
@@ -55,9 +60,9 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
             const sectionsChanged = JSON.stringify(newSections) !== JSON.stringify(sections);
             if (sectionsChanged) {
               // Verzögere das Setzen der Sektionen, um Flackern zu vermeiden
-              setTimeout(() => {
+              startTransition(() => {
                 setSections(newSections);
-              }, 300);
+              });
             }
           }
         } else {
@@ -66,7 +71,9 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
           console.log('Parsed sections after streaming:', newSections);
 
           // Setze die Sektionen und den Original-Content
-          setSections(newSections);
+          startTransition(() => {
+            setSections(newSections);
+          });
         }
 
         // Wenn Streaming aktiv ist, setze isComplete auf false
@@ -80,15 +87,21 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
           }
 
           streamingTimeoutRef.current = setTimeout(() => {
-            setIsComplete(true);
+            startTransition(() => {
+              setIsComplete(true);
+            });
           }, 1000); // 1 Sekunde Verzögerung für stabilere Anzeige
         } else {
           // Wenn kein Streaming aktiv ist, setze isComplete sofort auf true
-          setIsComplete(true);
+          startTransition(() => {
+            setIsComplete(true);
+          });
         }
       } catch (error) {
         console.error('Fehler bei der Mall-Content-Verarbeitung:', error);
-        setIsComplete(true); // Bei Fehlern immer als abgeschlossen markieren
+        startTransition(() => {
+          setIsComplete(true); // Bei Fehlern immer als abgeschlossen markieren
+        });
       }
     }, 300); // 300ms Debounce-Zeit für stabilere Anzeige
   }, [content, isStreaming, query]);
