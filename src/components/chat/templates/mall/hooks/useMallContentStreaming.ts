@@ -12,7 +12,7 @@ import { parseXmlContent } from '../utils/xmlParser';
  * 2. Data: Strukturierte Daten (Shops, Restaurants, Events)
  * 3. Tip: Mehrwert-Tipp
  */
-export function useMallContentStreaming(content: string, isStreaming: boolean, query: string = '') {
+export function useMallContentStreaming(content: string, isStreaming: boolean, query: string = ''): MallSection[] {
   // Einziger State für alle Sektionen
   const [sections, setSections] = useState<MallSection[]>([]);
 
@@ -136,6 +136,6 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
     return sortedSections;
   }
 
-  // Einfache API mit sections für minimalen Footprint
-  return { sections };
+  // Gib das sections-Array zurück
+  return sections;
 }

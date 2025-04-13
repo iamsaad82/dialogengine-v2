@@ -20,7 +20,7 @@ interface FluidMallMessageProps {
 
 /**
  * Eine flüssige Mall-Nachricht mit optimiertem Streaming-Verhalten
- * 
+ *
  * Diese Komponente verwendet fortschrittliche Techniken für ein nahtloses
  * Streaming-Erlebnis ohne Flackern oder Layout-Sprünge.
  */
@@ -32,19 +32,22 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
     secondaryColor: '#ff5a5f'
   }
 }) => {
+  // Stellen sicher, dass sections immer ein Array ist
+  const sectionsArray = Array.isArray(sections) ? sections : [];
+
   // State für Animation und Tracking
   const [visibleSections, setVisibleSections] = useState<MallSection[]>([]);
-  
+
   // Effekt für sanfte Übergänge beim Streaming
   useEffect(() => {
     // Sanft neue Sektionen hinzufügen, mit Verzögerung für flüssige Animation
     const timer = setTimeout(() => {
-      setVisibleSections(sections);
+      setVisibleSections(sectionsArray);
     }, 100);
-    
+
     return () => clearTimeout(timer);
-  }, [sections]);
-  
+  }, [sectionsArray]);
+
   // Styling für den Container
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -54,7 +57,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
     '--primary-color': colorStyle.primaryColor,
     '--secondary-color': colorStyle.secondaryColor,
   } as React.CSSProperties;
-  
+
   // Styling für die Intro-Sektion
   const introStyle: React.CSSProperties = {
     fontSize: '1rem',
@@ -62,7 +65,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
     color: '#333',
     marginBottom: '0.5rem',
   };
-  
+
   // Styling für die Tip-Sektion
   const tipStyle: React.CSSProperties = {
     fontSize: '1rem',
@@ -73,31 +76,31 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
     borderRadius: '8px',
     borderLeft: '4px solid var(--primary-color)',
   };
-  
+
   // Finde die Intro-Sektion
   const introSection = visibleSections.find(section => section.type === 'intro');
-  
+
   // Finde die Tip-Sektion
   const tipSection = visibleSections.find(section => section.type === 'tip');
-  
+
   // Finde die Shops-Sektion
   const shopsSection = visibleSections.find(section => section.type === 'shops');
-  
+
   // Finde die Restaurants-Sektion
   const restaurantsSection = visibleSections.find(section => section.type === 'restaurants');
-  
+
   // Finde die Events-Sektion
   const eventsSection = visibleSections.find(section => section.type === 'events');
-  
+
   // Finde die Services-Sektion
   const servicesSection = visibleSections.find(section => section.type === 'services');
-  
+
   // Finde die OpeningHours-Sektion
   const openingHoursSection = visibleSections.find(section => section.type === 'openingHours');
-  
+
   // Finde die Parking-Sektion
   const parkingSection = visibleSections.find(section => section.type === 'parking');
-  
+
   return (
     <div style={containerStyle} className="fluid-mall-message">
       {/* Intro-Sektion */}
@@ -108,7 +111,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
           )}
         </div>
       )}
-      
+
       {/* Shops-Sektion */}
       {(shopsSection || isStreaming) && (
         <FluidShopSlider
@@ -118,7 +121,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
           colorStyle={colorStyle}
         />
       )}
-      
+
       {/* Restaurants-Sektion */}
       {(restaurantsSection || isStreaming) && (
         <FluidRestaurantSlider
@@ -128,7 +131,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
           colorStyle={colorStyle}
         />
       )}
-      
+
       {/* Events-Sektion */}
       {(eventsSection || isStreaming) && (
         <FluidEventSlider
@@ -138,7 +141,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
           colorStyle={colorStyle}
         />
       )}
-      
+
       {/* Services-Sektion */}
       {(servicesSection || isStreaming) && (
         <FluidServiceSlider
@@ -148,7 +151,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
           colorStyle={colorStyle}
         />
       )}
-      
+
       {/* OpeningHours-Sektion */}
       {(openingHoursSection || isStreaming) && (
         <FluidOpeningHoursCard
@@ -158,7 +161,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
           colorStyle={colorStyle}
         />
       )}
-      
+
       {/* Parking-Sektion */}
       {(parkingSection || isStreaming) && (
         <FluidParkingCard
@@ -168,7 +171,7 @@ const FluidMallMessage: React.FC<FluidMallMessageProps> = ({
           colorStyle={colorStyle}
         />
       )}
-      
+
       {/* Tip-Sektion */}
       {(tipSection || isStreaming) && (
         <div style={tipStyle} className="fluid-mall-tip">

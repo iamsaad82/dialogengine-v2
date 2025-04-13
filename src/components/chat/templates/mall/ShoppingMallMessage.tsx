@@ -19,7 +19,7 @@ interface ShoppingMallMessageProps {
 
 /**
  * Shopping Mall Template - Hauptkomponente
- * 
+ *
  * Diese Komponente verwendet die FluidMallMessage-Komponente für ein optimiertes
  * Streaming-Erlebnis ohne Flackern oder Layout-Sprünge.
  */
@@ -36,32 +36,35 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
 }) => {
   // Verwende den optimierten Hook für Content-Streaming
   const sections = useMallContentStreaming(content, isStreaming, query);
-  
+
+  // Stellen sicher, dass sections immer ein Array ist
+  const sectionsArray = Array.isArray(sections) ? sections : [];
+
   // State für Fehler beim Parsen
   const [parseError, setParseError] = useState<string | null>(null);
-  
+
   // Überprüfe, ob der Content geparst werden konnte
   useEffect(() => {
-    if (content && !isStreaming && sections.length === 0) {
+    if (content && !isStreaming && sectionsArray.length === 0) {
       setParseError('Der Inhalt konnte nicht korrekt verarbeitet werden.');
     } else {
       setParseError(null);
     }
-  }, [content, isStreaming, sections]);
-  
+  }, [content, isStreaming, sectionsArray]);
+
   // Styling für den Container
   const containerClasses = [
     styles.messageContainer,
     styles.assistantMessage,
     isStreaming ? styles.streamingMessage : ''
   ].filter(Boolean).join(' ');
-  
+
   // Styling für den Inhalt
   const contentClasses = [
     styles.messageContent,
     styles.mallMessage
   ].filter(Boolean).join(' ');
-  
+
   return (
     <div className={containerClasses}>
       <div className={contentClasses}>
@@ -75,12 +78,12 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
           </div>
         ) : (
           <FluidMallMessage
-            sections={sections}
+            sections={sectionsArray}
             isStreaming={isStreaming}
             colorStyle={colorStyle}
           />
         )}
-        
+
         {messageControls && (
           <div className={styles.messageControls}>
             {messageControls}
