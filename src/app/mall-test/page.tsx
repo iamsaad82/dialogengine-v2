@@ -34,13 +34,18 @@ const AdaptiveStreamingTest = dynamic(
   { ssr: false }
 );
 
+const FluidStreamingTest = dynamic(
+  () => import('../../components/chat/templates/mall/test/FluidStreamingTest'),
+  { ssr: false }
+);
+
 /**
  * Test-Seite für das Mall-Template
  */
 export default function MallTestPage() {
   return (
     <div className="mall-test-page">
-      <AdaptiveStreamingTest />
+      <FluidStreamingTest />
     </div>
   );
 }
