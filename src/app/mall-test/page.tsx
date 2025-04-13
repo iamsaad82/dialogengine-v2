@@ -24,13 +24,18 @@ const LiveDataMCP = dynamic(
   { ssr: false }
 );
 
+const DirectMallTest = dynamic(
+  () => import('../../components/chat/templates/mall/test/DirectMallTest'),
+  { ssr: false }
+);
+
 /**
  * Test-Seite für das Mall-Template
  */
 export default function MallTestPage() {
   return (
     <div className="mall-test-page">
-      <LiveDataMCP />
+      <DirectMallTest />
     </div>
   );
 }
