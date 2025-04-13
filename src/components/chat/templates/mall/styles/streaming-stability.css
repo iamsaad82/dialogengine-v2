@@ -1,0 +1,180 @@
+/*
+ * Shopping Mall Template - Streaming-Stabilitäts-CSS
+ * Verhindert Layout-Shifts und verbessert die visuelle Stabilität während des Streamings
+ */
+
+/* Grundlegende Stabilisierung für alle mall-message Container */
+.mall-message {
+  contain: content !important;
+  will-change: auto;
+  min-height: 200px;
+  height: auto;
+  position: relative;
+  transform: none;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  
+  /* Keine Übergänge oder Animationen, die Verzögerungen verursachen können */
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Verhindert Layout-Shifts während des Streamings */
+.mall-message.streaming {
+  contain: content !important;
+  min-height: 300px !important;
+}
+
+/* Stabile Container-Größen für Content-Sektionen */
+.mall-message .mall-intro {
+  min-height: 60px !important;
+  padding: 1rem;
+  contain: layout;
+  height: auto;
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.mall-message .mall-data {
+  min-height: 100px !important;
+  padding: 1rem;
+  contain: layout;
+  height: auto;
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.mall-message .mall-tip {
+  min-height: 40px !important;
+  padding: 1rem;
+  contain: layout;
+  height: auto;
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Spezialisierte Regeln für Mall-Slider - keine Verzögerung */
+.mall-slider {
+  display: flex !important;
+  overflow-x: auto !important;
+  scroll-snap-type: x mandatory !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  padding: 0.5rem 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+  min-height: 200px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 1 !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.mall-slider::-webkit-scrollbar {
+  display: none !important;
+}
+
+.mall-slider-item,
+.mall-slider li,
+.mall-message ul li {
+  flex: 0 0 auto !important;
+  scroll-snap-align: start !important;
+  width: 250px !important;
+  min-height: 100px !important;
+  margin-right: 0.5rem !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  overflow: hidden !important;
+  background-color: white !important;
+  border: 1px solid #eaeaea !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 2 !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Zusätzliche Stabilisierung für Listen im Mall-Template */
+.mall-message ul {
+  display: flex !important;
+  overflow-x: auto !important; 
+  min-height: 200px !important;
+  list-style: none !important;
+  padding: 0.5rem 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  gap: 0.75rem !important;
+}
+
+.mall-message li {
+  flex: 0 0 auto !important;
+  width: 250px !important;
+  min-height: 100px !important;
+  margin-right: 0.5rem !important;
+  display: block !important;
+  padding: 0.75rem !important;
+  background-color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Verhindern von versteckten/überlagerten Slidern */
+.initialized-slider {
+  position: relative !important;
+  z-index: 3 !important;
+  display: flex !important;
+  pointer-events: auto !important;
+  min-height: 200px !important;
+}
+
+/* Skeleton-Loader für Streaming-Phasen */
+.mall-skeleton {
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite !important;
+  min-height: 1.5em;
+  margin-bottom: 0.5rem;
+}
+
+/* Stabile Bild-Container für Mall-Template */
+.mall-message img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  background-color: #f5f5f5;
+  transition: none !important;
+  animation: none !important;
+  will-change: auto;
+  contain: paint !important;
+  image-rendering: auto !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  -webkit-transform: translateZ(0) scale(1.0, 1.0) !important;
+  transform: translateZ(0) !important;
+}
+
+/* Animation-Regeln entfernen */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+} 

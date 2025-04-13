@@ -1,0 +1,244 @@
+/* 
+ * Shopping Mall Template - Haupt-Stylesheet
+ * Dieses Stylesheet definiert alle Stile für die Mall-Komponente
+ */
+
+/* Basisstil für das Mall-Template */
+.mall-message {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.6;
+  color: #333333;
+  position: relative;
+  min-height: 100px;
+  max-width: 100%;
+  overflow: hidden;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transform: translateZ(0);
+  margin-bottom: 1rem;
+}
+
+/* ==================== */
+/* DIE DREI HAUPTTEILE  */
+/* ==================== */
+
+/* Gemeinsame Stile für alle Sektionen */
+.mall-intro,
+.mall-data,
+.mall-tip {
+  padding: 1rem 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* 1. Intro-Sektion: Direkte Antwort */
+.mall-intro {
+  font-size: 1.1rem;
+  border-bottom: 1px solid #f0f0f0;
+  line-height: 1.5;
+}
+
+/* 2. Daten-Sektion: Strukturierte Daten */
+.mall-data {
+  padding-top: 0.5rem;
+}
+
+.mall-data h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 1rem 0 0.8rem 0;
+  color: var(--mall-primary, #3b1c60);
+}
+
+/* 3. Tipp-Sektion: Mehrwert-Tipps */
+.mall-tip {
+  background-color: rgba(255, 90, 95, 0.05);
+  border-left: 3px solid #ff5a5f;
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.5rem;
+  margin: 1rem 1.5rem 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* ==================== */
+/* SLIDER & CARDS       */
+/* ==================== */
+
+/* Slider-Container */
+.mall-slider-container {
+  margin-bottom: 1.5rem;
+}
+
+/* Horizontal scrollbarer Slider */
+.mall-slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 0.5rem 0;
+  margin: 0 -0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mall-slider::-webkit-scrollbar {
+  display: none;
+}
+
+/* Card-Komponente */
+.mall-card {
+  flex: 0 0 auto;
+  width: 280px;
+  margin-right: 1rem;
+  scroll-snap-align: start;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.mall-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Card-Bild */
+.mall-card-image {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f4f4f4;
+  position: relative;
+}
+
+.mall-card-image img {
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+}
+
+/* Card-Inhalt */
+.mall-card-content {
+  padding: 1rem;
+}
+
+.mall-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--mall-primary, #3b1c60);
+}
+
+.mall-card-category {
+  font-size: 0.85rem;
+  color: #777;
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-card-floor {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mall-secondary, #ff5a5f);
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-card-hours {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+}
+
+.mall-card-description {
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+/* ==================== */
+/* TABELLEN & LISTEN    */
+/* ==================== */
+
+/* Tabellen für strukturierte Daten */
+.mall-data table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.mall-data th,
+.mall-data td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mall-data th {
+  font-weight: 600;
+  color: var(--mall-primary, #3b1c60);
+}
+
+/* Listen */
+.mall-data ul,
+.mall-data ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.mall-data li {
+  margin-bottom: 0.3rem;
+}
+
+/* ==================== */
+/* HILFSELEMENTE        */
+/* ==================== */
+
+/* Platzhalter für leere Elemente */
+.mall-placeholder {
+  font-style: italic;
+  color: #999;
+  margin: 1rem 0;
+  text-align: center;
+  padding: 1rem;
+}
+
+/* Trennlinien */
+.mall-divider {
+  height: 1px;
+  background-color: #f0f0f0;
+  margin: 1rem 0;
+}
+
+/* ==================== */
+/* RESPONSIVE DESIGN    */
+/* ==================== */
+
+@media (max-width: 640px) {
+  .mall-card {
+    width: 220px;
+  }
+  
+  .mall-intro,
+  .mall-data,
+  .mall-tip {
+    padding: 0.8rem 1rem;
+  }
+  
+  .mall-tip {
+    margin: 1rem;
+  }
+}
+
+/* ==================== */
+/* THEMING / FARBEN     */
+/* ==================== */
+
+:root {
+  --mall-primary: #3b1c60;
+  --mall-secondary: #ff5a5f;
+  --mall-background: #ffffff;
+  --mall-card-background: #ffffff;
+  --mall-text: #333333;
+  --mall-light-text: #777777;
+  --mall-divider: #f0f0f0;
+} 

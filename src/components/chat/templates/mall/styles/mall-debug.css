@@ -1,0 +1,188 @@
+/*
+ * Shopping Mall Template - Debug-CSS
+ * Verbessert die Visualisierung von Containern für Debugging-Zwecke
+ */
+
+/* Debug-Rahmen für Container */
+.mall-debug .mall-message {
+  border: 2px dashed #ff0000 !important;
+  position: relative;
+}
+
+.mall-debug .mall-message::before {
+  content: "Mall Message Container";
+  position: absolute;
+  top: -25px;
+  left: 0;
+  background-color: #ff0000;
+  color: white;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+/* Debug-Rahmen für Listen (Slider) */
+.mall-debug .mall-message ul,
+.mall-debug .mall-slider {
+  border: 2px dashed #0000ff !important;
+  position: relative;
+}
+
+.mall-debug .mall-message ul::before,
+.mall-debug .mall-slider::before {
+  content: "Slider";
+  position: absolute;
+  top: -25px;
+  left: 0;
+  background-color: #0000ff;
+  color: white;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+/* Debug-Rahmen für Listenitems */
+.mall-debug .mall-message li,
+.mall-debug .mall-slider-item {
+  border: 2px dashed #00ff00 !important;
+  position: relative;
+}
+
+.mall-debug .mall-message li::before,
+.mall-debug .mall-slider-item::before {
+  content: "Slider Item";
+  position: absolute;
+  top: -25px;
+  left: 0;
+  background-color: #00ff00;
+  color: black;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+/* Debug-Anzeige für Dimensionen */
+.mall-debug .mall-message::after {
+  content: attr(data-width) "×" attr(data-height);
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 4px;
+  z-index: 9999;
+}
+
+/* Debug-Script, um Dimensionen im data-Attribut zu speichern */
+/* Dies wird nicht direkt in CSS verwendet, sondern ist ein Hinweis für das JavaScript */
+/*
+document.querySelectorAll('.mall-message').forEach(el => {
+  const rect = el.getBoundingClientRect();
+  el.setAttribute('data-width', Math.round(rect.width));
+  el.setAttribute('data-height', Math.round(rect.height));
+});
+*/
+
+/* Debug-Anzeige für Z-Index-Probleme */
+.mall-debug .z-index-debug {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  z-index: 9999;
+  max-width: 300px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+/* Debug-Grid für Positionierung */
+.mall-debug .mall-message {
+  background-image: linear-gradient(
+    rgba(255, 0, 0, 0.1) 1px, 
+    transparent 1px
+  ),
+  linear-gradient(
+    90deg, 
+    rgba(255, 0, 0, 0.1) 1px, 
+    transparent 1px
+  ) !important;
+  background-size: 20px 20px !important;
+}
+
+/* Debug-Klasse, die global aktiviert werden kann */
+.debug-mode-active .mall-message,
+.debug-mode-active .mall-message ul,
+.debug-mode-active .mall-message li {
+  box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.3) !important;
+}
+
+/* Console.log-Notiz */
+/* 
+Füge folgenden Code zur Konsole hinzu, um Debug-Modus zu aktivieren:
+document.body.classList.add('debug-mode-active');
+
+Zum Deaktivieren:
+document.body.classList.remove('debug-mode-active');
+*/
+
+/* Sofortige Sichtbarkeit für Mall-Komponenten - KEINE ANIMATIONEN ODER TRANSITIONS */
+.mall-message, 
+.mall-message ul, 
+.mall-message li,
+.mall-slider,
+.mall-slider-item,
+.mall-message img,
+.mall-message *:hover,
+.mall-message *:active,
+.mall-message *:focus {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+  animation-delay: 0s !important;
+  transform-style: flat !important;
+  backface-visibility: visible !important;
+  will-change: auto !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.mall-message ul,
+.mall-slider {
+  display: flex !important;
+}
+
+.mall-message li,
+.mall-slider-item {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Absolute Unterdrückung von Hover-Effekten */
+.mall-message *:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* High-Priority Styles mit !important um andere Regeln zu überschreiben */
+.mall-message {
+  z-index: 50 !important;
+  position: relative !important;
+  overflow: visible !important;
+  min-height: 100px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  transform: none !important;
+  transition: none !important;
+} 

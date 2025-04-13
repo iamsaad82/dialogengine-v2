@@ -138,13 +138,57 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
   // Verfolge bereits hinzugefügte Sektionstypen, um Duplikate zu vermeiden
   const addedSectionTypes = new Set<string>();
 
+  // Wenn HTML vorhanden ist, aber keine Sektionen erkannt wurden, und der Inhalt sieht nach einer Mall aus,
+  // erstelle eine Standard-Intro-Sektion
+  if (analyzedSections.length === 0 && cleanedHtml && cleanedHtml.length > 20) {
+    console.log('MALL-DEBUG: Keine Sektionen gefunden, erstelle Standard-Intro-Sektion mit Inhalt:', cleanedHtml.substring(0, 50) + '...');
+    
+    // Wenn das HTML Geschäfte oder Öffnungszeiten enthält, erstelle entsprechende Sektionen
+    if (cleanedHtml.match(/gesch(ä|ae)ft|laden|shop|center|mall/i)) {
+      mallSections.push({
+        type: 'intro',
+        title: '',
+        content: cleanedHtml,
+        relevanceScore: 100,
+        query
+      });
+      
+      // Extrahiere Shop-Informationen, falls vorhanden
+      const shopMatch = cleanedHtml.match(/<ul>[\s\S]*?<\/ul>/g);
+      if (shopMatch) {
+        const shops = extractShopsFromHtml(shopMatch[0]);
+        if (shops.length > 0) {
+          mallSections.push({
+            type: 'shops',
+            title: 'Geschäfte',
+            items: shops,
+            relevanceScore: 90,
+            query
+          });
+        }
+      }
+    } else {
+      // Generische Intro-Sektion
+      mallSections.push({
+        type: 'intro',
+        title: '',
+        content: cleanedHtml,
+        relevanceScore: 100,
+        query
+      });
+    }
+    
+    return mallSections;
+  }
+
   // Konvertiere die analysierten Sektionen in Mall-Sektionen
   for (const section of analyzedSections) {
     // Prüfe, ob die Sektion für die aktuelle Anfrage relevant ist
     const isRelevant = query ? isSectionRelevantForQuery(section, query) : true;
 
     // Wenn die Sektion nicht relevant ist, überspringe sie
-    if (!isRelevant && section.type !== 'intro' && section.type !== 'other') {
+    // WICHTIG: Während des Streamings NICHT filtern, um Flackern zu vermeiden
+    if (!incremental && !isRelevant && section.type !== 'intro' && section.type !== 'other') {
       continue;
     }
 
@@ -414,29 +458,49 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
     }
   }
 
-  // Füge den Tipp als letzte Sektion hinzu, wenn vorhanden und noch nicht hinzugefügt
+  // DEBUGGING: Falls keine Sektionen im Ergebnis sind, füge zumindest eine Intro-Sektion hinzu
+  if (mallSections.length === 0 && cleanedHtml) {
+    console.log('MALL-DEBUG: Keine Sektionen nach der Verarbeitung, füge Notfall-Intro hinzu');
+    mallSections.push({
+      type: 'intro',
+      title: '',
+      content: cleanedHtml,
+      relevanceScore: 100,
+      query
+    });
+
+    // Versuche, eine Shops-Sektion zu erstellen, wenn passende Listen gefunden werden
+    const ulMatches = cleanedHtml.match(/<ul>[\s\S]*?<\/ul>/g);
+    if (ulMatches && ulMatches.length > 0) {
+      // Versuche, Shops zu extrahieren
+      for (const ulContent of ulMatches) {
+        const shops = extractShopsFromHtml(ulContent);
+        if (shops.length > 0) {
+          mallSections.push({
+            type: 'shops',
+            title: 'Geschäfte im Center',
+            items: shops,
+            relevanceScore: 90,
+            query
+          });
+          break; // Nur eine Shops-Sektion hinzufügen
+        }
+      }
+    }
+  }
+
+  // Füge Tipp-Sektion hinzu, wenn Inhalt gefunden wurde
   if (tipContent && !addedSectionTypes.has('tip')) {
     mallSections.push({
       type: 'tip',
       title: 'Tipp',
       content: tipContent,
-      relevanceScore: 50, // Mittlere Relevanz für Tipps
-      query
-    });
-    addedSectionTypes.add('tip');
-  }
-
-  // Falls keine Sektionen gefunden wurden, füge den gesamten Inhalt als generische Sektion hinzu
-  if (mallSections.length === 0) {
-    mallSections.push({
-      type: 'other',
-      title: '',
-      content: html,
-      relevanceScore: 100,
+      relevanceScore: 60,
       query
     });
   }
 
+  console.log('MALL-DEBUG: Finale Mall-Sektionen:', mallSections.map(s => s.type));
   return mallSections;
 }
 
