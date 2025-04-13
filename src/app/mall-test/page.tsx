@@ -14,13 +14,18 @@ const AdvancedMallMCP = dynamic(
   { ssr: false }
 );
 
+const RealStreamingMCP = dynamic(
+  () => import('../../components/chat/templates/mall/test/RealStreamingMCP'),
+  { ssr: false }
+);
+
 /**
  * Test-Seite für das Mall-Template
  */
 export default function MallTestPage() {
   return (
     <div className="mall-test-page">
-      <AdvancedMallMCP />
+      <RealStreamingMCP />
     </div>
   );
 }
