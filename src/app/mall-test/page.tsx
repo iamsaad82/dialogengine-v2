@@ -9,13 +9,18 @@ const MallTemplateMCP = dynamic(
   { ssr: false }
 );
 
+const AdvancedMallMCP = dynamic(
+  () => import('../../components/chat/templates/mall/test/AdvancedMallMCP'),
+  { ssr: false }
+);
+
 /**
  * Test-Seite für das Mall-Template
  */
 export default function MallTestPage() {
   return (
     <div className="mall-test-page">
-      <MallTemplateMCP />
+      <AdvancedMallMCP />
     </div>
   );
 }
