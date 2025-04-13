@@ -17,7 +17,6 @@ const RealStreamingMCP: React.FC = () => {
   
   // Vollständiger Content, der gestreamt werden soll
   const fullContent = `
-<html>
 <intro>
 Klar, ich beantworte deine Frage sehr gern! Im Shopping Center gibt es gleich mehrere tolle Eisläden, die dir ein leckeres Eis servieren werden.
 </intro>
@@ -83,7 +82,6 @@ Klar, ich beantworte deine Frage sehr gern! Im Shopping Center gibt es gleich me
 <tip>
 Tipp: Bei der Langnese Happiness Station kannst du dein Eis selbst zusammenstellen - von Toppings bis Saucen ist alles möglich!
 </tip>
-</html>
 `;
 
   // Simuliere echtes Streaming-Verhalten mit zeichenweisem Hinzufügen
@@ -242,6 +240,8 @@ Tipp: Bei der Langnese Happiness Station kannst du dein Eis selbst zusammenstell
         <p>Anzahl geschlossener Shop-Tags: {content.match(/<\/shop>/g)?.length || 0}</p>
         <p>Streaming-Status: {isStreaming ? 'Aktiv' : 'Beendet'}</p>
         <p>Geschwindigkeit: {streamingSpeed} Zeichen alle {streamingInterval}ms</p>
+        <p>Intro vorhanden: {content.includes('<intro>') ? 'Ja' : 'Nein'}</p>
+        <p>Shops-Sektion vorhanden: {content.includes('<shops') ? 'Ja' : 'Nein'}</p>
       </div>
     </div>
   );
