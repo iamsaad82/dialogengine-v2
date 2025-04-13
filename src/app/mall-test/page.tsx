@@ -29,13 +29,18 @@ const DirectMallTest = dynamic(
   { ssr: false }
 );
 
+const AdaptiveStreamingTest = dynamic(
+  () => import('../../components/chat/templates/mall/test/AdaptiveStreamingTest'),
+  { ssr: false }
+);
+
 /**
  * Test-Seite für das Mall-Template
  */
 export default function MallTestPage() {
   return (
     <div className="mall-test-page">
-      <DirectMallTest />
+      <AdaptiveStreamingTest />
     </div>
   );
 }
