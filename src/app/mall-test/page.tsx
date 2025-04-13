@@ -19,13 +19,18 @@ const RealStreamingMCP = dynamic(
   { ssr: false }
 );
 
+const LiveDataMCP = dynamic(
+  () => import('../../components/chat/templates/mall/test/LiveDataMCP'),
+  { ssr: false }
+);
+
 /**
  * Test-Seite für das Mall-Template
  */
 export default function MallTestPage() {
   return (
     <div className="mall-test-page">
-      <RealStreamingMCP />
+      <LiveDataMCP />
     </div>
   );
 }
