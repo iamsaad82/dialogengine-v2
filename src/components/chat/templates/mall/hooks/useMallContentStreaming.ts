@@ -41,8 +41,8 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
     // Content für Vergleiche speichern
     previousContentRef.current = content;
 
-    // Protokolliere den Rohinhalt
-    logData('Rohinhalt', content);
+    // Protokolliere den Rohinhalt mit Zeitstempel
+    logData(`Rohinhalt (${new Date().toISOString()})`, content);
 
     // Bestehende Timeouts abbrechen
     if (timeoutRef.current) {
