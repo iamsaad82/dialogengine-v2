@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { MallSection, parseMallContent, incrementalParseMallContent } from '../utils/contentParser';
-import { parseXmlContent } from '../utils/xmlParser';
+import { safeParseXmlContent, repairXmlContent } from '../utils/safeXmlParser';
 
 /**
  * Optimierter Hook für stabile Mall-Template Streaming-Anzeige
@@ -60,7 +60,20 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
             if (content.includes('<shop>') || content.includes('<restaurant>') ||
                 content.includes('<intro>') || content.includes('<tip>')) {
               console.log('XML-Tags erkannt, verwende XML-Parser');
-              newSections = parseXmlContent(content, query);
+
+              // Versuche, beschädigte XML-Tags zu reparieren
+              const repairedContent = repairXmlContent(content);
+
+              // Verwende den sicheren XML-Parser
+              newSections = safeParseXmlContent(repairedContent, query);
+
+              // Wenn der XML-Parser keine Sektionen zurückgibt, verwende den regulären Parser
+              if (newSections.length === 0) {
+                console.log('XML-Parsing fehlgeschlagen, verwende regulären Parser');
+                newSections = isStreaming
+                  ? incrementalParseMallContent(content, query)
+                  : parseMallContent(content, query);
+              }
             } else {
               // Fallback auf den regulären Parser
               console.log('Keine XML-Tags erkannt, verwende regulären Parser');
