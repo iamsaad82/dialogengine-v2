@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MallSection, parseMallContent, incrementalParseMallContent } from '../utils/contentParser';
 import { safeParseXmlContent, repairXmlContent } from '../utils/safeXmlParser';
 import { extremeXmlRepair } from '../utils/extremeXmlRepair';
+import { logData } from '../utils/dataLogger';
 
 /**
  * Optimierter Hook für stabile Mall-Template Streaming-Anzeige
@@ -40,6 +41,9 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
     // Content für Vergleiche speichern
     previousContentRef.current = content;
 
+    // Protokolliere den Rohinhalt
+    logData('Rohinhalt', content);
+
     // Bestehende Timeouts abbrechen
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -62,8 +66,14 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
                 content.includes('<intro>') || content.includes('<tip>')) {
               console.log('XML-Tags erkannt, verwende XML-Parser');
 
+              // Protokolliere den Content vor der Reparatur
+              logData('Vor Reparatur', content);
+
               // Versuche zuerst mit der normalen Reparaturfunktion
               const repairedContent = repairXmlContent(content);
+
+              // Protokolliere den reparierten Content
+              logData('Nach Standard-Reparatur', repairedContent);
 
               // Verwende den sicheren XML-Parser
               newSections = safeParseXmlContent(repairedContent, query);
@@ -72,6 +82,10 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
               if (newSections.length === 0) {
                 console.log('Standard-Reparatur fehlgeschlagen, versuche extreme Reparatur');
                 const extremeRepairedContent = extremeXmlRepair(content);
+
+                // Protokolliere den extrem reparierten Content
+                logData('Nach Extrem-Reparatur', extremeRepairedContent);
+
                 newSections = safeParseXmlContent(extremeRepairedContent, query);
 
                 // Wenn auch die extreme Reparatur fehlschlägt, verwende den regulären Parser

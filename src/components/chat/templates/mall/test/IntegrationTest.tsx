@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import ShoppingMallMessage from '../ShoppingMallMessage';
+import { initNetworkInterceptor } from '../utils/networkInterceptor';
 
 /**
  * Test-Komponente für die Integration des Mall-Templates
- * 
+ *
  * Diese Komponente testet die Integration der FluidMallMessage in das ShoppingMallMessage-Template.
  */
 const IntegrationTest: React.FC = () => {
@@ -16,7 +17,7 @@ const IntegrationTest: React.FC = () => {
   const [streamingSpeed, setStreamingSpeed] = useState<number>(50);
   const [selectedExample, setSelectedExample] = useState<string>('shops');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Beispiel-Inhalte
   const examples = {
     shops: `<intro>
@@ -317,24 +318,24 @@ Im Limbecker Platz finden Sie alles für einen gelungenen Shopping-Tag. Das Cent
 Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Geschenkgutscheine und aktuelle Angebote. Bei einem Einkauf ab 50€ erhalten Sie dort auch einen Parkgutschein für 1 Stunde kostenloses Parken!
 </tip>`
   };
-  
+
   // Starte das Streaming
   const startStreaming = () => {
     setContent('');
     setIsStreaming(true);
     setIsComplete(false);
-    
+
     const selectedContent = examples[selectedExample as keyof typeof examples];
     let currentIndex = 0;
-    
+
     // Füge nach und nach Zeichen hinzu
     intervalRef.current = setInterval(() => {
       if (currentIndex < selectedContent.length) {
         const charsToAdd = Math.min(
-          Math.max(1, Math.floor(Math.random() * streamingSpeed)), 
+          Math.max(1, Math.floor(Math.random() * streamingSpeed)),
           selectedContent.length - currentIndex
         );
-        
+
         setContent(prevContent => prevContent + selectedContent.substring(currentIndex, currentIndex + charsToAdd));
         currentIndex += charsToAdd;
       } else {
@@ -347,16 +348,19 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
       }
     }, 10);
   };
-  
-  // Stoppe das Streaming beim Unmount
+
+  // Initialisiere den Netzwerk-Interceptor und stoppe das Streaming beim Unmount
   useEffect(() => {
+    // Initialisiere den Netzwerk-Interceptor
+    initNetworkInterceptor();
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
   }, []);
-  
+
   // Styling für die Demo-Seite
   const containerStyle: React.CSSProperties = {
     maxWidth: '800px',
@@ -364,7 +368,7 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
     padding: '20px',
     fontFamily: 'Arial, sans-serif',
   };
-  
+
   const headerStyle: React.CSSProperties = {
     marginBottom: '20px',
     padding: '10px',
@@ -372,7 +376,7 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
     borderRadius: '8px',
     textAlign: 'center',
   };
-  
+
   const controlsStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -382,35 +386,35 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
     backgroundColor: '#f5f5f5',
     borderRadius: '8px',
   };
-  
+
   const sliderContainerStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
     marginBottom: '10px',
   };
-  
+
   const buttonGroupStyle: React.CSSProperties = {
     display: 'flex',
     gap: '10px',
     marginBottom: '10px',
     flexWrap: 'wrap',
   };
-  
+
   const demoContainerStyle: React.CSSProperties = {
     border: '1px solid #ddd',
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '20px',
   };
-  
+
   const infoStyle: React.CSSProperties = {
     marginBottom: '20px',
     padding: '10px',
     backgroundColor: '#f5f5f5',
     borderRadius: '8px',
   };
-  
+
   // Button-Stil mit aktivem Zustand
   const getButtonStyle = (example: string): React.CSSProperties => ({
     padding: '8px 16px',
@@ -421,14 +425,14 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
     color: selectedExample === example ? 'white' : 'black',
     fontWeight: selectedExample === example ? 'bold' : 'normal',
   });
-  
+
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
         <h1>Mall-Template Integrationstest</h1>
         <p>Dieser Test zeigt die Integration der FluidMallMessage in das ShoppingMallMessage-Template</p>
       </div>
-      
+
       <div style={infoStyle}>
         <h3>Wie es funktioniert:</h3>
         <p>
@@ -446,72 +450,72 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
           <li>Gestaffelte Animationen für flüssigere Übergänge</li>
         </ul>
       </div>
-      
+
       <div style={controlsStyle}>
         <div>
           <strong>Status:</strong> {isStreaming ? 'Streaming...' : 'Abgeschlossen'}
           <br />
           <strong>Content-Länge:</strong> {content.length} Zeichen
         </div>
-        
+
         <div style={buttonGroupStyle}>
           <strong>Beispiel-Inhalt:</strong>
-          <button 
+          <button
             style={getButtonStyle('shops')}
             onClick={() => setSelectedExample('shops')}
           >
             Shops
           </button>
-          
-          <button 
+
+          <button
             style={getButtonStyle('restaurants')}
             onClick={() => setSelectedExample('restaurants')}
           >
             Restaurants
           </button>
-          
-          <button 
+
+          <button
             style={getButtonStyle('events')}
             onClick={() => setSelectedExample('events')}
           >
             Events
           </button>
-          
-          <button 
+
+          <button
             style={getButtonStyle('openingHours')}
             onClick={() => setSelectedExample('openingHours')}
           >
             Öffnungszeiten
           </button>
-          
-          <button 
+
+          <button
             style={getButtonStyle('parking')}
             onClick={() => setSelectedExample('parking')}
           >
             Parkgebühren
           </button>
-          
-          <button 
+
+          <button
             style={getButtonStyle('services')}
             onClick={() => setSelectedExample('services')}
           >
             Services
           </button>
-          
-          <button 
+
+          <button
             style={getButtonStyle('mixed')}
             onClick={() => setSelectedExample('mixed')}
           >
             Gemischt
           </button>
         </div>
-        
+
         <div style={sliderContainerStyle}>
           <span>Streaming-Geschwindigkeit:</span>
-          <input 
-            type="range" 
-            min="1" 
-            max="100" 
+          <input
+            type="range"
+            min="1"
+            max="100"
             step="1"
             value={streamingSpeed}
             onChange={(e) => setStreamingSpeed(parseInt(e.target.value))}
@@ -519,18 +523,18 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
           />
           <span>{streamingSpeed} Zeichen/Tick</span>
         </div>
-        
+
         <div style={sliderContainerStyle}>
           <span>Anfrage:</span>
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             style={{ flex: 1, padding: '8px' }}
           />
         </div>
-        
-        <button 
+
+        <button
           onClick={startStreaming}
           style={{
             padding: '8px 16px',
@@ -544,10 +548,10 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
           Streaming starten
         </button>
       </div>
-      
+
       <div style={demoContainerStyle}>
         <h2>Mall-Template</h2>
-        <ShoppingMallMessage 
+        <ShoppingMallMessage
           content={content}
           isStreaming={isStreaming}
           isComplete={isComplete}
@@ -558,7 +562,7 @@ Tipp: Besuchen Sie unsere Kundeninformation im Erdgeschoss für Centerplan, Gesc
           }}
         />
       </div>
-      
+
       <div style={infoStyle}>
         <h3>Technische Details:</h3>
         <p>
