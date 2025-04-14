@@ -5,6 +5,8 @@ import { MallSection, parseMallContent, incrementalParseMallContent } from '../u
 import { safeParseXmlContent, repairXmlContent } from '../utils/safeXmlParser';
 import { extremeXmlRepair } from '../utils/extremeXmlRepair';
 import { logData } from '../utils/dataLogger';
+import { sanitizeXml } from '../utils/xmlSanitizer';
+import { isValidXml } from '../utils/xmlValidator';
 
 /**
  * Optimierter Hook für stabile Mall-Template Streaming-Anzeige
@@ -66,35 +68,48 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
                 content.includes('<intro>') || content.includes('<tip>')) {
               console.log('XML-Tags erkannt, verwende XML-Parser');
 
-              // Protokolliere den Content vor der Reparatur
-              logData('Vor Reparatur', content);
+              // Protokolliere den Content vor der Verarbeitung
+              logData('Rohinhalt vor Verarbeitung', content);
 
-              // Versuche zuerst mit der normalen Reparaturfunktion
-              const repairedContent = repairXmlContent(content);
+              // Schritt 1: Sanitize XML-Content
+              const sanitizedContent = sanitizeXml(content);
+              logData('Nach Sanitizing', sanitizedContent);
 
-              // Protokolliere den reparierten Content
-              logData('Nach Standard-Reparatur', repairedContent);
+              // Prüfe, ob der sanitierte Content gültig ist
+              const isValidAfterSanitizing = isValidXml(`<root>${sanitizedContent}</root>`);
 
-              // Verwende den sicheren XML-Parser
-              newSections = safeParseXmlContent(repairedContent, query);
+              if (isValidAfterSanitizing) {
+                console.log('XML ist nach Sanitizing gültig, verwende direkt');
+                newSections = safeParseXmlContent(sanitizedContent, query);
+              } else {
+                // Schritt 2: Versuche mit der normalen Reparaturfunktion
+                console.log('XML ist nach Sanitizing ungültig, versuche leichte Reparatur');
+                const repairedContent = repairXmlContent(sanitizedContent);
 
-              // Wenn der XML-Parser keine Sektionen zurückgibt, versuche die extreme Reparatur
-              if (newSections.length === 0) {
-                console.log('Standard-Reparatur fehlgeschlagen, versuche extreme Reparatur');
-                const extremeRepairedContent = extremeXmlRepair(content);
+                // Prüfe, ob der reparierte Content gültig ist
+                const isValidAfterRepair = isValidXml(`<root>${repairedContent}</root>`);
 
-                // Protokolliere den extrem reparierten Content
-                logData('Nach Extrem-Reparatur', extremeRepairedContent);
+                if (isValidAfterRepair) {
+                  console.log('XML ist nach leichter Reparatur gültig');
+                  newSections = safeParseXmlContent(repairedContent, query);
+                } else {
+                  // Schritt 3: Wenn die leichte Reparatur fehlschlägt, versuche die extreme Reparatur
+                  console.log('Leichte Reparatur fehlgeschlagen, versuche extreme Reparatur');
+                  const extremeRepairedContent = extremeXmlRepair(content);
 
-                newSections = safeParseXmlContent(extremeRepairedContent, query);
+                  // Protokolliere den extrem reparierten Content
+                  logData('Nach Extrem-Reparatur', extremeRepairedContent);
 
-                // Wenn auch die extreme Reparatur fehlschlägt, verwende den regulären Parser
-                if (newSections.length === 0) {
-                  console.log('XML-Parsing fehlgeschlagen, verwende regulären Parser');
-                  newSections = isStreaming
-                    ? incrementalParseMallContent(content, query)
-                    : parseMallContent(content, query);
+                  newSections = safeParseXmlContent(extremeRepairedContent, query);
                 }
+              }
+
+              // Wenn auch die extreme Reparatur fehlschlägt, verwende den regulären Parser
+              if (newSections.length === 0) {
+                console.log('XML-Parsing fehlgeschlagen, verwende regulären Parser');
+                newSections = isStreaming
+                  ? incrementalParseMallContent(content, query)
+                  : parseMallContent(content, query);
               }
             } else {
               // Fallback auf den regulären Parser
