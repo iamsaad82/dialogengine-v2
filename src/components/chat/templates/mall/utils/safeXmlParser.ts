@@ -96,19 +96,45 @@ export function repairXmlContent(content: string): string {
     }
   });
   
-  // 2. Repariere abgeschnittene Tags
+  // 2. Repariere abgeschnittene Tags und korrigiere falsche Tags
+  
+  // Korrigiere <n> zu <name> Tags (häufiger Fehler in Lunary-Ausgaben)
+  repairedContent = repairedContent.replace(/<n>([^<]*?)<\/n>/g, '<name>$1</name>');
+  repairedContent = repairedContent.replace(/<n>([^<]*?)(?=<|$)/g, '<name>$1</name>');
+  
+  // Repariere andere abgeschnittene Tags
   const tagPairs = [
     { pattern: /<name>([^<]*?)(?=<|$)/, replacement: '<name>$1</name>' },
     { pattern: /<category>([^<]*?)(?=<|$)/, replacement: '<category>$1</category>' },
     { pattern: /<floor>([^<]*?)(?=<|$)/, replacement: '<floor>$1</floor>' },
     { pattern: /<image>([^<]*?)(?=<|$)/, replacement: '<image>$1</image>' },
     { pattern: /<description>([^<]*?)(?=<|$)/, replacement: '<description>$1</description>' },
-    { pattern: /<opening>([^<]*?)(?=<|$)/, replacement: '<opening>$1</opening>' }
+    { pattern: /<opening>([^<]*?)(?=<|$)/, replacement: '<opening>$1</opening>' },
+    { pattern: /<location>([^<]*?)(?=<|$)/, replacement: '<location>$1</location>' },
+    { pattern: /<date>([^<]*?)(?=<|$)/, replacement: '<date>$1</date>' },
+    { pattern: /<time>([^<]*?)(?=<|$)/, replacement: '<time>$1</time>' },
+    { pattern: /<duration>([^<]*?)(?=<|$)/, replacement: '<duration>$1</duration>' },
+    { pattern: /<price>([^<]*?)(?=<|$)/, replacement: '<price>$1</price>' },
+    { pattern: /<day>([^<]*?)(?=<|$)/, replacement: '<day>$1</day>' },
+    { pattern: /<hours>([^<]*?)(?=<|$)/, replacement: '<hours>$1</hours>' }
   ];
   
   tagPairs.forEach(pair => {
     repairedContent = repairedContent.replace(new RegExp(pair.pattern, 'g'), pair.replacement);
   });
+  
+  // 3. Entferne doppelte Leerzeichen und Zeilenumbrüche
+  repairedContent = repairedContent.replace(/\s+/g, ' ').trim();
+  
+  // 4. Füge Zeilenumbrüche für bessere Lesbarkeit hinzu
+  repairedContent = repairedContent.replace(/<\/intro>/g, '</intro>\n\n');
+  repairedContent = repairedContent.replace(/<\/shop>/g, '</shop>\n\n');
+  repairedContent = repairedContent.replace(/<\/restaurant>/g, '</restaurant>\n\n');
+  repairedContent = repairedContent.replace(/<\/event>/g, '</event>\n\n');
+  repairedContent = repairedContent.replace(/<\/service>/g, '</service>\n\n');
+  
+  // 5. Entferne leere Tags
+  repairedContent = repairedContent.replace(/<([a-z]+)>\s*<\/\1>/g, '');
   
   return repairedContent;
 }
