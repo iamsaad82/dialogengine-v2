@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useMallContentStreaming } from './hooks/useMallContentStreaming';
 import FluidMallMessage from './components/FluidMallMessage';
+import ChunkedMallMessage from './components/ChunkedMallMessage';
 import styles from './ShoppingMallMessage.module.css';
 import { balanceXmlTags } from './utils/xmlBalancer';
 
@@ -35,6 +36,33 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
   isComplete,
   query = ''
 }) => {
+  // Feature-Flag für Chunk-basierte Verarbeitung
+  const useChunkedProcessing = true;
+
+  // Wenn Chunk-basierte Verarbeitung aktiviert ist, verwende ChunkedMallMessage
+  if (useChunkedProcessing) {
+    return (
+      <div className={containerClasses}>
+        <div className={contentClasses}>
+          <ChunkedMallMessage
+            content={content}
+            isStreaming={isStreaming}
+            isComplete={isComplete}
+            query={query}
+            colorStyle={colorStyle}
+          />
+
+          {messageControls && (
+            <div className={styles.messageControls}>
+              {messageControls}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback auf die alte Implementierung
   // Vorverarbeitung: Balanciere XML-Tags, wenn Content vorhanden ist
   const processedContent = content ? balanceXmlTags(content) : content;
 
