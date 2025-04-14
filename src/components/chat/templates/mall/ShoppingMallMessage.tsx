@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useMallContentStreaming } from './hooks/useMallContentStreaming';
 import FluidMallMessage from './components/FluidMallMessage';
 import styles from './ShoppingMallMessage.module.css';
+import { balanceXmlTags } from './utils/xmlBalancer';
 
 interface ShoppingMallMessageProps {
   content: string;
@@ -34,8 +35,11 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
   isComplete,
   query = ''
 }) => {
+  // Vorverarbeitung: Balanciere XML-Tags, wenn Content vorhanden ist
+  const processedContent = content ? balanceXmlTags(content) : content;
+
   // Verwende den optimierten Hook für Content-Streaming
-  const sections = useMallContentStreaming(content, isStreaming, query);
+  const sections = useMallContentStreaming(processedContent, isStreaming, query);
 
   // Stellen sicher, dass sections immer ein Array ist
   const sectionsArray = Array.isArray(sections) ? sections : [];
@@ -94,10 +98,20 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
         {parseError ? (
           <div className={styles.parseError}>
             <p>{parseError}</p>
-            <p>Roher Inhalt:</p>
-            <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.8rem', maxHeight: '200px', overflow: 'auto' }}>
-              {content}
-            </pre>
+            <p>Versuche, den Inhalt als normalen Text anzuzeigen:</p>
+            <div style={{
+              padding: '15px',
+              backgroundColor: '#f9f9f9',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              lineHeight: '1.5'
+            }}>
+              {content && content.length > 0 ? (
+                <div dangerouslySetInnerHTML={{ __html: content }} />
+              ) : (
+                <p>Kein Inhalt vorhanden.</p>
+              )}
+            </div>
           </div>
         ) : (
           <FluidMallMessage

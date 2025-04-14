@@ -1,5 +1,7 @@
 'use client';
 
+import { balanceXmlTags } from './xmlBalancer';
+
 /**
  * XML-Sanitizer für die Vorverarbeitung von XML-Inhalten
  *
@@ -29,6 +31,9 @@ export function sanitizeXml(content: string): string {
 
   // Schritt 4: Sicherstellen, dass Tags korrekt geschlossen sind
   sanitized = ensureClosedTags(sanitized);
+
+  // Schritt 5: Balanciere XML-Tags
+  sanitized = balanceXmlTags(sanitized);
 
   return sanitized;
 }

@@ -7,6 +7,7 @@ import { extremeXmlRepair } from '../utils/extremeXmlRepair';
 import { logData } from '../utils/dataLogger';
 import { sanitizeXml } from '../utils/xmlSanitizer';
 import { isValidXml } from '../utils/xmlValidator';
+import { balanceXmlTags } from '../utils/xmlBalancer';
 
 /**
  * Optimierter Hook für stabile Mall-Template Streaming-Anzeige
@@ -97,16 +98,20 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
               logData('Nach Sanitizing', sanitizedContent);
 
               try {
-                // Prüfe, ob der sanitierte Content gültig ist
-                const isValidAfterSanitizing = isValidXml(`<root>${sanitizedContent}</root>`);
+                // Schritt 1: Balanciere XML-Tags
+                const balancedContent = balanceXmlTags(sanitizedContent);
+                logData('Nach XML-Balancierung', balancedContent);
 
-                if (isValidAfterSanitizing) {
-                  console.log('XML ist nach Sanitizing gültig, verwende direkt');
-                  newSections = safeParseXmlContent(sanitizedContent, query);
+                // Prüfe, ob der balancierte Content gültig ist
+                const isValidAfterBalancing = isValidXml(`<root>${balancedContent}</root>`);
+
+                if (isValidAfterBalancing) {
+                  console.log('XML ist nach Balancierung gültig, verwende direkt');
+                  newSections = safeParseXmlContent(balancedContent, query);
                 } else {
                   // Schritt 2: Versuche mit der normalen Reparaturfunktion
-                  console.log('XML ist nach Sanitizing ungültig, versuche leichte Reparatur');
-                  const repairedContent = repairXmlContent(sanitizedContent);
+                  console.log('XML ist nach Balancierung ungültig, versuche leichte Reparatur');
+                  const repairedContent = repairXmlContent(balancedContent);
 
                   // Prüfe, ob der reparierte Content gültig ist
                   const isValidAfterRepair = isValidXml(`<root>${repairedContent}</root>`);
