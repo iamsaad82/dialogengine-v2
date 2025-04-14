@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MallSection, parseMallContent, incrementalParseMallContent } from '../utils/contentParser';
 import { safeParseXmlContent, repairXmlContent } from '../utils/safeXmlParser';
+import { extremeXmlRepair } from '../utils/extremeXmlRepair';
 
 /**
  * Optimierter Hook für stabile Mall-Template Streaming-Anzeige
@@ -61,18 +62,25 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
                 content.includes('<intro>') || content.includes('<tip>')) {
               console.log('XML-Tags erkannt, verwende XML-Parser');
 
-              // Versuche, beschädigte XML-Tags zu reparieren
+              // Versuche zuerst mit der normalen Reparaturfunktion
               const repairedContent = repairXmlContent(content);
 
               // Verwende den sicheren XML-Parser
               newSections = safeParseXmlContent(repairedContent, query);
 
-              // Wenn der XML-Parser keine Sektionen zurückgibt, verwende den regulären Parser
+              // Wenn der XML-Parser keine Sektionen zurückgibt, versuche die extreme Reparatur
               if (newSections.length === 0) {
-                console.log('XML-Parsing fehlgeschlagen, verwende regulären Parser');
-                newSections = isStreaming
-                  ? incrementalParseMallContent(content, query)
-                  : parseMallContent(content, query);
+                console.log('Standard-Reparatur fehlgeschlagen, versuche extreme Reparatur');
+                const extremeRepairedContent = extremeXmlRepair(content);
+                newSections = safeParseXmlContent(extremeRepairedContent, query);
+
+                // Wenn auch die extreme Reparatur fehlschlägt, verwende den regulären Parser
+                if (newSections.length === 0) {
+                  console.log('XML-Parsing fehlgeschlagen, verwende regulären Parser');
+                  newSections = isStreaming
+                    ? incrementalParseMallContent(content, query)
+                    : parseMallContent(content, query);
+                }
               }
             } else {
               // Fallback auf den regulären Parser
