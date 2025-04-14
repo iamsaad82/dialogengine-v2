@@ -36,6 +36,19 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
   isComplete,
   query = ''
 }) => {
+  // Styling für den Container
+  const containerClasses = [
+    styles.messageContainer,
+    styles.assistantMessage,
+    isStreaming ? styles.streamingMessage : ''
+  ].filter(Boolean).join(' ');
+
+  // Styling für den Inhalt
+  const contentClasses = [
+    styles.messageContent,
+    styles.mallMessage
+  ].filter(Boolean).join(' ');
+
   // Feature-Flag für Chunk-basierte Verarbeitung
   const useChunkedProcessing = true;
 
@@ -123,18 +136,7 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
     }
   }, [content, isStreaming, isComplete, sectionsArray]);
 
-  // Styling für den Container
-  const containerClasses = [
-    styles.messageContainer,
-    styles.assistantMessage,
-    isStreaming ? styles.streamingMessage : ''
-  ].filter(Boolean).join(' ');
-
-  // Styling für den Inhalt
-  const contentClasses = [
-    styles.messageContent,
-    styles.mallMessage
-  ].filter(Boolean).join(' ');
+  // Die Styling-Klassen wurden bereits oben definiert
 
   return (
     <div className={containerClasses}>
