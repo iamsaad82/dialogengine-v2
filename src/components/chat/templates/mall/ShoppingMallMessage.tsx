@@ -45,12 +45,14 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
 
   // Überprüfe, ob der Content geparst werden konnte
   useEffect(() => {
-    if (content && !isStreaming && sectionsArray.length === 0) {
+    // Nur wenn das Streaming abgeschlossen ist und der Content nicht leer ist
+    if (content && !isStreaming && isComplete && sectionsArray.length === 0) {
+      console.error('XML-Parsing fehlgeschlagen:', { content, contentLength: content.length });
       setParseError('Der Inhalt konnte nicht korrekt verarbeitet werden.');
     } else {
       setParseError(null);
     }
-  }, [content, isStreaming, sectionsArray]);
+  }, [content, isStreaming, isComplete, sectionsArray]);
 
   // Styling für den Container
   const containerClasses = [

@@ -75,33 +75,42 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
               const sanitizedContent = sanitizeXml(content);
               logData('Nach Sanitizing', sanitizedContent);
 
-              // Prüfe, ob der sanitierte Content gültig ist
-              const isValidAfterSanitizing = isValidXml(`<root>${sanitizedContent}</root>`);
+              try {
+                // Prüfe, ob der sanitierte Content gültig ist
+                const isValidAfterSanitizing = isValidXml(`<root>${sanitizedContent}</root>`);
 
-              if (isValidAfterSanitizing) {
-                console.log('XML ist nach Sanitizing gültig, verwende direkt');
-                newSections = safeParseXmlContent(sanitizedContent, query);
-              } else {
-                // Schritt 2: Versuche mit der normalen Reparaturfunktion
-                console.log('XML ist nach Sanitizing ungültig, versuche leichte Reparatur');
-                const repairedContent = repairXmlContent(sanitizedContent);
-
-                // Prüfe, ob der reparierte Content gültig ist
-                const isValidAfterRepair = isValidXml(`<root>${repairedContent}</root>`);
-
-                if (isValidAfterRepair) {
-                  console.log('XML ist nach leichter Reparatur gültig');
-                  newSections = safeParseXmlContent(repairedContent, query);
+                if (isValidAfterSanitizing) {
+                  console.log('XML ist nach Sanitizing gültig, verwende direkt');
+                  newSections = safeParseXmlContent(sanitizedContent, query);
                 } else {
-                  // Schritt 3: Wenn die leichte Reparatur fehlschlägt, versuche die extreme Reparatur
-                  console.log('Leichte Reparatur fehlgeschlagen, versuche extreme Reparatur');
-                  const extremeRepairedContent = extremeXmlRepair(content);
+                  // Schritt 2: Versuche mit der normalen Reparaturfunktion
+                  console.log('XML ist nach Sanitizing ungültig, versuche leichte Reparatur');
+                  const repairedContent = repairXmlContent(sanitizedContent);
 
-                  // Protokolliere den extrem reparierten Content
-                  logData('Nach Extrem-Reparatur', extremeRepairedContent);
+                  // Prüfe, ob der reparierte Content gültig ist
+                  const isValidAfterRepair = isValidXml(`<root>${repairedContent}</root>`);
 
-                  newSections = safeParseXmlContent(extremeRepairedContent, query);
+                  if (isValidAfterRepair) {
+                    console.log('XML ist nach leichter Reparatur gültig');
+                    newSections = safeParseXmlContent(repairedContent, query);
+                  } else {
+                    // Schritt 3: Wenn die leichte Reparatur fehlschlägt, versuche die extreme Reparatur
+                    console.log('Leichte Reparatur fehlgeschlagen, versuche extreme Reparatur');
+                    const extremeRepairedContent = extremeXmlRepair(content);
+
+                    // Protokolliere den extrem reparierten Content
+                    logData('Nach Extrem-Reparatur', extremeRepairedContent);
+
+                    // Prüfe, ob der extrem reparierte Content gültig ist
+                    const isValidAfterExtremeRepair = isValidXml(`<root>${extremeRepairedContent}</root>`);
+                    console.log('XML nach extremer Reparatur gültig:', isValidAfterExtremeRepair);
+
+                    newSections = safeParseXmlContent(extremeRepairedContent, query);
+                  }
                 }
+              } catch (error) {
+                console.error('Fehler bei der XML-Verarbeitung:', error);
+                logData('Fehler bei der XML-Verarbeitung', content);
               }
 
               // Wenn auch die extreme Reparatur fehlschlägt, verwende den regulären Parser
