@@ -2,7 +2,7 @@
 
 /**
  * XML-Sanitizer für die Vorverarbeitung von XML-Inhalten
- * 
+ *
  * Diese Utility-Klasse bereitet XML-Inhalte für das Parsing vor,
  * indem sie Encoding-Probleme behebt und problematische Zeichen entschärft.
  */
@@ -12,23 +12,24 @@
  */
 export function sanitizeXml(content: string): string {
   if (!content) return '';
-  
+
   // Schritt 1: Encoding sicherstellen (UTF-8)
   // Da JavaScript Strings bereits in UTF-16 sind, müssen wir nur sicherstellen,
   // dass keine ungültigen Zeichen enthalten sind
   let sanitized = content
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '') // Entferne Steuerzeichen
-    .replace(/\uFFFD/g, ''); // Entferne Ersatzzeichen
-  
+    .replace(/\uFFFD/g, '') // Entferne Ersatzzeichen
+    .replace(/\r\n|\r|\n/g, ' '); // Normalisiere Zeilenumbrüche zu Leerzeichen
+
   // Schritt 2: XML-Entitäten für problematische Zeichen außerhalb von Tags
   sanitized = escapeXmlEntitiesOutsideTags(sanitized);
-  
+
   // Schritt 3: Doppelte Leerzeichen außerhalb von Tags entfernen
   sanitized = removeExtraWhitespaceOutsideTags(sanitized);
-  
+
   // Schritt 4: Sicherstellen, dass Tags korrekt geschlossen sind
   sanitized = ensureClosedTags(sanitized);
-  
+
   return sanitized;
 }
 
@@ -40,7 +41,7 @@ function escapeXmlEntitiesOutsideTags(content: string): string {
   const parts: { isTag: boolean; content: string }[] = [];
   let currentIndex = 0;
   let inTag = false;
-  
+
   // Finde alle Tags und Text dazwischen
   while (currentIndex < content.length) {
     if (!inTag && content.indexOf('<', currentIndex) !== -1) {
@@ -52,7 +53,7 @@ function escapeXmlEntitiesOutsideTags(content: string): string {
           content: content.substring(currentIndex, tagStart)
         });
       }
-      
+
       inTag = true;
       currentIndex = tagStart;
     } else if (inTag && content.indexOf('>', currentIndex) !== -1) {
@@ -62,7 +63,7 @@ function escapeXmlEntitiesOutsideTags(content: string): string {
         isTag: true,
         content: content.substring(currentIndex, tagEnd)
       });
-      
+
       inTag = false;
       currentIndex = tagEnd;
     } else {
@@ -74,7 +75,7 @@ function escapeXmlEntitiesOutsideTags(content: string): string {
       break;
     }
   }
-  
+
   // Ersetze problematische Zeichen nur in Textteilen
   return parts.map(part => {
     if (part.isTag) {
@@ -98,7 +99,7 @@ function removeExtraWhitespaceOutsideTags(content: string): string {
   const parts: { isTag: boolean; content: string }[] = [];
   let currentIndex = 0;
   let inTag = false;
-  
+
   // Finde alle Tags und Text dazwischen
   while (currentIndex < content.length) {
     if (!inTag && content.indexOf('<', currentIndex) !== -1) {
@@ -110,7 +111,7 @@ function removeExtraWhitespaceOutsideTags(content: string): string {
           content: content.substring(currentIndex, tagStart)
         });
       }
-      
+
       inTag = true;
       currentIndex = tagStart;
     } else if (inTag && content.indexOf('>', currentIndex) !== -1) {
@@ -120,7 +121,7 @@ function removeExtraWhitespaceOutsideTags(content: string): string {
         isTag: true,
         content: content.substring(currentIndex, tagEnd)
       });
-      
+
       inTag = false;
       currentIndex = tagEnd;
     } else {
@@ -132,7 +133,7 @@ function removeExtraWhitespaceOutsideTags(content: string): string {
       break;
     }
   }
-  
+
   // Entferne doppelte Leerzeichen nur in Textteilen
   return parts.map(part => {
     if (part.isTag) {
@@ -176,14 +177,14 @@ function ensureClosedTags(content: string): string {
     { open: '<day>', close: '</day>' },
     { open: '<hours>', close: '</hours>' }
   ];
-  
+
   let result = content;
-  
+
   // Prüfe auf fehlende schließende Tags
   tagPairs.forEach(tag => {
     const openCount = (result.match(new RegExp(escapeRegExp(tag.open), 'g')) || []).length;
     const closeCount = (result.match(new RegExp(escapeRegExp(tag.close), 'g')) || []).length;
-    
+
     if (openCount > closeCount) {
       // Füge fehlende schließende Tags hinzu
       for (let i = 0; i < openCount - closeCount; i++) {
@@ -191,7 +192,7 @@ function ensureClosedTags(content: string): string {
       }
     }
   });
-  
+
   return result;
 }
 

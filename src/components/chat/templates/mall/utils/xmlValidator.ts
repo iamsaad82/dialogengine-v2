@@ -2,7 +2,7 @@
 
 /**
  * XML-Validator für die Überprüfung von XML-Inhalten
- * 
+ *
  * Diese Utility-Klasse prüft, ob XML-Inhalte wohlgeformt sind.
  */
 
@@ -11,12 +11,29 @@
  */
 export function isValidXml(content: string): boolean {
   if (!content) return false;
-  
+
+  // Einfache Prüfung auf grundlegende XML-Struktur
+  const hasBasicXmlStructure = (
+    content.includes('<') &&
+    content.includes('>') &&
+    (content.includes('</') || content.includes('/>'))
+  );
+
+  if (!hasBasicXmlStructure) {
+    return false;
+  }
+
   try {
     // Verwende DOMParser für die Validierung
     const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/xml');
-    
+
+    // Füge Root-Element hinzu, falls nicht vorhanden
+    const xmlContent = content.trim().startsWith('<?xml') || content.trim().startsWith('<root')
+      ? content
+      : `<root>${content}</root>`;
+
+    const doc = parser.parseFromString(xmlContent, 'text/xml');
+
     // Prüfe, ob der Parser Fehler gefunden hat
     const parserError = doc.querySelector('parsererror');
     return !parserError;
@@ -31,12 +48,12 @@ export function isValidXml(content: string): boolean {
  */
 export function validateXml(content: string): { isValid: boolean; errors: string[] } {
   if (!content) return { isValid: false, errors: ['Leerer Inhalt'] };
-  
+
   try {
     // Verwende DOMParser für die Validierung
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/xml');
-    
+
     // Prüfe, ob der Parser Fehler gefunden hat
     const parserError = doc.querySelector('parsererror');
     if (parserError) {
@@ -45,7 +62,7 @@ export function validateXml(content: string): { isValid: boolean; errors: string
         errors: [parserError.textContent || 'Unbekannter Parser-Fehler']
       };
     }
-    
+
     return { isValid: true, errors: [] };
   } catch (error) {
     console.error('Fehler bei der XML-Validierung:', error);
@@ -61,7 +78,7 @@ export function validateXml(content: string): { isValid: boolean; errors: string
  */
 export function containsXmlTags(content: string, tags: string[]): boolean {
   if (!content) return false;
-  
+
   return tags.some(tag => {
     const openTag = `<${tag}>`;
     const closeTag = `</${tag}>`;

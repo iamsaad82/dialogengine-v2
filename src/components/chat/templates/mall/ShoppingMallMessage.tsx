@@ -47,8 +47,29 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
   useEffect(() => {
     // Nur wenn das Streaming abgeschlossen ist und der Content nicht leer ist
     if (content && !isStreaming && isComplete && sectionsArray.length === 0) {
-      console.error('XML-Parsing fehlgeschlagen:', { content, contentLength: content.length });
-      setParseError('Der Inhalt konnte nicht korrekt verarbeitet werden.');
+      // Versuche, XML-Tags im Content zu erkennen
+      const hasXmlStructure = (
+        content.includes('<intro>') ||
+        content.includes('<shop>') ||
+        content.includes('<restaurant>') ||
+        content.includes('<tip>') ||
+        content.includes('<shops') ||
+        content.includes('<restaurants') ||
+        content.includes('<events') ||
+        content.includes('<services')
+      );
+
+      // Nur wenn XML-Tags erkannt wurden, aber das Parsing fehlgeschlagen ist
+      if (hasXmlStructure) {
+        console.error('XML-Parsing fehlgeschlagen:', {
+          contentPreview: content.substring(0, 100) + '...',
+          contentLength: content.length
+        });
+        setParseError('Der Inhalt konnte nicht korrekt verarbeitet werden.');
+      } else {
+        // Wenn keine XML-Tags erkannt wurden, zeige den Rohinhalt an
+        setParseError(null);
+      }
     } else {
       setParseError(null);
     }

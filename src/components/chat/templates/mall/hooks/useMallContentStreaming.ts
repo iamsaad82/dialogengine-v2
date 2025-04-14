@@ -63,9 +63,30 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
             // Versuche zuerst, XML-Tags zu parsen
             let newSections: MallSection[] = [];
 
-            // Prüfe, ob der Content XML-Tags enthält
-            if (content.includes('<shop>') || content.includes('<restaurant>') ||
-                content.includes('<intro>') || content.includes('<tip>')) {
+            // Prüfe, ob der Content XML-Tags enthält - erweiterte Erkennung
+            const hasXmlStructure = (
+              // Standard-Tags
+              content.includes('<intro>') ||
+              content.includes('<shop>') ||
+              content.includes('<restaurant>') ||
+              content.includes('<tip>') ||
+
+              // Erweiterte Tag-Erkennung
+              content.includes('<shops') ||
+              content.includes('<restaurants') ||
+              content.includes('<events') ||
+              content.includes('<services') ||
+              content.includes('<openingHours') ||
+              content.includes('<parking') ||
+
+              // Teilweise Tags (für Streaming-Szenarien)
+              content.includes('<intr') ||
+              content.includes('<sho') ||
+              content.includes('<res') ||
+              content.includes('<ti')
+            );
+
+            if (hasXmlStructure) {
               console.log('XML-Tags erkannt, verwende XML-Parser');
 
               // Protokolliere den Content vor der Verarbeitung
