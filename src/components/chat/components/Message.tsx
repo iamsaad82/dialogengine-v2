@@ -124,7 +124,7 @@ export const Message: React.FC<{
   if (isBot) {
     return (
       <>
-        {/* Header in einem separaten, stabilen Container */}
+        {/* Header in einem separaten, stabilen Container mit fester Höhe */}
         <div className="message-header-container" style={{
           position: 'relative',
           zIndex: 10,
@@ -133,7 +133,12 @@ export const Message: React.FC<{
           backfaceVisibility: 'hidden',
           contain: 'layout style paint',
           willChange: 'transform',
-          isolation: 'isolate'
+          isolation: 'isolate',
+          height: '48px', // Feste Höhe für den Header-Container
+          minHeight: '48px', // Minimale Höhe für den Header-Container
+          maxHeight: '48px', // Maximale Höhe für den Header-Container
+          marginBottom: '12px', // Abstand zum Inhalt
+          overflow: 'visible' // Damit das Logo sichtbar bleibt
         }}>
           <MessageHeader
             botName={botName}
@@ -141,17 +146,47 @@ export const Message: React.FC<{
             showName={settings?.showNameInHeader !== undefined ? settings.showNameInHeader : true}
           />
         </div>
-        <div className={`${messageTemplate}-message message assistant`} style={messageStyles}>
-          <div className="message-content-wrapper" style={{ width: '100%', maxWidth: '100%', overflow: 'hidden', contain: 'layout' }}>
-            <Suspense fallback={<div className="message-loading">Lade Nachricht...</div>}>
-              <TemplateComponents.Message
-                content={content}
-                isStreaming={isStreaming && isLast}
-                colorStyle={colorStyle}
-                isComplete={!isStreaming || !isLast}
-                messageControls={null} // Keine MessageControls mehr an das Template übergeben
-                query={message.content} // Die ursprüngliche Anfrage des Nutzers für bessere Relevanzfilterung
-              />
+        <div className={`${messageTemplate}-message message assistant ${isStreaming ? 'is-streaming streaming-stable' : ''}`} style={{
+          ...messageStyles,
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+          willChange: 'contents',
+          contain: 'content',
+          isolation: 'isolate'
+        }}>
+          <div className="message-content-wrapper streaming-stable" style={{
+            width: '100%',
+            maxWidth: '100%',
+            overflow: 'hidden',
+            contain: 'layout',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            willChange: 'contents'
+          }}>
+            <Suspense fallback={<div className="message-loading streaming-stable">Lade Nachricht...</div>}>
+              {/* Wenn der Inhalt leer ist und wir im Streaming-Modus sind, zeigen wir einen Platzhalter an */}
+              {content.trim() === ' ' && isStreaming && isLast ? (
+                <div className="streaming-placeholder streaming-stable" style={{
+                  minHeight: '24px',
+                  width: '100%',
+                  transform: 'translateZ(0)',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  willChange: 'contents',
+                  contain: 'content'
+                }}></div>
+              ) : (
+                <TemplateComponents.Message
+                  content={content}
+                  isStreaming={isStreaming && isLast}
+                  colorStyle={colorStyle}
+                  isComplete={!isStreaming || !isLast}
+                  messageControls={null} // Keine MessageControls mehr an das Template übergeben
+                  query={message.content} // Die ursprüngliche Anfrage des Nutzers für bessere Relevanzfilterung
+                />
+              )}
             </Suspense>
 
           {/* MessageControls am Ende der Nachricht platzieren */}

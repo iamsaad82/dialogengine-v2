@@ -1,0 +1,441 @@
+/*
+ * Mall Template - Unified Stylesheet
+ * Optimiert für Performance und Stabilität während des Streamings
+ */
+
+/* CSS-Variablen für konsistente Farbgebung */
+:root {
+  --mall-primary-color: #3b1c60;
+  --mall-secondary-color: #ff5a5f;
+  --mall-background-color: #ffffff;
+  --mall-text-color: #333333;
+  --mall-border-color: #e0e0e0;
+  --mall-shadow-color: rgba(0, 0, 0, 0.08);
+  --mall-placeholder-color: #f5f5f5;
+}
+
+/* Haupt-Container mit Optimierungen für Stabilität */
+.mall-template-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+  color: var(--mall-text-color);
+  background-color: var(--mall-background-color);
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  margin: 0;
+
+  /* Performance-Optimierungen */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: contents;
+  contain: content;
+  isolation: isolate;
+}
+
+/* Fortschrittsanzeige */
+.mall-progress-container {
+  width: 100%;
+  height: 4px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  transform: translateZ(0);
+}
+
+.mall-progress-bar {
+  height: 100%;
+  transition: width 0.3s ease-in-out;
+  transform: translateZ(0);
+}
+
+/* Inhalt-Container */
+.mall-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  transform: translateZ(0);
+  contain: content;
+}
+
+/* Intro-Sektion */
+.mall-intro {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #1a2252;
+  margin-bottom: 0.5rem;
+  min-height: 1.5rem;
+  transform: translateZ(0);
+  contain: content;
+}
+
+.mall-intro p {
+  margin: 0;
+}
+
+/* Shop-Slider */
+.mall-shop-slider {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  transform: translateZ(0);
+  contain: content;
+}
+
+.mall-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #1a2252;
+}
+
+/* Cards Container */
+.mall-cards-container {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 1rem;
+  padding: 0.25rem 0.25rem 1rem;
+  margin: 0 -0.25rem;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mall-cards-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Shop-Karten */
+.mall-shop-card {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px var(--mall-shadow-color);
+  padding: 1rem;
+  margin: 0.5rem;
+  min-width: 200px;
+  max-width: 300px;
+  width: 280px;
+  scroll-snap-align: start;
+  transform: translateZ(0);
+}
+
+.mall-shop-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 0.75rem;
+  background-color: transparent;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mall-shop-name {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.mall-shop-category {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 0.25rem 0;
+}
+
+.mall-shop-floor {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-shop-description {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-shop-opening {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Events-Sektion */
+.mall-events {
+  width: 100%;
+  margin-bottom: 1rem;
+  transform: translateZ(0);
+  contain: content;
+}
+
+.mall-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mall-event-card {
+  display: flex;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px var(--mall-shadow-color);
+  padding: 1rem;
+  transform: translateZ(0);
+}
+
+.mall-event-image {
+  width: 80px;
+  height: 80px;
+  margin-right: 1rem;
+}
+
+.mall-event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.mall-event-content {
+  flex: 1;
+}
+
+.mall-event-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.mall-event-date {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 0.5rem 0;
+}
+
+.mall-event-description {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Öffnungszeiten-Sektion */
+.mall-opening-hours {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px var(--mall-shadow-color);
+  overflow: hidden;
+  transform: translateZ(0);
+  contain: content;
+}
+
+.mall-opening-hours .mall-section-title {
+  background-color: var(--mall-primary-color, #3b1c60);
+  color: white;
+  padding: 0.75rem 1rem;
+  margin: 0;
+}
+
+.mall-opening-hours-content {
+  padding: 1rem;
+}
+
+.mall-opening-hours table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mall-opening-hours tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mall-opening-hours td {
+  padding: 0.5rem 0;
+}
+
+.mall-opening-hours td:first-child {
+  font-weight: 500;
+}
+
+.mall-opening-hours td:last-child {
+  text-align: right;
+  font-weight: 600;
+  color: var(--mall-secondary-color, #ff5a5f);
+}
+
+/* Parkgebühren-Sektion */
+.mall-parking {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px var(--mall-shadow-color);
+  overflow: hidden;
+  transform: translateZ(0);
+  contain: content;
+}
+
+.mall-parking .mall-section-title {
+  background-color: var(--mall-primary-color, #3b1c60);
+  color: white;
+  padding: 0.75rem 1rem;
+  margin: 0;
+}
+
+.mall-parking-content {
+  padding: 1rem;
+}
+
+.mall-parking table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mall-parking tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mall-parking td {
+  padding: 0.5rem 0;
+}
+
+.mall-parking td:first-child {
+  font-weight: 500;
+}
+
+.mall-parking td:last-child {
+  text-align: right;
+  font-weight: 600;
+  color: var(--mall-secondary-color, #ff5a5f);
+}
+
+.mall-parking-notes {
+  margin-top: 1rem;
+}
+
+.mall-parking-notes h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.mall-parking-notes p {
+  font-size: 0.9rem;
+  background-color: #f9f9f9;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  margin: 0.25rem 0;
+}
+
+/* Tipp-Sektion */
+.mall-tip {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  background-color: #f8f9fa;
+  border-left: 4px solid var(--mall-secondary-color);
+  padding: 0.75rem 1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin-top: 0.5rem;
+  transform: translateZ(0);
+  contain: content;
+}
+
+/* Follow-up-Sektion */
+.mall-followup {
+  margin-top: 1rem;
+  transform: translateZ(0);
+  contain: content;
+}
+
+.mall-followup-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1a2252;
+}
+
+.mall-followup-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mall-followup-question {
+  background-color: #f0f2f5;
+  border-radius: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.mall-followup-question:hover {
+  background-color: #e4e6eb;
+}
+
+/* Platzhalter für Streaming */
+.mall-placeholder {
+  width: 100%;
+  margin-bottom: 1rem;
+  transform: translateZ(0);
+}
+
+/* Animation für Shimmer-Effekt */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Fehlermeldung */
+.mall-error {
+  padding: 1rem;
+  background-color: #fff0f0;
+  border-left: 4px solid #ff5a5f;
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin: 1rem 0;
+}
+
+.mall-error p {
+  margin: 0;
+  color: #d32f2f;
+}
+
+/* Message Controls */
+.mall-message-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  transform: translateZ(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mall-template-container {
+    padding: 1rem;
+  }
+
+  .mall-shop-card {
+    min-width: 160px;
+  }
+
+  .mall-event-card {
+    flex-direction: column;
+  }
+
+  .mall-event-image {
+    width: 100%;
+    height: 120px;
+    margin-right: 0;
+    margin-bottom: 0.75rem;
+  }
+}

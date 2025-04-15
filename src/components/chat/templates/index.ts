@@ -20,6 +20,7 @@ const BrandenburgInfo = lazy(() => import('./brandenburg/BrandenburgInfo'));
 
 // Shopping Mall Template-Komponenten
 const ShoppingMallMessage = lazy(() => import('./mall/ShoppingMallMessage'));
+const MallTemplateRenderer = lazy(() => import('./mall/MallTemplateRenderer'));
 
 // Ninfly Sports Arena Template-Komponenten
 const NinflyMessage = lazy(() => import('./ninfly/NinflyMessage'));
@@ -105,7 +106,7 @@ export function getTemplateComponents(templateName?: string | null): TemplateCom
 
     case 'mall':
       return {
-        Message: ShoppingMallMessage,
+        Message: MallTemplateRenderer, // Optimierte Version für bessere Streaming-Performance
       };
 
     case 'ninfly':

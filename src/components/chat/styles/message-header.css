@@ -13,28 +13,34 @@
   z-index: 2;
   width: 100%;
   padding-left: 1rem;
+  height: 48px; /* Feste Höhe für den Header */
+  min-height: 48px; /* Minimale Höhe für den Header */
+  max-height: 48px; /* Maximale Höhe für den Header */
+  overflow: visible; /* Damit das Logo sichtbar bleibt */
 }
 
 .bot-avatar-container {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center; /* Zentriert das Logo vertikal */
   justify-content: flex-start;
   margin-right: 10px;
   flex-shrink: 0;
   animation: none !important;
   transition: none !important;
+  height: 48px; /* Feste Höhe für den Container */
+  width: 120px; /* Feste Breite für den Container */
 }
 
 .bot-avatar {
-  width: 120px;
-  height: 120px;
+  width: auto;
+  height: 40px; /* Kleinere Höhe für das Logo */
   object-fit: contain;
   border-radius: 0;
   background: transparent;
   display: block;
   max-width: 120px;
-  max-height: 120px;
+  max-height: 40px; /* Kleinere maximale Höhe */
   box-shadow: none;
   border: none;
   animation: none !important;
