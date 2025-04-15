@@ -2,7 +2,7 @@
 
 import React, { memo } from 'react';
 // import ChunkedMallMessage from './components/ChunkedMallMessage'; // Nicht mehr verwendet
-import MallTemplateRenderer from './MallTemplateRenderer.fixed';
+import ProgressiveMallTemplateRenderer from './MallTemplateRenderer.progressive';
 import styles from './ShoppingMallMessage.module.css';
 import './styles/progressive-streaming.css';
 
@@ -78,7 +78,7 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
           contain: 'content',
         }}
       >
-        <MallTemplateRenderer
+        <ProgressiveMallTemplateRenderer
           content={content}
           isStreaming={isStreaming}
           isComplete={isComplete}
