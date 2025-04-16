@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   const offsetX = searchParams.get('offsetX') || '20' // Horizontaler Abstand in px
   const offsetY = searchParams.get('offsetY') || '20' // Vertikaler Abstand in px
   const chatWidth = searchParams.get('chatWidth') || '624' // Standardbreite - etwas größer als typische Bots
-  const chatHeight = searchParams.get('chatHeight') || '910' // Standardhöhe - etwas größer als typische Bots
+  const chatHeight = searchParams.get('chatHeight') || '710' // Standardhöhe - etwas größer als typische Bots
   // Neue Parameter für verbesserte Anpassbarkeit
   const zIndex = searchParams.get('zIndex') || '' // Konfigurierbarer Z-Index
   // Standardmäßig im Dialog-Modus starten (kann aber überschrieben werden)
