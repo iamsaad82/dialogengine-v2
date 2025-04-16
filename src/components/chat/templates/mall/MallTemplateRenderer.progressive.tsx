@@ -87,20 +87,57 @@ const PlaceholderElement = memo(({ type, colorStyle }: {
   return <div className={`mall-placeholder mall-placeholder-${type}`}>{content}</div>;
 });
 
-// Shop-Karte Komponente
-const ShopCard = memo(({ shop }: { shop: any }) => {
+// Shop-Karte Komponente mit automatischer Höhenanpassung
+const ShopCard = memo(({ shop, totalItems = 3 }: { shop: any, totalItems?: number }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [cardHeight, setCardHeight] = useState<number>(0);
+
+  // Berechne die optimale Breite basierend auf der Anzahl der Items
+  const cardWidth = useMemo(() => {
+    // Wenn weniger als 3 Items, mache die Karten breiter
+    if (totalItems <= 3) {
+      return totalItems === 1 ? '100%' : totalItems === 2 ? '48%' : '32%';
+    }
+    // Standardbreite für 3+ Items
+    return '280px';
+  }, [totalItems]);
+
+  // Überwache die Höhe des Inhalts und passe die Kartenhöhe an
+  useEffect(() => {
+    if (cardRef.current) {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          // Setze die Höhe mit etwas zusätzlichem Platz
+          setCardHeight(entry.contentRect.height + 20);
+        }
+      });
+
+      observer.observe(cardRef.current);
+      return () => observer.disconnect();
+    }
+  }, []);
+
   return (
-    <div className="mall-shop-card">
-      <img
-        src={shop.logo || shop.image || `https://via.placeholder.com/80?text=${encodeURIComponent(shop.name)}`}
-        alt={shop.name}
-        className="mall-shop-logo"
-      />
-      <h4 className="mall-shop-name">{shop.name}</h4>
-      {shop.category && <p className="mall-shop-category">{shop.category}</p>}
-      {shop.floor && <p className="mall-shop-floor">{shop.floor}</p>}
-      {shop.description && <p className="mall-shop-description">{shop.description}</p>}
-      {shop.opening && <p className="mall-shop-opening">{shop.opening}</p>}
+    <div
+      className="mall-shop-card"
+      style={{
+        width: cardWidth,
+        minHeight: Math.max(cardHeight, 250) + 'px', // Mindesthöhe basierend auf Inhalt
+        height: 'auto' // Automatische Höhe
+      }}
+    >
+      <div ref={cardRef} className="mall-shop-card-content">
+        <img
+          src={shop.logo || shop.image || `https://via.placeholder.com/80?text=${encodeURIComponent(shop.name)}`}
+          alt={shop.name}
+          className="mall-shop-logo"
+        />
+        <h4 className="mall-shop-name">{shop.name}</h4>
+        {shop.category && <p className="mall-shop-category">{shop.category}</p>}
+        {shop.floor && <p className="mall-shop-floor">{shop.floor}</p>}
+        {shop.description && <p className="mall-shop-description">{shop.description}</p>}
+        {shop.opening && <p className="mall-shop-opening">{shop.opening}</p>}
+      </div>
     </div>
   );
 });
@@ -119,7 +156,7 @@ interface MallTemplateRendererProps {
 
 /**
  * Strikt progressive Mall-Template-Komponente
- * 
+ *
  * Diese Komponente zeigt Inhalte in einer festen Reihenfolge an:
  * 1. Intro
  * 2. Shops/Restaurants (nach und nach)
@@ -139,15 +176,15 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
 }) => {
   // Verwende den JSON-Streaming-Hook für Content-Verarbeitung
   const { sections, partialSections, progress, hasError } = useJsonProgressiveStreaming(
-    content, 
-    isStreaming, 
+    content,
+    isStreaming,
     query
   );
 
   // Refs für Timing-Kontrolle
   const lastUpdateRef = useRef<number>(Date.now());
   const visibleItemsRef = useRef<number>(0);
-  
+
   // States für progressive Anzeige
   const [showIntro, setShowIntro] = useState<boolean>(false);
   const [visibleShops, setVisibleShops] = useState<any[]>([]);
@@ -205,7 +242,7 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
     // Verzögerung für die nächste Aktualisierung
     const now = Date.now();
     const timeSinceLastUpdate = now - lastUpdateRef.current;
-    
+
     // Nur aktualisieren, wenn genug Zeit vergangen ist (verhindert zu schnelle Updates)
     if (timeSinceLastUpdate < 300) return;
 
@@ -220,8 +257,8 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
     }
 
     // Restaurants nach und nach anzeigen (nur wenn alle Shops bereits angezeigt werden)
-    if (visibleShops.length === (shopsSection?.items?.length || 0) && 
-        restaurantsSection?.items && 
+    if (visibleShops.length === (shopsSection?.items?.length || 0) &&
+        restaurantsSection?.items &&
         restaurantsSection.items.length > visibleRestaurants.length) {
       const nextItemIndex = visibleRestaurants.length;
       if (nextItemIndex < restaurantsSection.items.length) {
@@ -232,8 +269,8 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
     }
 
     // Events nach und nach anzeigen (nur wenn alle Restaurants bereits angezeigt werden)
-    if (visibleRestaurants.length === (restaurantsSection?.items?.length || 0) && 
-        eventsSection?.items && 
+    if (visibleRestaurants.length === (restaurantsSection?.items?.length || 0) &&
+        eventsSection?.items &&
         eventsSection.items.length > visibleEvents.length) {
       const nextItemIndex = visibleEvents.length;
       if (nextItemIndex < eventsSection.items.length) {
@@ -294,9 +331,13 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
           {visibleShops.length > 0 && (
             <div className="mall-shop-slider">
               <h3 className="mall-section-title">{shopsSection?.title || 'Shops'}</h3>
-              <div className="mall-cards-container">
+              <div className={`mall-cards-container ${visibleShops.length <= 3 ? 'mall-cards-container-few' : ''}`}>
                 {visibleShops.map((shop, index) => (
-                  <ShopCard key={`shop-${index}`} shop={shop} />
+                  <ShopCard
+                    key={`shop-${index}`}
+                    shop={shop}
+                    totalItems={shopsSection?.items?.length || visibleShops.length}
+                  />
                 ))}
                 {/* Platzhalter für noch nicht geladene Shops */}
                 {isStreaming && shopsSection?.items && visibleShops.length < shopsSection.items.length && (
@@ -314,9 +355,13 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
           {visibleRestaurants.length > 0 && (
             <div className="mall-shop-slider">
               <h3 className="mall-section-title">{restaurantsSection?.title || 'Gastronomie'}</h3>
-              <div className="mall-cards-container">
+              <div className={`mall-cards-container ${visibleRestaurants.length <= 3 ? 'mall-cards-container-few' : ''}`}>
                 {visibleRestaurants.map((restaurant, index) => (
-                  <ShopCard key={`restaurant-${index}`} shop={restaurant} />
+                  <ShopCard
+                    key={`restaurant-${index}`}
+                    shop={restaurant}
+                    totalItems={restaurantsSection?.items?.length || visibleRestaurants.length}
+                  />
                 ))}
                 {/* Platzhalter für noch nicht geladene Restaurants */}
                 {isStreaming && restaurantsSection?.items && visibleRestaurants.length < restaurantsSection.items.length && (
@@ -441,10 +486,10 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
       </>
     );
   }, [
-    hasError, isStreaming, progress, colorStyle, 
-    showIntro, introSection, 
-    visibleShops, shopsSection, 
-    visibleRestaurants, restaurantsSection, 
+    hasError, isStreaming, progress, colorStyle,
+    showIntro, introSection,
+    visibleShops, shopsSection,
+    visibleRestaurants, restaurantsSection,
     visibleEvents, eventsSection,
     openingHoursSection, parkingSection,
     showTip, tipSection,

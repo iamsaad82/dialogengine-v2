@@ -424,9 +424,15 @@
   scrollbar-width: thin;
 }
 
+/* Spezielle Anpassung für wenige Karten */
+.mall-cards-container-few {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
 .mall-shop-card {
   flex: 0 0 auto;
-  width: 200px;
+  width: 280px; /* Breitere Standardkarten */
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -436,6 +442,16 @@
   align-items: center;
   text-align: center;
   animation: fadeIn 0.5s ease-in-out;
+  margin-bottom: 16px;
+  min-height: 250px; /* Mindesthöhe für Konsistenz */
+}
+
+.mall-shop-card-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Platzhalter für Shop-Karten */
