@@ -88,8 +88,8 @@ const PlaceholderElement = memo(({ type, colorStyle }: {
   return <div className={`mall-placeholder mall-placeholder-${type}`}>{content}</div>;
 });
 
-// Shop-Karte Komponente mit automatischer Höhenanpassung
-const ShopCard = memo(({ shop, totalItems = 3 }: { shop: any, totalItems?: number }) => {
+// Lokale Wrapper-Komponente für die importierte ShopCard
+const ShopCardWrapper = memo(({ shop, totalItems = 3 }: { shop: any, totalItems?: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardHeight, setCardHeight] = useState<number>(0);
 
@@ -334,9 +334,10 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
               <h3 className="mall-section-title">{shopsSection?.title || 'Shops'}</h3>
               <div className={`mall-cards-container ${visibleShops.length <= 3 ? 'mall-cards-container-few' : ''}`}>
                 {visibleShops.map((shop, index) => (
-                  <ShopCard
+                  <ShopCardWrapper
                     key={`shop-${index}`}
-                    data={shop}
+                    shop={shop}
+                    totalItems={shopsSection?.items?.length || visibleShops.length}
                   />
                 ))}
                 {/* Platzhalter für noch nicht geladene Shops */}
@@ -357,9 +358,10 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
               <h3 className="mall-section-title">{restaurantsSection?.title || 'Gastronomie'}</h3>
               <div className={`mall-cards-container ${visibleRestaurants.length <= 3 ? 'mall-cards-container-few' : ''}`}>
                 {visibleRestaurants.map((restaurant, index) => (
-                  <ShopCard
+                  <ShopCardWrapper
                     key={`restaurant-${index}`}
-                    data={restaurant}
+                    shop={restaurant}
+                    totalItems={restaurantsSection?.items?.length || visibleRestaurants.length}
                   />
                 ))}
                 {/* Platzhalter für noch nicht geladene Restaurants */}
