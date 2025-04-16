@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, useMemo, useEffect, useState, useRef } from 'react';
-import { useJsonProgressiveStreaming } from './hooks/useJsonProgressiveStreaming.fixed';
+import { useJsonProgressiveStreaming } from './hooks/useJsonProgressiveStreaming.robust';
 import { MallSection } from './utils/contentParser';
 import { sanitizeHtml, sanitizeFollowUpContent } from './utils/htmlSanitizer';
 import './styles/mall-unified.css';

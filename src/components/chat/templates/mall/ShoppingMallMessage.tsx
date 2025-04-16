@@ -3,6 +3,7 @@
 import React, { memo } from 'react';
 // import ChunkedMallMessage from './components/ChunkedMallMessage'; // Nicht mehr verwendet
 import ProgressiveMallTemplateRenderer from './MallTemplateRenderer.progressive';
+import './styles/mall-unified.css';
 import styles from './ShoppingMallMessage.module.css';
 import './styles/progressive-streaming.css';
 
