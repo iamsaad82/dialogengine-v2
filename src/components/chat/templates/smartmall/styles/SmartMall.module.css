@@ -8,16 +8,10 @@
   contain: content; /* Verhindern, dass Layout-Änderungen außerhalb gewirkt werden */
   overflow: hidden; /* Verhindern von Layout-Sprüngen */
   transition: height 0.3s ease-in-out;
-  min-height: 200px; /* Minimalhöhe für Container */
-  will-change: contents; /* Optimierung für GPU */
-  backface-visibility: hidden; /* Verhindert Flackern */
-  -webkit-backface-visibility: hidden;
-  isolation: isolate; /* Stapelkontext für Kinder-Elemente */
 }
 
 .streaming {
-  min-height: 250px; /* Erhöhte Minimalhöhe während des Streamings */
-  contain: layout style paint; /* Stärkere Isolation für Streaming-Zustand */
+  min-height: 100px; /* Minimalhöhe während des Streamings */
 }
 
 .renderer {
@@ -25,67 +19,16 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px 0;
-  transform: translateZ(0);
-  will-change: contents;
-  contain: layout;
 }
 
 .content {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  min-height: 100px; /* Minimalhöhe für Content */
-  position: relative;
-  contain: layout;
 }
 
-/* Verhindert Layout-Shifts während des Streamings */
-.stableContainer {
-  height: auto;
-  min-height: 50px;
-  position: relative;
-  contain: layout;
-  transform: translateZ(0);
-  will-change: contents;
-}
-
-/* Skelett-UI für Streaming-Zustand */
-.skeletonContainer {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  min-height: 120px;
-  animation: pulse 1.5s infinite ease-in-out;
-  margin-bottom: 16px;
-}
-
-.skeletonLine {
-  height: 16px;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-.skeletonLine.shorter {
-  width: 75%;
-}
-
-.skeletonLine.short {
-  width: 50%;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.8;
-  }
+.controls {
+  margin-top: 16px;
 }
 
 /* Loading Indicator */
@@ -174,9 +117,6 @@
   margin-bottom: 8px;
   animation: fadeInSlideDown 0.25s ease-out;
   will-change: opacity, transform;
-  min-height: 70px; /* Minimalhöhe für Intro */
-  contain: layout;
-  transform: translateZ(0);
 }
 
 .introSection p {
@@ -192,8 +132,6 @@
   margin-bottom: 8px;
   animation: fadeInSlideDown 0.3s ease-out;
   will-change: opacity, transform;
-  min-height: 100px; /* Minimalhöhe für Listen */
-  contain: layout;
 }
 
 .sectionTitle {
@@ -720,12 +658,4 @@
     width: 100%;
     margin-bottom: 4px;
   }
-}
-
-/* Container für gleiche Höhen für Karten */
-.cardContainer {
-  display: contents;
-  height: 100%;
-  transform: translateZ(0);
-  contain: layout;
 } 
