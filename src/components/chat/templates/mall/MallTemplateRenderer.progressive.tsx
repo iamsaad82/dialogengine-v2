@@ -5,6 +5,7 @@ import { useChunkProgressiveStreaming } from './hooks/useChunkProgressiveStreami
 import { MallSection } from './utils/contentParser';
 import { sanitizeHtml, sanitizeFollowUpContent } from './utils/htmlSanitizer';
 import FluidRestaurantSlider from './components/FluidRestaurantSlider';
+import FluidShopSlider from './components/FluidShopSlider';
 import './styles/mall-unified.css';
 
 // Memoized HTML-Content-Komponente
@@ -336,26 +337,12 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
 
           {/* Shops-Sektion */}
           {visibleShops.length > 0 && (
-            <div className="mall-shop-slider" style={{ marginBottom: '24px' }}>
-              <h3 className="mall-section-title" style={{ fontSize: '1.2rem', marginBottom: '12px', color: '#333' }}>{shopsSection?.title || 'Shops'}</h3>
-              <div className={`mall-cards-container ${visibleShops.length <= 3 ? 'mall-cards-container-few' : ''}`} style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '8px 0' }}>
-                {visibleShops.map((shop, index) => (
-                  <ShopCardWrapper
-                    key={`shop-${index}`}
-                    shop={shop}
-                    totalItems={shopsSection?.items?.length || visibleShops.length}
-                  />
-                ))}
-                {/* Platzhalter für noch nicht geladene Shops */}
-                {isStreaming && shopsSection?.items && visibleShops.length < shopsSection.items.length && (
-                  <div className="mall-shop-card mall-shop-card-placeholder" style={{ width: '280px', minHeight: '250px', border: '1px solid #eee', borderRadius: '8px', padding: '16px', margin: '8px', backgroundColor: '#f9f9f9' }}>
-                    <div className="mall-shop-logo-placeholder" style={{ width: '80px', height: '80px', backgroundColor: '#eee', marginBottom: '12px', borderRadius: '4px' }}></div>
-                    <div className="mall-shop-name-placeholder" style={{ height: '20px', width: '80%', backgroundColor: '#eee', marginBottom: '8px', borderRadius: '4px' }}></div>
-                    <div className="mall-shop-category-placeholder" style={{ height: '16px', width: '60%', backgroundColor: '#eee', borderRadius: '4px' }}></div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <FluidShopSlider
+              title={shopsSection?.title || 'Shops'}
+              shops={visibleShops}
+              isStreaming={isStreaming}
+              colorStyle={colorStyle}
+            />
           )}
 
           {/* Restaurants-Sektion */}
