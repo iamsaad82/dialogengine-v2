@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, useMemo, useEffect, useState, useRef } from 'react';
-import { useChunkProgressiveStreaming } from './hooks/useChunkProgressiveStreaming';
+import { useChunkProgressiveStreaming } from './hooks/useChunkProgressiveStreaming.keyvalue';
 import { MallSection } from './utils/contentParser';
 import { sanitizeHtml, sanitizeFollowUpContent } from './utils/htmlSanitizer';
 import './styles/mall-unified.css';
