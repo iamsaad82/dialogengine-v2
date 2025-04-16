@@ -1,0 +1,661 @@
+/* SmartMall Template CSS */
+
+/* Container und Layout */
+.container {
+  width: 100%;
+  position: relative;
+  transform: translateZ(0); /* Hardware-Beschleunigung aktivieren */
+  contain: content; /* Verhindern, dass Layout-Änderungen außerhalb gewirkt werden */
+  overflow: hidden; /* Verhindern von Layout-Sprüngen */
+  transition: height 0.3s ease-in-out;
+}
+
+.streaming {
+  min-height: 100px; /* Minimalhöhe während des Streamings */
+}
+
+.renderer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.controls {
+  margin-top: 16px;
+}
+
+/* Loading Indicator */
+.loadingIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.loadingAnimation {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.loadingDot {
+  width: 12px;
+  height: 12px;
+  background-color: #3b1c60;
+  border-radius: 50%;
+  display: inline-block;
+  animation: loadingPulse 1.4s infinite ease-in-out both;
+}
+
+.loadingDot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loadingDot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.loadingText {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+  animation: textPulse 2s infinite ease-in-out;
+}
+
+@keyframes loadingPulse {
+  0%, 80%, 100% { 
+    transform: scale(0.4);
+    opacity: 0.4;
+  }
+  40% { 
+    transform: scale(1.0);
+    opacity: 1;
+  }
+}
+
+@keyframes textPulse {
+  0%, 100% { 
+    opacity: 0.8;
+  }
+  50% { 
+    opacity: 1;
+  }
+}
+
+/* Progress Bar */
+.progressContainer {
+  width: 100%;
+  height: 4px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progressBar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.2s linear;
+}
+
+/* Intro Section */
+.introSection {
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #3b1c60;
+  margin-bottom: 8px;
+  animation: fadeInSlideDown 0.25s ease-out;
+  will-change: opacity, transform;
+}
+
+.introSection p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* Shop / Restaurant Liste */
+.shopListSection, 
+.eventListSection {
+  margin-bottom: 8px;
+  animation: fadeInSlideDown 0.3s ease-out;
+  will-change: opacity, transform;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #3b1c60;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.shopList, 
+.eventList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* Slider-Komponenten */
+.sliderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sliderControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sliderButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #3b1c60;
+  transition: all 0.2s ease;
+}
+
+.sliderButton:hover {
+  background-color: #e0e0e0;
+}
+
+.sliderButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 28, 96, 0.3);
+}
+
+.sliderButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sliderButtonDisabled:hover {
+  background-color: #f0f0f0;
+}
+
+.sliderPagination {
+  font-size: 14px;
+  color: #666;
+}
+
+.sliderContainer {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.sliderTrack {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  width: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Wenn nur 1 Element im Slider ist */
+.sliderTrack.singleItem {
+  grid-template-columns: 1fr;
+}
+
+/* Wenn nur 2 Elemente im Slider sind */
+.sliderTrack.twoItems {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.sliderItem {
+  width: 100%;
+  min-width: 0;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.sliderItem:nth-child(2) {
+  animation-delay: 0.07s;
+}
+
+.sliderItem:nth-child(3) {
+  animation-delay: 0.14s;
+}
+
+/* Responsive Anpassungen für den Slider */
+@media (max-width: 768px) {
+  .sliderTrack {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .sliderTrack.singleItem {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .sliderTrack {
+    grid-template-columns: 1fr;
+  }
+  
+  .sliderHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .sliderControls {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* Shop Card */
+.shopCard {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  border: 1px solid #eee;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  animation: fadeInScale 0.35s ease-out;
+  animation-fill-mode: both;
+  will-change: opacity, transform;
+}
+
+.shopCard:nth-child(2n) {
+  animation-delay: 0.07s;
+}
+
+.shopCard:nth-child(3n) {
+  animation-delay: 0.14s;
+}
+
+.shopCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.shopLogo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  background-color: #f9f9f9;
+}
+
+.shopName {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.shopCategory {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 4px 0;
+}
+
+.shopFloor {
+  font-size: 14px;
+  color: #3b1c60;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+}
+
+.shopDescription {
+  font-size: 14px;
+  color: #444;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+  flex-grow: 1;
+}
+
+.shopOpening {
+  font-size: 13px;
+  color: #666;
+  margin: 8px 0 0 0;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Event Card */
+.eventCard {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  border: 1px solid #eee;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  animation: fadeInScale 0.35s ease-out;
+  animation-fill-mode: both;
+  will-change: opacity, transform;
+}
+
+.eventCard:nth-child(2n) {
+  animation-delay: 0.07s;
+}
+
+.eventCard:nth-child(3n) {
+  animation-delay: 0.14s;
+}
+
+.eventCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.eventImage {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  background-color: #f9f9f9;
+}
+
+.eventName {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.eventDate {
+  font-size: 14px;
+  color: #3b1c60;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+}
+
+.eventDescription {
+  font-size: 14px;
+  color: #444;
+  margin: 0;
+  line-height: 1.4;
+  flex-grow: 1;
+}
+
+/* Tip Section */
+.tipSection {
+  background-color: #fff8e1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+  margin-top: 8px;
+  animation: fadeInSlideUp 0.4s ease-out;
+  will-change: opacity, transform;
+}
+
+.tipSection p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #5d4037;
+}
+
+/* Follow-Up Section */
+.followUpSection {
+  background-color: #e8f5e9;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+  margin-top: 8px;
+  animation: fadeInSlideUp 0.4s ease-out;
+  will-change: opacity, transform;
+}
+
+.followUpSection p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #2e7d32;
+}
+
+/* Error Section */
+.errorSection {
+  background-color: #ffebee;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #f44336;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.errorSection p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #c62828;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .shopList, 
+  .eventList {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .shopList, 
+  .eventList {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Parking Section */
+.parkingSection {
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 4px solid #3b1c60;
+  animation: fadeInSlideDown 0.3s ease-out;
+}
+
+.parkingSubtitle {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 16px 0 8px 0;
+  color: #3b1c60;
+}
+
+.parkingFees {
+  margin-bottom: 16px;
+}
+
+.feeTable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.feeRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.feeDuration {
+  font-weight: 500;
+  color: #333;
+}
+
+.feePrice {
+  font-weight: 600;
+  color: #3b1c60;
+}
+
+.parkingNotes {
+  margin-top: 16px;
+}
+
+.notesList {
+  list-style-type: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+}
+
+.noteItem {
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border: 1px solid #eee;
+}
+
+/* OpeningHours Section */
+.openingHoursSection {
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 4px solid #3b1c60;
+  animation: fadeInSlideDown 0.3s ease-out;
+}
+
+.openingHoursSubtitle {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 16px 0 8px 0;
+  color: #3b1c60;
+}
+
+.regularHours, .specialHours {
+  margin-bottom: 16px;
+}
+
+.hoursTable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.hoursRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.hoursDay, .hoursDate {
+  font-weight: 500;
+  color: #333;
+  width: 120px;
+  margin-right: 12px;
+}
+
+.hoursTime {
+  font-weight: 600;
+  color: #3b1c60;
+  margin-right: 12px;
+}
+
+.hoursNote {
+  font-style: italic;
+  color: #666;
+  margin-top: 4px;
+  width: 100%;
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .hoursRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .hoursDay, .hoursDate, .hoursTime {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+} 

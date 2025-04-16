@@ -1,0 +1,33 @@
+declare const styles: {
+  readonly container: string;
+  readonly streaming: string;
+  readonly renderer: string;
+  readonly content: string;
+  readonly controls: string;
+  readonly progressContainer: string;
+  readonly progressBar: string;
+  readonly introSection: string;
+  readonly shopListSection: string;
+  readonly eventListSection: string;
+  readonly sectionTitle: string;
+  readonly shopList: string;
+  readonly eventList: string;
+  readonly shopCard: string;
+  readonly shopLogo: string;
+  readonly shopName: string;
+  readonly shopCategory: string;
+  readonly shopFloor: string;
+  readonly shopDescription: string;
+  readonly shopOpening: string;
+  readonly eventCard: string;
+  readonly eventImage: string;
+  readonly eventName: string;
+  readonly eventDate: string;
+  readonly eventDescription: string;
+  readonly tipSection: string;
+  readonly followUpSection: string;
+  readonly errorSection: string;
+  [key: string]: string;
+};
+
+export default styles; 
