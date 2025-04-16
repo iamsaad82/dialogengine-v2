@@ -49,6 +49,9 @@ export function useChunkProgressiveStreaming(
    */
   const parseChunkToSection = useCallback((type: string, content: string, isPartial: boolean = false): MallSection | null => {
     try {
+      // Debugging-Ausgabe
+      console.log(`Verarbeite Chunk vom Typ "${type}", Inhalt (Anfang): ${content.substring(0, 50)}...`);
+
       switch (type) {
         case 'intro':
           return {
@@ -58,34 +61,35 @@ export function useChunkProgressiveStreaming(
             query,
             isPartial
           };
-        
-        case 'shop':
-          try {
-            const lines = content.trim().split('\n');
-            const shopData: any = {};
-            
-            lines.forEach(line => {
-              const [key, ...valueParts] = line.split(':');
-              if (key && valueParts.length > 0) {
-                const keyLower = key.trim().toLowerCase();
-                const valueClean = valueParts.join(':').trim();
-                
-                if (keyLower === 'name') shopData.name = valueClean;
-                else if (keyLower === 'category') shopData.category = valueClean;
-                else if (keyLower === 'floor') shopData.floor = valueClean;
-                else if (keyLower === 'logo') shopData.logo = valueClean || shopData.image;
-                else if (keyLower === 'image') shopData.image = valueClean || shopData.logo;
-                else if (keyLower === 'description') shopData.description = valueClean;
-                else if (keyLower === 'opening') shopData.opening = valueClean;
-              }
-            });
-            
-            // Stelle sicher, dass mindestens ein Name vorhanden ist
-            if (!shopData.name) {
-              console.warn('Shop ohne Namen gefunden, überspringe');
-              return null;
-            }
-            
+
+        case 'shop': {
+          // Finde Key-Value-Paare im Flowise-Format
+          const nameMatch = content.match(/NAME:\s*(.*?)(?:\n|$)/);
+          const categoryMatch = content.match(/CATEGORY:\s*(.*?)(?:\n|$)/);
+          const floorMatch = content.match(/FLOOR:\s*(.*?)(?:\n|$)/);
+          const logoMatch = content.match(/LOGO:\s*(.*?)(?:\n|$)/);
+          const descriptionMatch = content.match(/DESCRIPTION:\s*(.*?)(?:\n|$)/);
+          const openingMatch = content.match(/OPENING:\s*(.*?)(?:\n|$)/);
+
+          const name = nameMatch?.[1].trim() || '';
+          const category = categoryMatch?.[1].trim() || '';
+          const floor = floorMatch?.[1].trim() || '';
+          const logo = logoMatch?.[1].trim() || '';
+          const description = descriptionMatch?.[1].trim() || '';
+          const opening = openingMatch?.[1].trim() || '';
+
+          if (name) {
+            const shopData = {
+              name,
+              category,
+              floor,
+              image: logo,
+              description,
+              opening
+            };
+
+            console.log(`Shop geparst: ${name}`);
+
             return {
               type: 'shops',
               title: 'Shops',
@@ -93,38 +97,38 @@ export function useChunkProgressiveStreaming(
               query,
               isPartial
             };
-          } catch (e) {
-            console.error('Fehler beim Parsen des Shop-Chunks:', e);
-            return null;
           }
-        
-        case 'restaurant':
-          try {
-            const lines = content.trim().split('\n');
-            const restaurantData: any = {};
-            
-            lines.forEach(line => {
-              const [key, ...valueParts] = line.split(':');
-              if (key && valueParts.length > 0) {
-                const keyLower = key.trim().toLowerCase();
-                const valueClean = valueParts.join(':').trim();
-                
-                if (keyLower === 'name') restaurantData.name = valueClean;
-                else if (keyLower === 'category') restaurantData.category = valueClean;
-                else if (keyLower === 'floor') restaurantData.floor = valueClean;
-                else if (keyLower === 'logo') restaurantData.logo = valueClean || restaurantData.image;
-                else if (keyLower === 'image') restaurantData.image = valueClean || restaurantData.logo;
-                else if (keyLower === 'description') restaurantData.description = valueClean;
-                else if (keyLower === 'opening') restaurantData.opening = valueClean;
-              }
-            });
-            
-            // Stelle sicher, dass mindestens ein Name vorhanden ist
-            if (!restaurantData.name) {
-              console.warn('Restaurant ohne Namen gefunden, überspringe');
-              return null;
-            }
-            
+          return null;
+        }
+
+        case 'restaurant': {
+          // Finde Key-Value-Paare im Flowise-Format
+          const nameMatch = content.match(/NAME:\s*(.*?)(?:\n|$)/);
+          const categoryMatch = content.match(/CATEGORY:\s*(.*?)(?:\n|$)/);
+          const floorMatch = content.match(/FLOOR:\s*(.*?)(?:\n|$)/);
+          const logoMatch = content.match(/LOGO:\s*(.*?)(?:\n|$)/);
+          const descriptionMatch = content.match(/DESCRIPTION:\s*(.*?)(?:\n|$)/);
+          const openingMatch = content.match(/OPENING:\s*(.*?)(?:\n|$)/);
+
+          const name = nameMatch?.[1].trim() || '';
+          const category = categoryMatch?.[1].trim() || '';
+          const floor = floorMatch?.[1].trim() || '';
+          const logo = logoMatch?.[1].trim() || '';
+          const description = descriptionMatch?.[1].trim() || '';
+          const opening = openingMatch?.[1].trim() || '';
+
+          if (name) {
+            const restaurantData = {
+              name,
+              category,
+              floor,
+              image: logo,
+              description,
+              opening
+            };
+
+            console.log(`Restaurant geparst: ${name}`);
+
             return {
               type: 'restaurants',
               title: 'Gastronomie',
@@ -132,36 +136,32 @@ export function useChunkProgressiveStreaming(
               query,
               isPartial
             };
-          } catch (e) {
-            console.error('Fehler beim Parsen des Restaurant-Chunks:', e);
-            return null;
           }
-        
-        case 'event':
-          try {
-            const lines = content.trim().split('\n');
-            const eventData: any = {};
-            
-            lines.forEach(line => {
-              const [key, ...valueParts] = line.split(':');
-              if (key && valueParts.length > 0) {
-                const keyLower = key.trim().toLowerCase();
-                const valueClean = valueParts.join(':').trim();
-                
-                if (keyLower === 'name') eventData.name = valueClean;
-                else if (keyLower === 'date') eventData.date = valueClean;
-                else if (keyLower === 'logo') eventData.logo = valueClean || eventData.image;
-                else if (keyLower === 'image') eventData.image = valueClean || eventData.logo;
-                else if (keyLower === 'description') eventData.description = valueClean;
-              }
-            });
-            
-            // Stelle sicher, dass mindestens ein Name vorhanden ist
-            if (!eventData.name) {
-              console.warn('Event ohne Namen gefunden, überspringe');
-              return null;
-            }
-            
+          return null;
+        }
+
+        case 'event': {
+          // Finde Key-Value-Paare im Flowise-Format
+          const nameMatch = content.match(/NAME:\s*(.*?)(?:\n|$)/);
+          const dateMatch = content.match(/DATE:\s*(.*?)(?:\n|$)/);
+          const logoMatch = content.match(/LOGO:\s*(.*?)(?:\n|$)/);
+          const descriptionMatch = content.match(/DESCRIPTION:\s*(.*?)(?:\n|$)/);
+
+          const name = nameMatch?.[1].trim() || '';
+          const date = dateMatch?.[1].trim() || '';
+          const logo = logoMatch?.[1].trim() || '';
+          const description = descriptionMatch?.[1].trim() || '';
+
+          if (name) {
+            const eventData = {
+              name,
+              date,
+              image: logo,
+              description
+            };
+
+            console.log(`Event geparst: ${name}`);
+
             return {
               type: 'events',
               title: 'Veranstaltungen',
@@ -169,144 +169,12 @@ export function useChunkProgressiveStreaming(
               query,
               isPartial
             };
-          } catch (e) {
-            console.error('Fehler beim Parsen des Event-Chunks:', e);
-            return null;
           }
-        
-        case 'parking':
-          try {
-            const content_lines = content.trim().split('\n');
-            const parkingData: any = {
-              fees: [],
-              notes: []
-            };
-            
-            let currentSection = '';
-            
-            content_lines.forEach(line => {
-              const trimmedLine = line.trim();
-              
-              // Erkenne Abschnitte
-              if (trimmedLine === 'FEES:') {
-                currentSection = 'fees';
-                return;
-              } else if (trimmedLine === 'NOTES:') {
-                currentSection = 'notes';
-                return;
-              }
-              
-              // Verarbeite Einträge basierend auf dem aktuellen Abschnitt
-              if (currentSection === 'fees' && trimmedLine.startsWith('-')) {
-                const feeContent = trimmedLine.substring(1).trim();
-                const parts = feeContent.split('|');
-                
-                if (parts.length >= 2) {
-                  const durationPart = parts[0].trim();
-                  const pricePart = parts[1].trim();
-                  
-                  const duration = durationPart.replace('DURATION:', '').trim();
-                  const price = pricePart.replace('PRICE:', '').trim();
-                  
-                  if (duration && price) {
-                    parkingData.fees.push({ duration, price });
-                  }
-                }
-              } else if (currentSection === 'notes' && trimmedLine.startsWith('-')) {
-                const noteContent = trimmedLine.substring(1).trim();
-                if (noteContent) {
-                  parkingData.notes.push(noteContent);
-                }
-              }
-            });
-            
-            return {
-              type: 'parking',
-              title: 'Parkgebühren',
-              data: parkingData,
-              query,
-              isPartial
-            };
-          } catch (e) {
-            console.error('Fehler beim Parsen des Parking-Chunks:', e);
-            return null;
-          }
-        
-        case 'openingHours':
-          try {
-            const content_lines = content.trim().split('\n');
-            const openingHoursData: any = {
-              regular: [],
-              special: []
-            };
-            
-            let currentSection = '';
-            
-            content_lines.forEach(line => {
-              const trimmedLine = line.trim();
-              
-              // Erkenne Abschnitte
-              if (trimmedLine === 'REGULAR:') {
-                currentSection = 'regular';
-                return;
-              } else if (trimmedLine === 'SPECIAL:') {
-                currentSection = 'special';
-                return;
-              }
-              
-              // Verarbeite Einträge basierend auf dem aktuellen Abschnitt
-              if (currentSection === 'regular' && trimmedLine.startsWith('-')) {
-                const hourContent = trimmedLine.substring(1).trim();
-                const parts = hourContent.split('|');
-                
-                if (parts.length >= 2) {
-                  const dayPart = parts[0].trim();
-                  const hoursPart = parts[1].trim();
-                  
-                  const day = dayPart.replace('DAY:', '').trim();
-                  const hours = hoursPart.replace('HOURS:', '').trim();
-                  
-                  if (day && hours) {
-                    openingHoursData.regular.push({ day, hours });
-                  }
-                }
-              } else if (currentSection === 'special' && trimmedLine.startsWith('-')) {
-                const specialContent = trimmedLine.substring(1).trim();
-                const parts = specialContent.split('|');
-                
-                if (parts.length >= 2) {
-                  const datePart = parts[0].trim();
-                  const hoursPart = parts[1].trim();
-                  let note = '';
-                  
-                  if (parts.length >= 3) {
-                    const notePart = parts[2].trim();
-                    note = notePart.replace('NOTE:', '').trim();
-                  }
-                  
-                  const date = datePart.replace('DATE:', '').trim();
-                  const hours = hoursPart.replace('HOURS:', '').trim();
-                  
-                  if (date && hours) {
-                    openingHoursData.special.push({ date, hours, note });
-                  }
-                }
-              }
-            });
-            
-            return {
-              type: 'openingHours',
-              title: 'Öffnungszeiten',
-              data: openingHoursData,
-              query,
-              isPartial
-            };
-          } catch (e) {
-            console.error('Fehler beim Parsen des OpeningHours-Chunks:', e);
-            return null;
-          }
-        
+          return null;
+        }
+
         case 'tip':
+          console.log(`Tipp geparst`);
           return {
             type: 'tip',
             title: '',
@@ -314,22 +182,48 @@ export function useChunkProgressiveStreaming(
             query,
             isPartial
           };
-        
+
         case 'followUp':
+          console.log(`Follow-Up geparst`);
           return {
             type: 'followUp',
-            title: 'Weitere Fragen',
+            title: '',
             content: content.trim(),
             query,
             isPartial
           };
-        
+
+        case 'parking': {
+          console.log(`Parking geparst`);
+          // Vereinfachte Implementierung - erweitern je nach Bedarf
+          return {
+            type: 'parking',
+            title: 'Parken',
+            content: content.trim(),
+            query,
+            isPartial
+          };
+        }
+
+        case 'openingHours': {
+          console.log(`Öffnungszeiten geparst`);
+          // Vereinfachte Implementierung - erweitern je nach Bedarf
+          return {
+            type: 'openingHours',
+            title: 'Öffnungszeiten',
+            content: content.trim(),
+            query,
+            isPartial
+          };
+        }
+
         default:
-          console.warn('Unbekannter Chunk-Typ:', type);
+          console.log(`Unbekannter Chunk-Typ: ${type}`);
           return null;
       }
     } catch (error) {
-      console.error('Fehler beim Parsen des Chunks:', error);
+      console.error(`Fehler beim Parsen von Chunk-Typ ${type}:`, error);
+      logData(`Fehler beim Parsen von Chunk-Typ ${type}`, content);
       return null;
     }
   }, [query]);
@@ -380,6 +274,14 @@ export function useChunkProgressiveStreaming(
         }
       }
       
+      // Log für Debugging
+      if (newSections.length > 0) {
+        console.log(`Es wurden ${newSections.length} Sektionen aus dem Content extrahiert.`);
+      } else if (content.length > 20) {
+        console.log('Keine Sektionen im Content gefunden.');
+        console.log('Inhalt (Anfang):', content.substring(0, 100));
+      }
+
       return newSections;
     } catch (error) {
       console.error('Fehler beim Extrahieren der Chunks:', error);

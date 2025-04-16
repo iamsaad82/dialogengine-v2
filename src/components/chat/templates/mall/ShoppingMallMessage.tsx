@@ -1,8 +1,8 @@
 'use client';
 
 import React, { memo } from 'react';
-// import ChunkedMallMessage from './components/ChunkedMallMessage'; // Nicht mehr verwendet
-import ProgressiveMallTemplateRenderer from './MallTemplateRenderer.progressive';
+import ChunkedMallMessage from './components/ChunkedMallMessage'; // Wieder aktiviert
+// import ProgressiveMallTemplateRenderer from './MallTemplateRenderer.progressive'; // Nicht mehr verwendet
 import './styles/mall-unified.css';
 import styles from './ShoppingMallMessage.module.css';
 // Progressive Streaming CSS wird bereits in mall-unified.css importiert
@@ -29,8 +29,8 @@ const MessageControlsWrapper = memo(({ children }: { children: React.ReactNode }
 /**
  * Shopping Mall Template - Hauptkomponente
  *
- * Diese Komponente verwendet die ProgressiveMallMessage-Komponente für ein optimiertes
- * Streaming-Erlebnis mit progressivem Aufbau der Inhalte in Echtzeit.
+ * Diese Komponente verwendet die ChunkedMallMessage-Komponente für die Verarbeitung
+ * des Flowise Chunk-Formats <chunk type="TYPE">CONTENT</chunk>
  *
  * Optimiert für Stabilität, Flicker-Vermeidung und flüssige Übergänge während des Streamings.
  */
@@ -58,8 +58,7 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
     styles.mallMessage
   ].filter(Boolean).join(' ');
 
-  // Wir verwenden die progressive Streaming-Implementierung
-  // für flüssigen Aufbau der Inhalte in Echtzeit
+  // Wir verwenden die ChunkedMallMessage für die Verarbeitung des Chunk-Formats von Flowise
   return (
     <div
       className={containerClasses}
@@ -79,13 +78,12 @@ const ShoppingMallMessage: React.FC<ShoppingMallMessageProps> = ({
           contain: 'content',
         }}
       >
-        <ProgressiveMallTemplateRenderer
+        <ChunkedMallMessage
           content={content}
           isStreaming={isStreaming}
           isComplete={isComplete}
           query={query}
           colorStyle={colorStyle}
-          messageControls={messageControls}
         />
 
         {messageControls && (

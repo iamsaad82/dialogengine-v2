@@ -114,6 +114,25 @@ export function parseXmlContent(content: string, query: string = ''): MallSectio
     }
   }
   
+  // Services-Sektion extrahieren
+  const servicesMatch = content.match(/<services([^>]*)>([\s\S]*?)<\/services>/);
+  if (servicesMatch) {
+    const servicesContent = servicesMatch[2];
+    const titleMatch = servicesMatch[1].match(/title="([^"]*)"/);
+    const title = titleMatch ? titleMatch[1] : 'Services im Center';
+    
+    const services = extractServicesFromXml(servicesContent);
+    
+    if (services.length > 0) {
+      mallSections.push({
+        type: 'services',
+        title,
+        items: services,
+        query
+      });
+    }
+  }
+  
   // Parking-Sektion extrahieren
   const parkingMatch = content.match(/<parking([^>]*)>([\s\S]*?)<\/parking>/);
   if (parkingMatch) {
@@ -132,7 +151,24 @@ export function parseXmlContent(content: string, query: string = ''): MallSectio
     });
   }
   
+  // FollowUp-Sektion extrahieren
+  const followUpMatch = content.match(/<followUp>([\s\S]*?)<\/followUp>/);
+  if (followUpMatch && followUpMatch[1]) {
+    mallSections.push({
+      type: 'followUp',
+      title: 'Weitere Fragen',
+      content: followUpMatch[1],
+      query
+    });
+  }
+  
   console.log('XML-Parser: Extrahierte Sektionen:', mallSections.map(s => s.type));
+
+  // Debug-Ausgabe für Shops
+  const shopsSection = mallSections.find(s => s.type === 'shops');
+  if (shopsSection && shopsSection.items) {
+    console.log('XML-Parser: Gefundene Shops:', shopsSection.items.length, shopsSection.items);
+  }
   return mallSections;
 }
 
@@ -145,29 +181,55 @@ function extractShopsFromXml(content: string): ShopData[] {
   const shops: ShopData[] = [];
   const shopMatches = content.match(/<shop>([\s\S]*?)<\/shop>/g) || [];
   
-  shopMatches.forEach(shopMatch => {
-    // Suche nach <name> oder <n> Tags (Lunary verwendet manchmal <n> statt <name>)
-    const nameMatch = shopMatch.match(/<name>([\s\S]*?)<\/name>/) || shopMatch.match(/<n>([\s\S]*?)<\/n>/);
-    const categoryMatch = shopMatch.match(/<category>([\s\S]*?)<\/category>/);
-    const floorMatch = shopMatch.match(/<floor>([\s\S]*?)<\/floor>/);
-    const imageMatch = shopMatch.match(/<image>([\s\S]*?)<\/image>/);
-    const descriptionMatch = shopMatch.match(/<description>([\s\S]*?)<\/description>/);
-    const openingMatch = shopMatch.match(/<opening>([\s\S]*?)<\/opening>/);
-    const linkMatch = shopMatch.match(/<link>([\s\S]*?)<\/link>/);
-    
-    if (nameMatch) {
-      shops.push({
-        name: nameMatch[1],
-        category: categoryMatch ? categoryMatch[1] : '',
-        floor: floorMatch ? floorMatch[1] : '',
-        image: imageMatch ? imageMatch[1] : '',
-        description: descriptionMatch ? descriptionMatch[1] : '',
-        opening: openingMatch ? openingMatch[1] : '',
-        link: linkMatch ? linkMatch[1] : ''
-      });
+  console.log('XML-Parser: Anzahl Shop-Matches:', shopMatches.length);
+  
+  shopMatches.forEach((shopMatch, index) => {
+    try {
+      // Verbesserte Suche nach Name-Tags mit allen möglichen Varianten
+      const nameMatch = shopMatch.match(/<name>([\s\S]*?)<\/name>/) || 
+                       shopMatch.match(/<n>([\s\S]*?)<\/n>/) || 
+                       shopMatch.match(/<name>([\s\S]*?)<\/n>/) || 
+                       shopMatch.match(/<n>([\s\S]*?)<\/name>/);
+                       
+      // Fallback: Suche nach Namen ohne Tags (für beschädigte XML)
+      const nameFallbackMatch = !nameMatch && shopMatch.includes('name') ? 
+                              shopMatch.match(/name[^>]*>([^<]+)/) : null;
+      
+      const categoryMatch = shopMatch.match(/<category>([\s\S]*?)<\/category>/);
+      const floorMatch = shopMatch.match(/<floor>([\s\S]*?)<\/floor>/);
+      const imageMatch = shopMatch.match(/<image>([\s\S]*?)<\/image>/);
+      const descriptionMatch = shopMatch.match(/<description>([\s\S]*?)<\/description>/);
+      const openingMatch = shopMatch.match(/<opening>([\s\S]*?)<\/opening>/);
+      const linkMatch = shopMatch.match(/<link>([\s\S]*?)<\/link>/);
+      
+      // Effektiver Name aus regulärem Match oder Fallback
+      const effectiveName = nameMatch ? nameMatch[1] : (nameFallbackMatch ? nameFallbackMatch[1] : null);
+      
+      // Debug-Ausgabe für jeden Shop
+      console.log(`XML-Parser: Shop ${index + 1}:`, 
+        effectiveName || 'Kein Name',
+        categoryMatch ? categoryMatch[1] : 'Keine Kategorie',
+        imageMatch ? 'Mit Bild' : 'Ohne Bild');
+      
+      if (effectiveName) {
+        shops.push({
+          name: effectiveName,
+          category: categoryMatch ? categoryMatch[1] : undefined,
+          floor: floorMatch ? floorMatch[1] : undefined,
+          image: imageMatch ? imageMatch[1] : undefined,
+          description: descriptionMatch ? descriptionMatch[1] : undefined,
+          opening: openingMatch ? openingMatch[1] : undefined,
+          link: linkMatch ? linkMatch[1] : undefined
+        });
+      } else {
+        console.warn('XML-Parser: Shop ohne Namen gefunden:', shopMatch);
+      }
+    } catch (error) {
+      console.error('XML-Parser: Fehler beim Parsen eines Shops:', error);
     }
   });
   
+  console.log('XML-Parser: Extrahierte Shops:', shops.length);
   return shops;
 }
 
@@ -180,30 +242,107 @@ function extractRestaurantsFromXml(content: string): ShopData[] {
   const restaurants: ShopData[] = [];
   const restaurantMatches = content.match(/<restaurant>([\s\S]*?)<\/restaurant>/g) || [];
   
-  restaurantMatches.forEach(restaurantMatch => {
-    // Suche nach <name> oder <n> Tags (Lunary verwendet manchmal <n> statt <name>)
-    const nameMatch = restaurantMatch.match(/<name>([\s\S]*?)<\/name>/) || restaurantMatch.match(/<n>([\s\S]*?)<\/n>/);
-    const categoryMatch = restaurantMatch.match(/<category>([\s\S]*?)<\/category>/);
-    const floorMatch = restaurantMatch.match(/<floor>([\s\S]*?)<\/floor>/);
-    const imageMatch = restaurantMatch.match(/<image>([\s\S]*?)<\/image>/);
-    const descriptionMatch = restaurantMatch.match(/<description>([\s\S]*?)<\/description>/);
-    const openingMatch = restaurantMatch.match(/<opening>([\s\S]*?)<\/opening>/);
-    const linkMatch = restaurantMatch.match(/<link>([\s\S]*?)<\/link>/);
-    
-    if (nameMatch) {
-      restaurants.push({
-        name: nameMatch[1],
-        category: categoryMatch ? categoryMatch[1] : '',
-        floor: floorMatch ? floorMatch[1] : '',
-        image: imageMatch ? imageMatch[1] : '',
-        description: descriptionMatch ? descriptionMatch[1] : '',
-        opening: openingMatch ? openingMatch[1] : '',
-        link: linkMatch ? linkMatch[1] : ''
-      });
+  console.log('XML-Parser: Anzahl Restaurant-Matches:', restaurantMatches.length);
+  
+  restaurantMatches.forEach((restaurantMatch, index) => {
+    try {
+      // Verbesserte Suche nach Name-Tags mit allen möglichen Varianten
+      const nameMatch = restaurantMatch.match(/<name>([\s\S]*?)<\/name>/) || 
+                       restaurantMatch.match(/<n>([\s\S]*?)<\/n>/) || 
+                       restaurantMatch.match(/<name>([\s\S]*?)<\/n>/) || 
+                       restaurantMatch.match(/<n>([\s\S]*?)<\/name>/);
+                       
+      // Fallback: Suche nach Namen ohne Tags (für beschädigte XML)
+      const nameFallbackMatch = !nameMatch && restaurantMatch.includes('name') ? 
+                              restaurantMatch.match(/name[^>]*>([^<]+)/) : null;
+      
+      const categoryMatch = restaurantMatch.match(/<category>([\s\S]*?)<\/category>/);
+      const floorMatch = restaurantMatch.match(/<floor>([\s\S]*?)<\/floor>/);
+      const imageMatch = restaurantMatch.match(/<image>([\s\S]*?)<\/image>/);
+      const descriptionMatch = restaurantMatch.match(/<description>([\s\S]*?)<\/description>/);
+      const openingMatch = restaurantMatch.match(/<opening>([\s\S]*?)<\/opening>/);
+      const linkMatch = restaurantMatch.match(/<link>([\s\S]*?)<\/link>/);
+      
+      // Effektiver Name aus regulärem Match oder Fallback
+      const effectiveName = nameMatch ? nameMatch[1] : (nameFallbackMatch ? nameFallbackMatch[1] : null);
+      
+      // Debug-Ausgabe für jedes Restaurant
+      console.log(`XML-Parser: Restaurant ${index + 1}:`, 
+        effectiveName || 'Kein Name',
+        categoryMatch ? categoryMatch[1] : 'Keine Kategorie',
+        imageMatch ? 'Mit Bild' : 'Ohne Bild');
+      
+      if (effectiveName) {
+        restaurants.push({
+          name: effectiveName,
+          category: categoryMatch ? categoryMatch[1] : undefined,
+          floor: floorMatch ? floorMatch[1] : undefined,
+          image: imageMatch ? imageMatch[1] : undefined,
+          description: descriptionMatch ? descriptionMatch[1] : undefined,
+          opening: openingMatch ? openingMatch[1] : undefined,
+          link: linkMatch ? linkMatch[1] : undefined
+        });
+      } else {
+        console.warn('XML-Parser: Restaurant ohne Namen gefunden:', restaurantMatch);
+      }
+    } catch (error) {
+      console.error('XML-Parser: Fehler beim Parsen eines Restaurants:', error);
     }
   });
   
+  console.log('XML-Parser: Extrahierte Restaurants:', restaurants.length);
   return restaurants;
+}
+
+/**
+ * Extrahiert Service-Daten aus XML-Tags
+ */
+function extractServicesFromXml(content: string): ServiceData[] {
+  if (!content) return [];
+  
+  const services: ServiceData[] = [];
+  const serviceMatches = content.match(/<service>([\s\S]*?)<\/service>/g) || [];
+  
+  serviceMatches.forEach(serviceMatch => {
+    try {
+      // Verbesserte Suche nach Name-Tags mit allen möglichen Varianten
+      const nameMatch = serviceMatch.match(/<name>([\s\S]*?)<\/name>/) || 
+                       serviceMatch.match(/<n>([\s\S]*?)<\/n>/) || 
+                       serviceMatch.match(/<name>([\s\S]*?)<\/n>/) || 
+                       serviceMatch.match(/<n>([\s\S]*?)<\/name>/);
+                       
+      // Fallback: Suche nach Namen ohne Tags (für beschädigte XML)
+      const nameFallbackMatch = !nameMatch && serviceMatch.includes('name') ? 
+                              serviceMatch.match(/name[^>]*>([^<]+)/) : null;
+      
+      const categoryMatch = serviceMatch.match(/<category>([\s\S]*?)<\/category>/);
+      const locationMatch = serviceMatch.match(/<location>([\s\S]*?)<\/location>/);
+      const imageMatch = serviceMatch.match(/<image>([\s\S]*?)<\/image>/);
+      const descriptionMatch = serviceMatch.match(/<description>([\s\S]*?)<\/description>/);
+      const hoursMatch = serviceMatch.match(/<hours>([\s\S]*?)<\/hours>/);
+      const linkMatch = serviceMatch.match(/<link>([\s\S]*?)<\/link>/);
+      
+      // Effektiver Name aus regulärem Match oder Fallback
+      const effectiveName = nameMatch ? nameMatch[1] : (nameFallbackMatch ? nameFallbackMatch[1] : null);
+      
+      if (effectiveName) {
+        services.push({
+          name: effectiveName,
+          category: categoryMatch ? categoryMatch[1] : undefined,
+          location: locationMatch ? locationMatch[1] : undefined,
+          image: imageMatch ? imageMatch[1] : undefined,
+          description: descriptionMatch ? descriptionMatch[1] : undefined,
+          // Verwende 'opening' statt 'hours' für Konsistenz mit dem ServiceData-Interface
+          opening: hoursMatch ? hoursMatch[1] : undefined,
+          link: linkMatch ? linkMatch[1] : undefined
+        } as ServiceData);
+      }
+    } catch (error) {
+      console.error('XML-Parser: Fehler beim Parsen eines Services:', error);
+    }
+  });
+  
+  return services;
 }
 
 /**
@@ -216,42 +355,46 @@ function extractOpeningHoursFromXml(content: string): OpeningHoursData {
   const specialHours: { date: string; hours: string }[] = [];
   const notes: string[] = [];
   
-  // Reguläre Öffnungszeiten extrahieren
-  const regularMatches = content.match(/<regular>([\s\S]*?)<\/regular>/g) || [];
-  regularMatches.forEach(regularMatch => {
-    const dayMatch = regularMatch.match(/<day>([\s\S]*?)<\/day>/);
-    const hoursMatch = regularMatch.match(/<hours>([\s\S]*?)<\/hours>/);
+  try {
+    // Reguläre Öffnungszeiten extrahieren
+    const regularMatches = content.match(/<regular>([\s\S]*?)<\/regular>/g) || [];
+    regularMatches.forEach(regularMatch => {
+      const dayMatch = regularMatch.match(/<day>([\s\S]*?)<\/day>/);
+      const hoursMatch = regularMatch.match(/<hours>([\s\S]*?)<\/hours>/);
+      
+      if (dayMatch && hoursMatch) {
+        regularHours.push({
+          day: dayMatch[1],
+          hours: hoursMatch[1]
+        });
+      }
+    });
     
-    if (dayMatch && hoursMatch) {
-      regularHours.push({
-        day: dayMatch[1],
-        hours: hoursMatch[1]
-      });
-    }
-  });
-  
-  // Spezielle Öffnungszeiten extrahieren
-  const specialMatches = content.match(/<special>([\s\S]*?)<\/special>/g) || [];
-  specialMatches.forEach(specialMatch => {
-    const dateMatch = specialMatch.match(/<date>([\s\S]*?)<\/date>/);
-    const hoursMatch = specialMatch.match(/<hours>([\s\S]*?)<\/hours>/);
+    // Spezielle Öffnungszeiten extrahieren
+    const specialMatches = content.match(/<special>([\s\S]*?)<\/special>/g) || [];
+    specialMatches.forEach(specialMatch => {
+      const dateMatch = specialMatch.match(/<date>([\s\S]*?)<\/date>/);
+      const hoursMatch = specialMatch.match(/<hours>([\s\S]*?)<\/hours>/);
+      
+      if (dateMatch && hoursMatch) {
+        specialHours.push({
+          date: dateMatch[1],
+          hours: hoursMatch[1]
+        });
+      }
+    });
     
-    if (dateMatch && hoursMatch) {
-      specialHours.push({
-        date: dateMatch[1],
-        hours: hoursMatch[1]
-      });
-    }
-  });
-  
-  // Hinweise extrahieren
-  const noteMatches = content.match(/<note>([\s\S]*?)<\/note>/g) || [];
-  noteMatches.forEach(noteMatch => {
-    const noteContent = noteMatch.match(/<note>([\s\S]*?)<\/note>/);
-    if (noteContent) {
-      notes.push(noteContent[1]);
-    }
-  });
+    // Hinweise extrahieren
+    const noteMatches = content.match(/<note>([\s\S]*?)<\/note>/g) || [];
+    noteMatches.forEach(noteMatch => {
+      const noteContent = noteMatch.match(/<note>([\s\S]*?)<\/note>/);
+      if (noteContent) {
+        notes.push(noteContent[1]);
+      }
+    });
+  } catch (error) {
+    console.error('XML-Parser: Fehler beim Parsen der Öffnungszeiten:', error);
+  }
   
   return {
     regularHours,
@@ -263,18 +406,16 @@ function extractOpeningHoursFromXml(content: string): OpeningHoursData {
 /**
  * Formatiert Öffnungszeiten als HTML
  */
-function formatOpeningHoursAsHtml(data: any): string {
-  if (!data) return '';
+function formatOpeningHoursAsHtml(data: OpeningHoursData): string {
+  if (!data || !data.regularHours || data.regularHours.length === 0) return '';
   
   let html = '<div class="opening-hours">';
   
-  if (data.regularHours && data.regularHours.length > 0) {
-    html += '<h4>Reguläre Öffnungszeiten</h4><ul>';
-    data.regularHours.forEach((item: { day: string; hours: string }) => {
-      html += `<li><strong>${item.day}:</strong> ${item.hours}</li>`;
-    });
-    html += '</ul>';
-  }
+  html += '<h4>Reguläre Öffnungszeiten</h4><ul>';
+  data.regularHours.forEach((item: { day: string; hours: string }) => {
+    html += `<li><strong>${item.day}:</strong> ${item.hours}</li>`;
+  });
+  html += '</ul>';
   
   if (data.specialHours && data.specialHours.length > 0) {
     html += '<h4>Sonderöffnungszeiten</h4><ul>';
@@ -306,25 +447,41 @@ function extractEventsFromXml(content: string): EventData[] {
   const eventMatches = content.match(/<event>([\s\S]*?)<\/event>/g) || [];
   
   eventMatches.forEach(eventMatch => {
-    // Suche nach <name> oder <n> Tags (Lunary verwendet manchmal <n> statt <name>)
-    const nameMatch = eventMatch.match(/<name>([\s\S]*?)<\/name>/) || eventMatch.match(/<n>([\s\S]*?)<\/n>/);
-    const dateMatch = eventMatch.match(/<date>([\s\S]*?)<\/date>/);
-    const timeMatch = eventMatch.match(/<time>([\s\S]*?)<\/time>/);
-    const locationMatch = eventMatch.match(/<location>([\s\S]*?)<\/location>/);
-    const imageMatch = eventMatch.match(/<image>([\s\S]*?)<\/image>/);
-    const descriptionMatch = eventMatch.match(/<description>([\s\S]*?)<\/description>/);
-    const linkMatch = eventMatch.match(/<link>([\s\S]*?)<\/link>/);
-    
-    if (nameMatch) {
-      events.push({
-        name: nameMatch[1],
-        date: dateMatch ? dateMatch[1] : '',
-        time: timeMatch ? timeMatch[1] : '',
-        location: locationMatch ? locationMatch[1] : '',
-        image: imageMatch ? imageMatch[1] : '',
-        description: descriptionMatch ? descriptionMatch[1] : '',
-        link: linkMatch ? linkMatch[1] : ''
-      });
+    try {
+      // Verbesserte Suche nach Name-Tags mit allen möglichen Varianten
+      const nameMatch = eventMatch.match(/<name>([\s\S]*?)<\/name>/) || 
+                       eventMatch.match(/<n>([\s\S]*?)<\/n>/) || 
+                       eventMatch.match(/<name>([\s\S]*?)<\/n>/) || 
+                       eventMatch.match(/<n>([\s\S]*?)<\/name>/);
+                       
+      // Fallback: Suche nach Namen ohne Tags (für beschädigte XML)
+      const nameFallbackMatch = !nameMatch && eventMatch.includes('name') ? 
+                              eventMatch.match(/name[^>]*>([^<]+)/) : null;
+      
+      const dateMatch = eventMatch.match(/<date>([\s\S]*?)<\/date>/);
+      const timeMatch = eventMatch.match(/<time>([\s\S]*?)<\/time>/);
+      const locationMatch = eventMatch.match(/<location>([\s\S]*?)<\/location>/);
+      const imageMatch = eventMatch.match(/<image>([\s\S]*?)<\/image>/);
+      const descriptionMatch = eventMatch.match(/<description>([\s\S]*?)<\/description>/);
+      const linkMatch = eventMatch.match(/<link>([\s\S]*?)<\/link>/);
+      
+      // Effektiver Name aus regulärem Match oder Fallback
+      const effectiveName = nameMatch ? nameMatch[1] : (nameFallbackMatch ? nameFallbackMatch[1] : null);
+      
+      if (effectiveName) {
+        events.push({
+          // Verwende 'title' statt 'name' für Konsistenz mit dem EventData-Interface
+          title: effectiveName,
+          date: dateMatch ? dateMatch[1] : '',
+          time: timeMatch ? timeMatch[1] : undefined,
+          location: locationMatch ? locationMatch[1] : undefined,
+          image: imageMatch ? imageMatch[1] : undefined,
+          description: descriptionMatch ? descriptionMatch[1] : undefined,
+          link: linkMatch ? linkMatch[1] : undefined
+        } as EventData);
+      }
+    } catch (error) {
+      console.error('XML-Parser: Fehler beim Parsen eines Events:', error);
     }
   });
   
@@ -340,28 +497,32 @@ function extractParkingFromXml(content: string): ParkingData {
   const fees: { duration: string; price: string }[] = [];
   const notes: string[] = [];
   
-  // Parkgebühren extrahieren
-  const feeMatches = content.match(/<fee>([\s\S]*?)<\/fee>/g) || [];
-  feeMatches.forEach(feeMatch => {
-    const durationMatch = feeMatch.match(/<duration>([\s\S]*?)<\/duration>/);
-    const priceMatch = feeMatch.match(/<price>([\s\S]*?)<\/price>/);
+  try {
+    // Parkgebühren extrahieren
+    const feeMatches = content.match(/<fee>([\s\S]*?)<\/fee>/g) || [];
+    feeMatches.forEach(feeMatch => {
+      const durationMatch = feeMatch.match(/<duration>([\s\S]*?)<\/duration>/);
+      const priceMatch = feeMatch.match(/<price>([\s\S]*?)<\/price>/);
+      
+      if (durationMatch && priceMatch) {
+        fees.push({
+          duration: durationMatch[1],
+          price: priceMatch[1]
+        });
+      }
+    });
     
-    if (durationMatch && priceMatch) {
-      fees.push({
-        duration: durationMatch[1],
-        price: priceMatch[1]
-      });
-    }
-  });
-  
-  // Hinweise extrahieren
-  const noteMatches = content.match(/<note>([\s\S]*?)<\/note>/g) || [];
-  noteMatches.forEach(noteMatch => {
-    const noteContent = noteMatch.match(/<note>([\s\S]*?)<\/note>/);
-    if (noteContent) {
-      notes.push(noteContent[1]);
-    }
-  });
+    // Hinweise extrahieren
+    const noteMatches = content.match(/<note>([\s\S]*?)<\/note>/g) || [];
+    noteMatches.forEach(noteMatch => {
+      const noteContent = noteMatch.match(/<note>([\s\S]*?)<\/note>/);
+      if (noteContent) {
+        notes.push(noteContent[1]);
+      }
+    });
+  } catch (error) {
+    console.error('XML-Parser: Fehler beim Parsen der Parkgebühren:', error);
+  }
   
   return {
     fees,

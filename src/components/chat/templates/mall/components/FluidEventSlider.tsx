@@ -27,7 +27,7 @@ interface FluidEventSliderProps {
 
 /**
  * Ein flüssiger Event-Slider mit optimiertem Streaming-Verhalten
- * 
+ *
  * Diese Komponente verwendet fortschrittliche Techniken für ein nahtloses
  * Streaming-Erlebnis ohne Flackern oder Layout-Sprünge.
  */
@@ -44,17 +44,26 @@ const FluidEventSlider: React.FC<FluidEventSliderProps> = ({
   // Refs für DOM-Manipulation und Animation
   const sliderRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // State für Animation und Tracking
   const [isInitialRender, setIsInitialRender] = useState(true);
   const [visibleItems, setVisibleItems] = useState<EventData[]>([]);
-  
+
   // Memoized Werte für Stabilität
   const placeholders = useMemo(() => Array(maxItems).fill(null), [maxItems]);
   const cardWidth = useMemo(() => {
+    // Wenn weniger als 3 Events vorhanden sind, passen wir die Breite an, um den verfügbaren Platz zu nutzen
+    // Andernfalls verwenden wir eine feste Breite für den Slider
     return events.length < 3 ? `calc((100% / ${Math.max(events.length || 1, 1)}) - 1rem)` : '280px';
   }, [events.length]);
-  
+
+  // Sofort die Events anzeigen, wenn sie verfügbar sind und wir nicht streamen
+  useEffect(() => {
+    if (events.length > 0 && !isStreaming) {
+      setVisibleItems(events.slice(0, maxItems));
+    }
+  }, [events, maxItems, isStreaming]);
+
   // Effekt für sanfte Übergänge beim Streaming
   useEffect(() => {
     if (isInitialRender) {
@@ -62,15 +71,21 @@ const FluidEventSlider: React.FC<FluidEventSliderProps> = ({
       setIsInitialRender(false);
       return;
     }
-    
-    // Sanft neue Events hinzufügen, mit Verzögerung für flüssige Animation
+
+    // Sofort die Events anzeigen, wenn wir nicht mehr streamen
+    if (!isStreaming && events.length > 0) {
+      setVisibleItems(events.slice(0, maxItems));
+      return;
+    }
+
+    // Sanft neue Events hinzufügen, mit Verzögerung für flüssige Animation während des Streamings
     const timer = setTimeout(() => {
       setVisibleItems(events.slice(0, maxItems));
     }, 100);
-    
+
     return () => clearTimeout(timer);
-  }, [events, maxItems, isInitialRender]);
-  
+  }, [events, maxItems, isInitialRender, isStreaming]);
+
   // Styling für den Slider-Container mit CSS-Variablen für dynamische Anpassung
   const sliderStyle: React.CSSProperties = {
     display: 'flex',
@@ -81,7 +96,7 @@ const FluidEventSlider: React.FC<FluidEventSliderProps> = ({
     '--primary-color': colorStyle.primaryColor,
     '--secondary-color': colorStyle.secondaryColor,
   } as React.CSSProperties;
-  
+
   // Styling für den Titel mit CSS-Variablen
   const titleStyle: React.CSSProperties = {
     fontSize: '1.2rem',
@@ -90,7 +105,7 @@ const FluidEventSlider: React.FC<FluidEventSliderProps> = ({
     color: 'var(--primary-color)',
     transition: 'opacity 0.3s ease-in-out',
   };
-  
+
   // Styling für den Karten-Container mit optimierter Scrolling-Performance
   const cardsContainerStyle: React.CSSProperties = {
     display: 'flex',
@@ -104,32 +119,32 @@ const FluidEventSlider: React.FC<FluidEventSliderProps> = ({
     transition: 'opacity 0.3s ease-in-out',
     willChange: 'transform, opacity', // Optimierung für Animationen
   };
-  
+
   // Verstecke die Scrollbar für ein saubereres Design
   const hideScrollbarStyle = {
     '&::-webkit-scrollbar': {
       display: 'none',
     },
   };
-  
+
   return (
     <div ref={sliderRef} style={sliderStyle} className="fluid-event-slider">
       <h3 style={titleStyle}>{title || 'Events'}</h3>
-      
-      <div 
-        ref={cardsContainerRef} 
-        style={{...cardsContainerStyle, ...hideScrollbarStyle}} 
+
+      <div
+        ref={cardsContainerRef}
+        style={{...cardsContainerStyle, ...hideScrollbarStyle}}
         className="cards-container"
       >
-        {/* Zeige entweder die tatsächlichen Events oder Platzhalter an */}
-        {placeholders.map((_, index) => (
+        {/* Zeige die tatsächlichen Events an */}
+        {events.map((event, index) => (
           <FluidEventCard
-            key={`event-card-${index}`}
-            event={visibleItems[index] || null}
-            isLoading={!visibleItems[index]}
+            key={`event-card-${event.title}-${index}`}
+            event={event}
+            isLoading={false} // Keine Ladeanzeige mehr, da wir nur rendern, wenn Daten vorhanden sind
             cardWidth={cardWidth}
             colorStyle={colorStyle}
-            animationDelay={index * 100} // Gestaffelte Animation für flüssigeren Eindruck
+            animationDelay={0} // Keine verzögerte Animation mehr
           />
         ))}
       </div>

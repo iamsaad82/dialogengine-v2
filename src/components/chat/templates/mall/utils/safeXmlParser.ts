@@ -21,11 +21,16 @@ export function safeParseXmlContent(content: string, query: string = ''): MallSe
   try {
     // Prüfe, ob der Content XML-Tags enthält - erweiterte Erkennung
     const hasXmlStructure = (
+      // Flowise Chunk-Format
+      content.includes('<chunk type="') ||
+      content.includes('</chunk>') ||
+      
       // Standard-Tags
       content.includes('<intro>') ||
       content.includes('<shop>') ||
       content.includes('<restaurant>') ||
       content.includes('<tip>') ||
+      content.includes('<followUp>') ||
 
       // Erweiterte Tag-Erkennung
       content.includes('<shops') ||
@@ -39,7 +44,8 @@ export function safeParseXmlContent(content: string, query: string = ''): MallSe
       content.includes('<intr') ||
       content.includes('<sho') ||
       content.includes('<res') ||
-      content.includes('<ti')
+      content.includes('<ti') ||
+      content.includes('<foll')
     );
 
     if (!hasXmlStructure) {
@@ -47,15 +53,19 @@ export function safeParseXmlContent(content: string, query: string = ''): MallSe
       return [];
     }
 
-    // Schritt 1: Sanitize XML-Content
-    const sanitizedContent = sanitizeXml(content);
+    // Schritt 1: Entferne überschüssige schließende Tags am Ende
+    const cleanedContent = content.replace(/(<\/[^>]+>)+$/, '');
+
+    // Schritt 2: Sanitize XML-Content
+    const sanitizedContent = sanitizeXml(cleanedContent);
     logData('Nach Sanitizing', sanitizedContent);
 
-    // Schritt 2: Validiere XML-Content
+    // Schritt 3: Validiere XML-Content mit toleranterem Ansatz
+    // Wir versuchen trotz Validierungsfehler zu parsen, um möglichst viele Daten zu extrahieren
     const validation = validateXml(sanitizedContent);
     if (!validation.isValid) {
-      console.warn('XML-Validierung fehlgeschlagen:', validation.errors);
-      logData('Ungültiges XML nach Sanitizing', sanitizedContent);
+      console.warn('XML-Validierung fehlgeschlagen, versuche trotzdem zu parsen');
+      logData('Versuche Parsing trotz ungültigem XML', sanitizedContent);
     }
 
     // Schritt 3: Versuche, den Content zu parsen

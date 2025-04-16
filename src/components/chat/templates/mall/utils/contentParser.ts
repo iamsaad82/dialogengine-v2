@@ -6,7 +6,7 @@ import { analyzeContent, isSectionRelevantForQuery } from '../../utils/contentAn
 /**
  * Typen der erkannten Sektionen im Mall-Template
  */
-export type MallSectionType = 'header' | 'intro' | 'shops' | 'restaurants' | 'services' | 'events' | 'news' | 'offers' | 'openingHours' | 'parking' | 'tip' | 'other';
+export type MallSectionType = 'header' | 'intro' | 'shops' | 'restaurants' | 'services' | 'events' | 'news' | 'offers' | 'openingHours' | 'parking' | 'tip' | 'followUp' | 'other';
 
 /**
  * Struktur einer erkannten Sektion
@@ -19,6 +19,7 @@ export interface MallSection {
   data?: any; // Für strukturierte Daten wie Öffnungszeiten oder Parkgebühren
   relevanceScore?: number; // 0-100, je höher desto relevanter
   query?: string; // Die ursprüngliche Anfrage des Nutzers
+  isPartial?: boolean; // Gibt an, ob die Sektion aus teilweise geparsten Daten stammt
 }
 
 /**
@@ -142,7 +143,7 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
   // erstelle eine Standard-Intro-Sektion
   if (analyzedSections.length === 0 && cleanedHtml && cleanedHtml.length > 20) {
     console.log('MALL-DEBUG: Keine Sektionen gefunden, erstelle Standard-Intro-Sektion mit Inhalt:', cleanedHtml.substring(0, 50) + '...');
-    
+
     // Wenn das HTML Geschäfte oder Öffnungszeiten enthält, erstelle entsprechende Sektionen
     if (cleanedHtml.match(/gesch(ä|ae)ft|laden|shop|center|mall/i)) {
       mallSections.push({
@@ -152,7 +153,7 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
         relevanceScore: 100,
         query
       });
-      
+
       // Extrahiere Shop-Informationen, falls vorhanden
       const shopMatch = cleanedHtml.match(/<ul>[\s\S]*?<\/ul>/g);
       if (shopMatch) {
@@ -177,7 +178,7 @@ function parseMallContentInternal(html: string, query: string = '', incremental:
         query
       });
     }
-    
+
     return mallSections;
   }
 

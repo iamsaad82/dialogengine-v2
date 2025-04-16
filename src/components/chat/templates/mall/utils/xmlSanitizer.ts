@@ -15,6 +15,10 @@ import { balanceXmlTags } from './xmlBalancer';
 export function sanitizeXml(content: string): string {
   if (!content) return '';
 
+  // Entferne überschüssige schließende Tags am Ende des Contents
+  // Dies ist ein häufiges Problem beim Streaming
+  content = content.replace(/(<\/[^>]+>)+$/, '');
+
   // Schritt 1: Encoding sicherstellen (UTF-8)
   // Da JavaScript Strings bereits in UTF-16 sind, müssen wir nur sicherstellen,
   // dass keine ungültigen Zeichen enthalten sind

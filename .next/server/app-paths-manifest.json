@@ -1,1 +1,8 @@
-{}
+{
+  "/smartmall-test/page": "app/smartmall-test/page.js",
+  "/mall-test/page": "app/mall-test/page.js",
+  "/test/restaurant-parsing/page": "app/test/restaurant-parsing/page.js",
+  "/api/bots/[id]/route": "app/api/bots/[id]/route.js",
+  "/admin/embed/page": "app/admin/embed/page.js",
+  "/embed/(chat)/chat/page": "app/embed/(chat)/chat/page.js"
+}

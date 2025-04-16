@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { ShopData } from './ShopCard';
 import FluidShopCard from './FluidShopCard';
 
 interface FluidShopSliderProps {
   title: string;
   shops: ShopData[];
-  isStreaming: boolean;
-  maxShops?: number;
+  isStreaming?: boolean; // Optional, da wir es nicht mehr verwenden
+  maxShops?: number; // Optional, da wir es nicht mehr verwenden
   colorStyle?: {
     primaryColor: string;
     secondaryColor: string;
@@ -17,10 +17,10 @@ interface FluidShopSliderProps {
 
 /**
  * Ein flüssiger Shop-Slider mit optimiertem Streaming-Verhalten
- * 
+ *
  * Diese Komponente verwendet fortschrittliche Techniken, um ein nahtloses
  * Streaming-Erlebnis ohne Flackern oder Layout-Sprünge zu bieten:
- * 
+ *
  * 1. Sofortige Anzeige von Platzhaltern mit exakten Dimensionen
  * 2. Sanfte Übergänge beim Befüllen der Platzhalter
  * 3. Optimierte Rendering-Performance durch Memoization
@@ -29,8 +29,6 @@ interface FluidShopSliderProps {
 const FluidShopSlider: React.FC<FluidShopSliderProps> = ({
   title,
   shops = [],
-  isStreaming,
-  maxShops = 3,
   colorStyle = {
     primaryColor: '#3b1c60',
     secondaryColor: '#ff5a5f'
@@ -39,33 +37,18 @@ const FluidShopSlider: React.FC<FluidShopSliderProps> = ({
   // Refs für DOM-Manipulation und Animation
   const sliderRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
-  
-  // State für Animation und Tracking
-  const [isInitialRender, setIsInitialRender] = useState(true);
-  const [visibleShops, setVisibleShops] = useState<ShopData[]>([]);
-  
-  // Memoized Werte für Stabilität
-  const placeholders = useMemo(() => Array(maxShops).fill(null), [maxShops]);
+
+  // Debug-Ausgabe
+  console.log('FluidShopSlider: Shops:', shops.length, 'Shops-Daten:', shops);
+
   const cardWidth = useMemo(() => {
+    // Wenn weniger als 3 Shops vorhanden sind, passen wir die Breite an, um den verfügbaren Platz zu nutzen
+    // Andernfalls verwenden wir eine feste Breite für den Slider
     return shops.length < 3 ? `calc((100% / ${Math.max(shops.length || 1, 1)}) - 1rem)` : '280px';
   }, [shops.length]);
-  
-  // Effekt für sanfte Übergänge beim Streaming
-  useEffect(() => {
-    if (isInitialRender) {
-      // Beim ersten Render sofort die Platzhalter anzeigen
-      setIsInitialRender(false);
-      return;
-    }
-    
-    // Sanft neue Shops hinzufügen, mit Verzögerung für flüssige Animation
-    const timer = setTimeout(() => {
-      setVisibleShops(shops.slice(0, maxShops));
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [shops, maxShops, isInitialRender]);
-  
+
+  // Wir brauchen diesen Effekt nicht mehr, da wir die Shops direkt rendern
+
   // Styling für den Slider-Container mit CSS-Variablen für dynamische Anpassung
   const sliderStyle: React.CSSProperties = {
     display: 'flex',
@@ -76,7 +59,7 @@ const FluidShopSlider: React.FC<FluidShopSliderProps> = ({
     '--primary-color': colorStyle.primaryColor,
     '--secondary-color': colorStyle.secondaryColor,
   } as React.CSSProperties;
-  
+
   // Styling für den Titel mit CSS-Variablen
   const titleStyle: React.CSSProperties = {
     fontSize: '1.2rem',
@@ -85,7 +68,7 @@ const FluidShopSlider: React.FC<FluidShopSliderProps> = ({
     color: 'var(--primary-color)',
     transition: 'opacity 0.3s ease-in-out',
   };
-  
+
   // Styling für den Karten-Container mit optimierter Scrolling-Performance
   const cardsContainerStyle: React.CSSProperties = {
     display: 'flex',
@@ -99,32 +82,28 @@ const FluidShopSlider: React.FC<FluidShopSliderProps> = ({
     transition: 'opacity 0.3s ease-in-out',
     willChange: 'transform, opacity', // Optimierung für Animationen
   };
-  
+
   // Verstecke die Scrollbar für ein saubereres Design
-  const hideScrollbarStyle = {
-    '&::-webkit-scrollbar': {
-      display: 'none',
-    },
-  };
-  
+  // Hinweis: Wir verwenden eine CSS-Klasse statt inline-Styles für Scrollbar-Anpassungen
+
   return (
     <div ref={sliderRef} style={sliderStyle} className="fluid-shop-slider">
       <h3 style={titleStyle}>{title || 'Shops'}</h3>
-      
-      <div 
-        ref={cardsContainerRef} 
-        style={{...cardsContainerStyle, ...hideScrollbarStyle}} 
-        className="cards-container"
+
+      <div
+        ref={cardsContainerRef}
+        style={cardsContainerStyle}
+        className="cards-container hide-scrollbar"
       >
-        {/* Zeige entweder die tatsächlichen Shops oder Platzhalter an */}
-        {placeholders.map((_, index) => (
+        {/* Zeige alle verfügbaren Shops an */}
+        {shops.map((shop, index) => (
           <FluidShopCard
-            key={`shop-card-${index}`}
-            shop={visibleShops[index] || null}
-            isLoading={!visibleShops[index]}
+            key={`shop-card-${shop.name}-${index}`}
+            shop={shop}
+            isLoading={false} // Keine Ladeanzeige mehr, da wir nur rendern, wenn Daten vorhanden sind
             cardWidth={cardWidth}
             colorStyle={colorStyle}
-            animationDelay={index * 100} // Gestaffelte Animation für flüssigeren Eindruck
+            animationDelay={0} // Keine verzögerte Animation mehr
           />
         ))}
       </div>

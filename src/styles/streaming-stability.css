@@ -430,12 +430,15 @@
   contain: layout style;
 }
 
-/* Mall Template */
+/* Mall Template - Verbesserte Stabilität */
 .mall-message {
   will-change: contents;
   contain: layout style;
   font-size: 16px !important;
   line-height: 1.5 !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 
   /* Verhindert Flackern während des Streamings */
   content-visibility: auto;
@@ -451,36 +454,54 @@
   img {
     content-visibility: auto;
     contain-intrinsic-size: 0 150px;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: opacity;
   }
+}
 
-  /* Sanfter Übergang für neue Sektionen */
-  .mall-intro-section,
-  .mall-shop-slider,
-  .mall-restaurants-slider,
-  .mall-tip-section {
-    animation: fadeIn 0.3s ease-in-out;
-  }
+/* Optimierungen für Fluid Mall Message */
+.fluid-mall-message {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: contents;
+  contain: content;
+  isolation: isolate;
+}
 
-  @keyframes fadeIn {
-    from { opacity: 0.7; }
-    to { opacity: 1; }
-  }
+/* Optimierungen für Chunked Mall Message */
+.chunked-mall-message-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: contents;
+  contain: content;
+  isolation: isolate;
 }
 
 .mall-message .mall-intro,
 .mall-message .mall-section,
-.mall-message .mall-section-title {
+.mall-message .mall-section-title,
+.fluid-mall-intro,
+.fluid-mall-tip,
+.fluid-mall-followup {
   transition: none !important;
   min-height: 1.5em;
   will-change: contents;
   contain: layout style;
   font-size: 16px !important;
   line-height: 1.5 !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Shop/Restaurant Slider Stabilisierung */
 .mall-message .mall-shops-slider,
-.mall-message .mall-restaurants-slider {
+.mall-message .mall-restaurants-slider,
+.mall-cards-grid {
   transition: none !important;
   will-change: auto !important;
   contain: layout style;
@@ -488,18 +509,53 @@
   opacity: 1 !important;
   display: block !important;
   visibility: visible !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Shop/Restaurant Cards Stabilisierung */
 .mall-message .shop-card,
-.mall-message .restaurant-card {
+.mall-message .restaurant-card,
+.mall-card,
+.card-wrapper {
   transition: none !important;
   will-change: auto !important;
   contain: layout style;
   min-height: 150px;
   min-width: 200px;
   opacity: 1 !important;
-  transform: none !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Optimierungen für Bilder */
+.mall-image,
+.image-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: opacity;
+  contain: content;
+  isolation: isolate;
+}
+
+/* Deaktiviere Animationen während des Streamings */
+.is-streaming * {
+  transition-duration: 0ms !important;
+  animation-duration: 0ms !important;
+  animation: none !important;
+}
+
+/* Verhindere Layout-Shifts durch feste Höhen für bestimmte Container */
+.mall-message.is-streaming,
+.fluid-mall-message.is-streaming {
+  min-height: 300px;
+}
+
+.fluid-mall-intro.is-streaming {
+  min-height: 50px;
 }
 
 /* Brandenburg Template */

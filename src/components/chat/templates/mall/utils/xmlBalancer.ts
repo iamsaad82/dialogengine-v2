@@ -16,6 +16,10 @@ export function balanceXmlTags(content: string): string {
 
   console.log('XML-Balancer: Starte mit Content-Länge', content.length);
 
+  // Entferne überschüssige schließende Tags am Ende des Contents
+  // Dies ist ein häufiges Problem beim Streaming
+  content = content.replace(/(<\/[^>]+>)+$/, '');
+
   // Schritt 1: Normalisiere den Content
   let normalizedContent = content
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '') // Entferne Steuerzeichen

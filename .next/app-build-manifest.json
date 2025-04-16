@@ -1,3 +1,75 @@
 {
-  "pages": {}
+  "pages": {
+    "/global-error": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/global-error.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ],
+    "/error": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/error.js"
+    ],
+    "/not-found": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/not-found.js"
+    ],
+    "/smartmall-test/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/smartmall-test/page.css",
+      "static/chunks/app/smartmall-test/page.js"
+    ],
+    "/admin/bots/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/bots/[id]/page.js"
+    ],
+    "/admin/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/layout.js"
+    ],
+    "/admin/embed/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/embed/page.js"
+    ],
+    "/embed/(chat)/chat/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/embed/(chat)/chat/page.css",
+      "static/chunks/app/embed/(chat)/chat/page.js"
+    ],
+    "/embed/(chat)/chat/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/embed/(chat)/chat/layout.css",
+      "static/chunks/app/embed/(chat)/chat/layout.js"
+    ],
+    "/mall-renderer-test/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/mall-renderer-test/page.css",
+      "static/chunks/app/mall-renderer-test/page.js"
+    ],
+    "/mall-test/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/mall-test/page.css",
+      "static/chunks/app/mall-test/page.js"
+    ],
+    "/test/restaurant-parsing/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/test/restaurant-parsing/page.js"
+    ]
+  }
 }

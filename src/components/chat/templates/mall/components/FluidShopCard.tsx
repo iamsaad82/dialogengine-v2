@@ -16,10 +16,10 @@ interface FluidShopCardProps {
 
 /**
  * Eine flüssige Shop-Karte mit optimiertem Streaming-Verhalten
- * 
+ *
  * Diese Komponente verwendet fortschrittliche Techniken für ein nahtloses
  * Streaming-Erlebnis:
- * 
+ *
  * 1. Präzise CSS-Transitions für sanfte Übergänge
  * 2. Gestaffelte Animationen mit verzögertem Start
  * 3. Optimierte Rendering-Performance durch Refs
@@ -35,20 +35,20 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
   // Refs für DOM-Manipulation und Animation
   const cardRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  
+
   // State für Animation und Tracking
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  
+
   // Effekt für gestaffelte Animation
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, animationDelay);
-    
+
     return () => clearTimeout(timer);
   }, [animationDelay]);
-  
+
   // Effekt für Bildladung
   useEffect(() => {
     if (shop?.image && imageRef.current) {
@@ -57,7 +57,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
       img.src = shop.image;
     }
   }, [shop?.image]);
-  
+
   // Basis-Styling für die Karte mit CSS-Variablen für dynamische Anpassung
   const cardStyle: React.CSSProperties = {
     width: cardWidth,
@@ -80,7 +80,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     '--primary-color': colorStyle.primaryColor,
     '--secondary-color': colorStyle.secondaryColor,
   } as React.CSSProperties;
-  
+
   // Styling für den Bild-Container mit optimierter Animation
   const imageContainerStyle: React.CSSProperties = {
     width: '100%',
@@ -94,7 +94,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     position: 'relative',
     transition: 'background-color 0.5s ease-in-out',
   };
-  
+
   // Styling für das Bild mit sanftem Übergang
   const imageStyle: React.CSSProperties = {
     maxWidth: '80%',
@@ -104,7 +104,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     transition: 'opacity 0.5s ease-in-out',
     willChange: 'opacity',
   };
-  
+
   // Styling für den Inhalt mit gestaffelten Übergängen
   const contentStyle: React.CSSProperties = {
     padding: '1rem',
@@ -112,7 +112,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     flexDirection: 'column',
     flex: 1,
   };
-  
+
   // Gemeinsames Styling für Skeleton-Loader
   const getSkeletonStyle = (width: string, height: string, delay: number): React.CSSProperties => ({
     height,
@@ -135,7 +135,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
       }
     }),
   });
-  
+
   // Styling für den Titel mit Skeleton-Loader
   const titleStyle: React.CSSProperties = {
     fontSize: '1.1rem',
@@ -145,7 +145,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     height: '1.5rem',
     ...getSkeletonStyle('100%', '1.5rem', 0),
   };
-  
+
   // Styling für die Kategorie mit Skeleton-Loader
   const categoryStyle: React.CSSProperties = {
     fontSize: '0.9rem',
@@ -154,7 +154,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     height: '1.2rem',
     ...getSkeletonStyle('70%', '1.2rem', 100),
   };
-  
+
   // Styling für die Etage mit Skeleton-Loader
   const floorStyle: React.CSSProperties = {
     fontSize: '0.9rem',
@@ -163,7 +163,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     height: '1.2rem',
     ...getSkeletonStyle('50%', '1.2rem', 200),
   };
-  
+
   // Styling für die Beschreibung mit Skeleton-Loader
   const descriptionStyle: React.CSSProperties = {
     fontSize: '0.9rem',
@@ -172,7 +172,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     flex: 1,
     ...getSkeletonStyle('100%', 'auto', 300),
   };
-  
+
   // Styling für die Öffnungszeiten mit Skeleton-Loader
   const openingStyle: React.CSSProperties = {
     fontSize: '0.85rem',
@@ -181,7 +181,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
     height: '1.2rem',
     ...getSkeletonStyle('90%', '1.2rem', 400),
   };
-  
+
   // Fortschrittlicher Skeleton-Loader für die Beschreibung mit Welleneffekt
   const DescriptionSkeleton = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -190,13 +190,13 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
       <div style={getSkeletonStyle('80%', '0.9rem', 400)} />
     </div>
   );
-  
+
   // Optimierter Bild-Platzhalter mit Pulseffekt
   const ImagePlaceholder = () => (
-    <div 
-      style={{ 
-        width: '60%', 
-        height: '60%', 
+    <div
+      style={{
+        width: '60%',
+        height: '60%',
         backgroundColor: '#f0f0f0',
         borderRadius: '4px',
         position: 'relative',
@@ -213,48 +213,49 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
             animation: 'shimmer 1.5s infinite',
           }
         }),
-      }} 
+      }}
     />
   );
-  
+
   return (
     <div ref={cardRef} style={cardStyle} className="fluid-shop-card">
       {/* Bild-Container mit optimierter Ladung */}
       <div style={imageContainerStyle}>
         {shop && shop.image ? (
-          <img 
+          <img
             ref={imageRef}
-            src={shop.image} 
-            alt={shop.name || 'Shop'} 
+            src={shop.image}
+            alt={shop.name || 'Shop'}
             style={imageStyle}
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
               // Fallback für fehlerhafte Bilder
-              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Logo';
+              console.error('Bild konnte nicht geladen werden:', shop?.image);
+              (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
         ) : (
           <ImagePlaceholder />
         )}
       </div>
-      
+
       {/* Inhalt mit gestaffelten Übergängen */}
       <div style={contentStyle}>
         {/* Titel */}
         <div style={titleStyle}>
           {!isLoading && shop?.name}
         </div>
-        
+
         {/* Kategorie */}
         <div style={categoryStyle}>
           {!isLoading && shop?.category}
         </div>
-        
+
         {/* Etage */}
         <div style={floorStyle}>
           {!isLoading && shop?.floor}
         </div>
-        
+
         {/* Beschreibung */}
         <div style={descriptionStyle}>
           {!isLoading && shop?.description ? (
@@ -263,7 +264,7 @@ const FluidShopCard: React.FC<FluidShopCardProps> = ({
             <DescriptionSkeleton />
           ) : null}
         </div>
-        
+
         {/* Öffnungszeiten */}
         <div style={openingStyle}>
           {!isLoading && shop?.opening}

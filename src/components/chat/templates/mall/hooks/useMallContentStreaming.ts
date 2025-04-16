@@ -28,8 +28,8 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
   const isProcessingRef = useRef<boolean>(false);
   const parsedContentCacheRef = useRef<{[key: string]: MallSection[]}>({});
 
-  // Hohe Debounce-Zeit für stabile Darstellung ohne Flackern
-  const DEBOUNCE_MS = 600;
+  // Reduzierte Debounce-Zeit für schnellere Anzeige
+  const DEBOUNCE_MS = 150;
 
   // Effekt für Content-Verarbeitung mit minimalem UI-Update
   useEffect(() => {
@@ -71,6 +71,7 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
               content.includes('<shop>') ||
               content.includes('<restaurant>') ||
               content.includes('<tip>') ||
+              content.includes('<followUp>') ||
 
               // Erweiterte Tag-Erkennung
               content.includes('<shops') ||
@@ -84,7 +85,8 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
               content.includes('<intr') ||
               content.includes('<sho') ||
               content.includes('<res') ||
-              content.includes('<ti')
+              content.includes('<ti') ||
+              content.includes('<foll')
             );
 
             if (hasXmlStructure) {
@@ -200,8 +202,9 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
     const shopSections = sections.filter(s => s.type === 'shops');
     const restaurantSections = sections.filter(s => s.type === 'restaurants');
     const eventSections = sections.filter(s => s.type === 'events');
+    const followUpSection = sections.find(s => s.type === 'followUp');
     const otherSections = sections.filter(s =>
-      !['intro', 'shops', 'restaurants', 'events', 'tip'].includes(s.type));
+      !['intro', 'shops', 'restaurants', 'events', 'tip', 'followUp'].includes(s.type));
 
     // Sortierte Reihenfolge für stabile Darstellung
     const sortedSections: MallSection[] = [];
@@ -215,8 +218,11 @@ export function useMallContentStreaming(content: string, isStreaming: boolean, q
     sortedSections.push(...eventSections);
     sortedSections.push(...otherSections);
 
-    // 3. Tipp-Sektion (sollte immer zuletzt kommen)
+    // 3. Tipp-Sektion (sollte vor Follow-up kommen)
     if (tipSection) sortedSections.push(tipSection);
+
+    // 4. Follow-up-Sektion (sollte immer zuletzt kommen)
+    if (followUpSection) sortedSections.push(followUpSection);
 
     return sortedSections;
   }

@@ -7,6 +7,35 @@ import styles from '../styles/SmartMall.module.css';
 // Debug-Modus
 const DEBUG_MODE = false;
 
+// Skelett-UI Komponente
+const SkeletonUI = memo(() => {
+  return (
+    <div className={styles.skeletonContainer}>
+      <div className={styles.skeletonLine} />
+      <div className={`${styles.skeletonLine} ${styles.shorter}`} />
+      <div className={`${styles.skeletonLine} ${styles.short}`} />
+    </div>
+  );
+});
+
+// Skelett für Shop-Cards
+const SkeletonShopList = memo(() => {
+  return (
+    <div className={styles.stableContainer}>
+      <h2 className={styles.sectionTitle}>Lade Shops...</h2>
+      <div className={styles.shopList}>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className={`${styles.shopCard} ${styles.skeleton}`}>
+            <div className={styles.skeletonLine} style={{ height: '120px', marginBottom: '8px' }} />
+            <div className={`${styles.skeletonLine} ${styles.shorter}`} style={{ marginBottom: '4px' }} />
+            <div className={`${styles.skeletonLine} ${styles.short}`} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
 // Typdefinitionen
 interface SmartMallRendererProps {
   intro: string;
@@ -553,7 +582,7 @@ const OpeningHoursSection = memo(({ openingHoursData }: { openingHoursData: Open
 });
 
 // Hauptkomponente
-const SmartMallRenderer: React.FC<SmartMallRendererProps> = ({
+export const SmartMallRenderer = memo<SmartMallRendererProps>(({
   intro,
   shops,
   restaurants,
@@ -564,16 +593,24 @@ const SmartMallRenderer: React.FC<SmartMallRendererProps> = ({
   openingHours,
   progress,
   isStreaming,
+  isComplete,
   colorStyle,
   hasError,
-  isComplete,
   rawContent
 }) => {
-  // Debug-Log bei Initialisierung und Änderungen
+  // State für verzögertes Anzeigen von UI-Elementen
+  const [showLoader, setShowLoader] = useState<boolean>(true);
+  const [renderStable, setRenderStable] = useState<boolean>(false);
+  const hasRawContent = !!rawContent && rawContent.trim().length > 0;
+
+  // Debugger für Komponenten-Zustände
+  const [debugInfo, setDebugInfo] = useState<Record<string, any>>({});
+  
+  // Verzögertes Update des Debug-Infos
   useEffect(() => {
     if (DEBUG_MODE) {
-      console.log("SMARTMALL-RENDERER: Komponentendaten:", {
-        intro: intro?.substring(0, 30) + (intro?.length > 30 ? '...' : '') || 'leer',
+      setDebugInfo({
+        intro: intro?.length || 0,
         shops: shops?.length || 0,
         restaurants: restaurants?.length || 0,
         events: events?.length || 0,
@@ -582,58 +619,73 @@ const SmartMallRenderer: React.FC<SmartMallRendererProps> = ({
         progress,
         isStreaming,
         isComplete,
-        rawContent: rawContent ? 'vorhanden' : 'nicht vorhanden'
+        hasRawContent,
+        rawContentLength: rawContent ? rawContent.length : 0
       });
     }
   }, [intro, shops, restaurants, events, parking, openingHours, progress, isStreaming, isComplete, rawContent]);
 
+  // Verzögertes Rendering für stabile UI
+  useEffect(() => {
+    if (isStreaming) {
+      // Zeige sofort Loader beim Streaming-Start
+      setShowLoader(true);
+      
+      // Verzögertes Umschalten auf stabile Darstellung nach 300ms
+      const stableTimer = setTimeout(() => {
+        setRenderStable(true);
+      }, 300);
+      
+      // Verzögertes Ausblenden des Loaders nach 800ms
+      const loaderTimer = setTimeout(() => {
+        setShowLoader(false);
+      }, 800);
+      
+      return () => {
+        clearTimeout(stableTimer);
+        clearTimeout(loaderTimer);
+      };
+    } else {
+      // Sofortiges Rendern ohne Verzögerung, wenn nicht streaming
+      setShowLoader(false);
+      setRenderStable(true);
+    }
+  }, [isStreaming]);
+
   // Leerer Zustand: Wenn keine strukturierten Daten vorhanden sind und das Streaming abgeschlossen ist
   const isEmpty = !intro && shops.length === 0 && restaurants.length === 0 && 
-                  events.length === 0 && tip === '' && followUp === '' && !parking && !openingHours && !isStreaming;
+                 events.length === 0 && tip === '' && followUp === '' && !parking && !openingHours && !isStreaming;
 
   // Direkte Anzeige des Rohcontents, wenn vorhanden, unabhängig vom isEmpty-Status
-  const hasRawContent = rawContent && rawContent.length > 0;
+  const shouldShowFallback = hasRawContent && 
+    (!intro && shops.length === 0 && restaurants.length === 0 && events.length === 0);
 
-  // Keine Anzeige während des Ladens zu Beginn
-  if (isStreaming && progress === 0 && !intro && shops.length === 0 && 
-      restaurants.length === 0 && events.length === 0) {
-    return (
-      <div className={styles.renderer}>
-        <ProgressBar progress={5} color={colorStyle.primaryColor} />
-        <div className={styles.content} style={{ minHeight: '100px', padding: '20px 0' }}>
-          <div className={styles.loadingIndicator}>
-            <div className={styles.loadingAnimation}>
-              <div className={styles.loadingDot}></div>
-              <div className={styles.loadingDot}></div>
-              <div className={styles.loadingDot}></div>
-            </div>
-            <div className={styles.loadingText}>
-              Informationen werden gesammelt...
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Fortschrittsbalken-Farbe aus colorStyle
+  const progressBarColor = colorStyle?.primaryColor || '#3b1c60';
 
+  // Render-Logik
   return (
     <div className={styles.renderer}>
-      {/* Debug-Infos anzeigen */}
-      {DEBUG_MODE && (
-        <DebugInfo 
-          data={{ 
-            intro, shops, restaurants, events, tip, followUp, 
-            progress, isStreaming, colorStyle, hasError, isComplete, rawContent, parking, openingHours
-          }} 
-        />
+      {/* Debug-Infobox (nur im Debug-Modus) */}
+      <DebugInfo data={{ 
+        intro, shops, restaurants, events, tip, followUp, 
+        progress, isStreaming, colorStyle, hasError, isComplete, rawContent, parking, openingHours
+      }} />
+      
+      {/* Fortschrittsbalken nur während des Streamings anzeigen */}
+      {isStreaming && (
+        <div className={styles.progressContainer}>
+          <div 
+            className={styles.progressBar} 
+            style={{
+              width: `${progress}%`,
+              backgroundColor: progressBarColor
+            }}
+          />
+        </div>
       )}
 
-      {/* Progress Bar nur während des Streamings anzeigen */}
-      {isStreaming && progress < 100 && (
-        <ProgressBar progress={progress} color={colorStyle.primaryColor} />
-      )}
-
-      {/* Content Bereich */}
+      {/* Content Bereich mit Layout-Stabilität */}
       <div className={styles.content}>
         {hasError ? (
           <ErrorSection />
@@ -641,36 +693,52 @@ const SmartMallRenderer: React.FC<SmartMallRendererProps> = ({
           <EmptyState rawContent={""} />
         ) : (
           <>
-            {/* Intro immer zuerst anzeigen, wenn vorhanden */}
-            {intro && <IntroSection content={intro} />}
+            {/* Loader während des initialen Streamings */}
+            {showLoader && isStreaming && (
+              <div className={styles.stableContainer}>
+                <SkeletonUI />
+              </div>
+            )}
             
-            {/* OpeningHours-Informationen */}
-            {openingHours && <OpeningHoursSection openingHoursData={openingHours} />}
-            
-            {/* Parking-Informationen */}
-            {parking && <ParkingSection parkingData={parking} />}
+            {/* Strukturierte Inhalte */}
+            {(renderStable || !isStreaming) && (
+              <div className={styles.stableContainer}>
+                {/* Intro immer zuerst anzeigen, wenn vorhanden */}
+                {intro && <IntroSection content={intro} />}
+                
+                {/* OpeningHours-Informationen */}
+                {openingHours && <OpeningHoursSection openingHoursData={openingHours} />}
+                
+                {/* Parking-Informationen */}
+                {parking && <ParkingSection parkingData={parking} />}
 
-            {/* Shop-Listen */}
-            {shops.length > 0 && (
-              <ShopList shops={shops} title="Shops" />
+                {/* Shop-Listen */}
+                {shops.length > 0 ? (
+                  <ShopList shops={shops} title="Shops" />
+                ) : isStreaming && renderStable && !intro ? (
+                  <SkeletonShopList />
+                ) : null}
+
+                {/* Restaurant-Liste */}
+                {restaurants.length > 0 ? (
+                  <ShopList shops={restaurants} title="Gastronomie" />
+                ) : isStreaming && renderStable && shops.length > 0 && !restaurants.length ? (
+                  <SkeletonShopList />
+                ) : null}
+
+                {/* Event-Liste */}
+                {events.length > 0 && (
+                  <EventList events={events} />
+                )}
+
+                {/* Tipp und Follow-Up am Ende */}
+                {tip && <TipSection content={tip} />}
+                {followUp && <FollowUpSection content={followUp} />}
+              </div>
             )}
 
-            {/* Restaurant-Liste */}
-            {restaurants.length > 0 && (
-              <ShopList shops={restaurants} title="Gastronomie" />
-            )}
-
-            {/* Event-Liste */}
-            {events.length > 0 && (
-              <EventList events={events} />
-            )}
-
-            {/* Tipp und Follow-Up am Ende */}
-            {tip && <TipSection content={tip} />}
-            {followUp && <FollowUpSection content={followUp} />}
-            
-            {/* Fallback-Anzeige IMMER zeigen, wenn Rohinhalt vorhanden ist */}
-            {hasRawContent && (
+            {/* Fallback-Anzeige IMMER zeigen, wenn Rohinhalt vorhanden ist und keine strukturierten Daten */}
+            {shouldShowFallback && (
               <div style={{ marginTop: '20px' }}>
                 <EmptyState rawContent={rawContent} />
               </div>
@@ -680,6 +748,4 @@ const SmartMallRenderer: React.FC<SmartMallRendererProps> = ({
       </div>
     </div>
   );
-};
-
-export default memo(SmartMallRenderer); 
+}); 
