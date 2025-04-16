@@ -1,0 +1,140 @@
+/* 
+ * CSS für progressives Streaming
+ * Optimiert für flüssige Übergänge und stabile Layouts
+ */
+
+/* Basis-Klasse für alle progressiven Elemente */
+.progressive-element {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: contents;
+  contain: content;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Platzhalter-Elemente */
+.placeholder {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+/* Platzhalter-Linien */
+.placeholder-line {
+  height: 12px;
+  background-color: #e0e0e0;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+/* Platzhalter-Karten */
+.placeholder-card {
+  height: 150px;
+  width: 200px;
+  background-color: #e8e8e8;
+  border-radius: 8px;
+  flex-shrink: 0;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+/* Fortschrittsanzeige */
+.progress-container {
+  width: 100%;
+  height: 4px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 100%;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Animationen */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* Fade-In-Animation für neue Elemente */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slider-Optimierungen */
+.progressive-slider {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.progressive-slider::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Karten-Container */
+.cards-container {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Einzelne Karte */
+.card {
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Optimierungen für Streaming-Stabilität */
+.streaming-stable {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: contents;
+  contain: content;
+  isolation: isolate;
+}
+
+/* Verhindert Layout-Shifts während des Streamings */
+.layout-stable {
+  min-height: 24px;
+  width: 100%;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
