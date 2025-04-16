@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, useMemo, useEffect, useState, useRef } from 'react';
-import { useJsonProgressiveStreaming } from './hooks/useJsonProgressiveStreaming.robust';
+import { useChunkProgressiveStreaming } from './hooks/useChunkProgressiveStreaming';
 import { MallSection } from './utils/contentParser';
 import { sanitizeHtml, sanitizeFollowUpContent } from './utils/htmlSanitizer';
 import './styles/mall-unified.css';
@@ -174,8 +174,8 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
   isComplete,
   query = ''
 }) => {
-  // Verwende den JSON-Streaming-Hook für Content-Verarbeitung
-  const { sections, partialSections, progress, hasError } = useJsonProgressiveStreaming(
+  // Verwende den Chunk-Streaming-Hook für Content-Verarbeitung
+  const { sections, partialSections, progress, hasError } = useChunkProgressiveStreaming(
     content,
     isStreaming,
     query
