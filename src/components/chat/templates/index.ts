@@ -18,13 +18,12 @@ const BrandenburgServiceBox = lazy(() => import('./brandenburg/BrandenburgServic
 const BrandenburgNews = lazy(() => import('./brandenburg/BrandenburgNews'));
 const BrandenburgInfo = lazy(() => import('./brandenburg/BrandenburgInfo'));
 
-// Shopping Mall Template-Komponenten
-const ShoppingMallMessage = lazy(() => import('./mall/ShoppingMallMessage'));
-const FluidMallMessageWrapper = lazy(() => import('./mall/FluidMallMessageWrapper'));
-const MallTemplateRenderer = lazy(() => import('./mall/MallTemplateRenderer.progressive'));
+// Shopping Mall Template-Komponenten (neue Version)
+const SmartMallAdapter = lazy(() => import('./smartmall/SmartMallAdapter'));
+const SmartMallMessage = lazy(() => import('./smartmall/SmartMallMessage'));
 
-// Debug-Version des Chunk-Parsers für Fehlersuche
-import { useChunkProgressiveStreaming } from './mall/hooks/useChunkProgressiveStreaming.debug';
+// Optimierte Version des Chunk-Parsers für das Key-Value Format von Flowise
+import { useSmartChunkProcessor } from './smartmall/hooks/useSmartChunkProcessor';
 
 // Ninfly Sports Arena Template-Komponenten
 const NinflyMessage = lazy(() => import('./ninfly/NinflyMessage'));
@@ -37,37 +36,37 @@ export interface TemplateComponents {
     content: string;
     isStreaming?: boolean;
     messageControls?: React.ReactNode;
-    colorStyle?: Record<string, string>;
+    colorStyle?: { primaryColor: string; secondaryColor: string; } | Record<string, string>;
     isComplete: boolean;
     query?: string; // Die ursprüngliche Anfrage des Nutzers für bessere Relevanzfilterung
   }>;
   KeyFacts?: React.ComponentType<{
     content: string;
-    colorStyle?: Record<string, string>;
+    colorStyle?: { primaryColor: string; secondaryColor: string; } | Record<string, string>;
   }>;
   QuickOverview?: React.ComponentType<{
     content: string;
-    colorStyle?: Record<string, string>;
+    colorStyle?: { primaryColor: string; secondaryColor: string; } | Record<string, string>;
   }>;
   ContactInfo?: React.ComponentType<{
     content: string;
-    colorStyle?: Record<string, string>;
+    colorStyle?: { primaryColor: string; secondaryColor: string; } | Record<string, string>;
   }>;
   ServiceSection?: React.ComponentType<{
     content: string;
-    colorStyle?: Record<string, string>;
+    colorStyle?: { primaryColor: string; secondaryColor: string; } | Record<string, string>;
   }>;
   Info?: React.ComponentType<{
     content: string;
-    colorStyle?: Record<string, string>;
+    colorStyle?: { primaryColor: string; secondaryColor: string; } | Record<string, string>;
   }>;
   ServiceBox?: React.ComponentType<{
     content: string;
-    colorStyle?: Record<string, string>;
+    colorStyle?: { primaryColor: string; secondaryColor: string; } | Record<string, string>;
   }>;
   News?: React.ComponentType<{
     content: string;
-    colorStyle?: Record<string, string>;
+    colorStyle?: { primaryColor: string; secondaryColor: string; } | Record<string, string>;
   }>;
 }
 
@@ -110,7 +109,7 @@ export function getTemplateComponents(templateName?: string | null): TemplateCom
 
     case 'mall':
       return {
-        Message: FluidMallMessageWrapper, // Fluid-Komponente für optimale Streaming-Performance
+        Message: SmartMallAdapter, // Neue SmartMall-Implementation
       };
 
     case 'ninfly':
@@ -145,7 +144,7 @@ const MessageTemplates = {
   aok: AOKMessage,
   creditreform: CreditreformMessage,
   brandenburg: BrandenburgMessage,
-  mall: ShoppingMallMessage,
+  mall: SmartMallMessage,
   ninfly: NinflyMessage
 };
 
