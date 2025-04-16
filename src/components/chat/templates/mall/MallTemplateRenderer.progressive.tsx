@@ -124,7 +124,13 @@ const ShopCardWrapper = memo(({ shop, totalItems = 3 }: { shop: any, totalItems?
       style={{
         width: cardWidth,
         minHeight: Math.max(cardHeight, 250) + 'px', // Mindesthöhe basierend auf Inhalt
-        height: 'auto' // Automatische Höhe
+        height: 'auto', // Automatische Höhe
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        padding: '16px',
+        margin: '8px',
+        backgroundColor: '#fff',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}
     >
       <div ref={cardRef} className="mall-shop-card-content">
@@ -320,7 +326,7 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
 
         <div className="mall-content">
           {/* Intro-Sektion */}
-          <div className="mall-intro">
+          <div className="mall-intro" style={{ padding: '16px', backgroundColor: '#f9f9f9', borderRadius: '8px', marginBottom: '16px' }}>
             {showIntro && introSection?.content ? (
               <SanitizedHtmlContent content={introSection.content} />
             ) : isStreaming ? (
@@ -330,9 +336,9 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
 
           {/* Shops-Sektion */}
           {visibleShops.length > 0 && (
-            <div className="mall-shop-slider">
-              <h3 className="mall-section-title">{shopsSection?.title || 'Shops'}</h3>
-              <div className={`mall-cards-container ${visibleShops.length <= 3 ? 'mall-cards-container-few' : ''}`}>
+            <div className="mall-shop-slider" style={{ marginBottom: '24px' }}>
+              <h3 className="mall-section-title" style={{ fontSize: '1.2rem', marginBottom: '12px', color: '#333' }}>{shopsSection?.title || 'Shops'}</h3>
+              <div className={`mall-cards-container ${visibleShops.length <= 3 ? 'mall-cards-container-few' : ''}`} style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '8px 0' }}>
                 {visibleShops.map((shop, index) => (
                   <ShopCardWrapper
                     key={`shop-${index}`}
@@ -342,10 +348,10 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
                 ))}
                 {/* Platzhalter für noch nicht geladene Shops */}
                 {isStreaming && shopsSection?.items && visibleShops.length < shopsSection.items.length && (
-                  <div className="mall-shop-card mall-shop-card-placeholder">
-                    <div className="mall-shop-logo-placeholder"></div>
-                    <div className="mall-shop-name-placeholder"></div>
-                    <div className="mall-shop-category-placeholder"></div>
+                  <div className="mall-shop-card mall-shop-card-placeholder" style={{ width: '280px', minHeight: '250px', border: '1px solid #eee', borderRadius: '8px', padding: '16px', margin: '8px', backgroundColor: '#f9f9f9' }}>
+                    <div className="mall-shop-logo-placeholder" style={{ width: '80px', height: '80px', backgroundColor: '#eee', marginBottom: '12px', borderRadius: '4px' }}></div>
+                    <div className="mall-shop-name-placeholder" style={{ height: '20px', width: '80%', backgroundColor: '#eee', marginBottom: '8px', borderRadius: '4px' }}></div>
+                    <div className="mall-shop-category-placeholder" style={{ height: '16px', width: '60%', backgroundColor: '#eee', borderRadius: '4px' }}></div>
                   </div>
                 )}
               </div>
@@ -354,9 +360,9 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
 
           {/* Restaurants-Sektion */}
           {visibleRestaurants.length > 0 && (
-            <div className="mall-shop-slider">
-              <h3 className="mall-section-title">{restaurantsSection?.title || 'Gastronomie'}</h3>
-              <div className={`mall-cards-container ${visibleRestaurants.length <= 3 ? 'mall-cards-container-few' : ''}`}>
+            <div className="mall-shop-slider" style={{ marginBottom: '24px' }}>
+              <h3 className="mall-section-title" style={{ fontSize: '1.2rem', marginBottom: '12px', color: '#333' }}>{restaurantsSection?.title || 'Gastronomie'}</h3>
+              <div className={`mall-cards-container ${visibleRestaurants.length <= 3 ? 'mall-cards-container-few' : ''}`} style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '8px 0' }}>
                 {visibleRestaurants.map((restaurant, index) => (
                   <ShopCardWrapper
                     key={`restaurant-${index}`}
@@ -366,10 +372,10 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
                 ))}
                 {/* Platzhalter für noch nicht geladene Restaurants */}
                 {isStreaming && restaurantsSection?.items && visibleRestaurants.length < restaurantsSection.items.length && (
-                  <div className="mall-shop-card mall-shop-card-placeholder">
-                    <div className="mall-shop-logo-placeholder"></div>
-                    <div className="mall-shop-name-placeholder"></div>
-                    <div className="mall-shop-category-placeholder"></div>
+                  <div className="mall-shop-card mall-shop-card-placeholder" style={{ width: '280px', minHeight: '250px', border: '1px solid #eee', borderRadius: '8px', padding: '16px', margin: '8px', backgroundColor: '#f9f9f9' }}>
+                    <div className="mall-shop-logo-placeholder" style={{ width: '80px', height: '80px', backgroundColor: '#eee', marginBottom: '12px', borderRadius: '4px' }}></div>
+                    <div className="mall-shop-name-placeholder" style={{ height: '20px', width: '80%', backgroundColor: '#eee', marginBottom: '8px', borderRadius: '4px' }}></div>
+                    <div className="mall-shop-category-placeholder" style={{ height: '16px', width: '60%', backgroundColor: '#eee', borderRadius: '4px' }}></div>
                   </div>
                 )}
               </div>
@@ -453,7 +459,7 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
           )}
 
           {/* Tip-Sektion */}
-          <div className="mall-tip">
+          <div className="mall-tip" style={{ padding: '16px', backgroundColor: '#fff8e1', borderRadius: '8px', marginTop: '16px', borderLeft: '4px solid ' + colorStyle.secondaryColor }}>
             {showTip && tipSection?.content ? (
               <SanitizedHtmlContent content={tipSection.content} />
             ) : isStreaming && (
