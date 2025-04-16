@@ -221,21 +221,43 @@ const FluidMallMessageWrapper: React.FC<FluidMallMessageWrapperProps> = ({
     );
   };
 
+  // Kombinierter Ansatz: Zeige Skeleton und Inhalt gleichzeitig
   return (
     <div style={containerStyle} className="fluid-mall-message-wrapper">
       {/* Zeige Fortschrittsanzeige während des Streamings */}
       {isStreaming && renderProgressBar()}
 
-      {/* Zeige Skeleton während des Streamings, wenn noch keine Sektionen vorhanden sind */}
-      {isStreaming && displaySections.length === 0 ? (
-        renderSkeleton()
-      ) : (
-        <FluidMallMessage
-          sections={displaySections}
-          isStreaming={isStreaming}
-          colorStyle={colorStyle}
-        />
-      )}
+      {/* Zeige immer die FluidMallMessage, auch wenn noch keine Sektionen vorhanden sind */}
+      <div style={{ position: 'relative' }}>
+        {/* Skeleton im Hintergrund während des Streamings */}
+        {isStreaming && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            zIndex: 1,
+            opacity: displaySections.length === 0 ? 1 : 0,
+            transition: 'opacity 0.3s ease-in-out'
+          }}>
+            {renderSkeleton()}
+          </div>
+        )}
+
+        {/* Tatsächlicher Inhalt mit höherem z-Index */}
+        <div style={{
+          position: 'relative',
+          zIndex: 2,
+          opacity: displaySections.length === 0 ? 0 : 1,
+          transition: 'opacity 0.3s ease-in-out'
+        }}>
+          <FluidMallMessage
+            sections={displaySections}
+            isStreaming={isStreaming}
+            colorStyle={colorStyle}
+          />
+        </div>
+      </div>
 
       {messageControls && (
         <div className="mall-message-controls">
