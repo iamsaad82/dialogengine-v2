@@ -46,8 +46,39 @@ const FluidMallMessageWrapper: React.FC<FluidMallMessageWrapperProps> = ({
 
   // Verwende partialSections während des Streamings und sections wenn fertig
   const displaySections = useMemo(() => {
-    return isStreaming ? partialSections : sections;
-  }, [isStreaming, partialSections, sections]);
+    // Debug-Ausgabe für Sektionen
+    console.log('FluidMallMessageWrapper - Verfügbare Sektionen:', {
+      streaming: isStreaming,
+      partialSections: partialSections.length,
+      sections: sections.length,
+      partialTypes: partialSections.map(s => s.type).join(', '),
+      sectionTypes: sections.map(s => s.type).join(', ')
+    });
+
+    // Während des Streamings verwenden wir partialSections, sonst sections
+    // Wenn keine Sektionen vorhanden sind, erstellen wir eine leere Intro-Sektion
+    const result = isStreaming ? partialSections : sections;
+
+    // Wenn wir Sektionen haben, geben wir sie zurück
+    if (result.length > 0) {
+      return result;
+    }
+
+    // Wenn wir keine Sektionen haben, aber Content, erstellen wir eine Intro-Sektion
+    if (content.trim().length > 0) {
+      console.log('Erstelle Fallback-Intro-Sektion mit Content:', content.substring(0, 100) + '...');
+      return [{
+        type: 'intro' as const,
+        title: '',
+        content: content.replace(/\n/g, '<br>'),
+        query,
+        isPartial: isStreaming
+      }];
+    }
+
+    // Ansonsten geben wir ein leeres Array zurück
+    return [];
+  }, [isStreaming, partialSections, sections, content, query]);
 
   // Container-Styling
   const containerStyle = useMemo(() => ({
