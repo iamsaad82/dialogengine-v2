@@ -20,7 +20,7 @@ const BrandenburgInfo = lazy(() => import('./brandenburg/BrandenburgInfo'));
 
 // Shopping Mall Template-Komponenten
 const ShoppingMallMessage = lazy(() => import('./mall/ShoppingMallMessage'));
-const MallTemplateRenderer = lazy(() => import('./mall/MallTemplateRenderer'));
+const MallTemplateRenderer = lazy(() => import('./mall/MallTemplateRenderer.progressive'));
 
 // Ninfly Sports Arena Template-Komponenten
 const NinflyMessage = lazy(() => import('./ninfly/NinflyMessage'));
