@@ -2,7 +2,7 @@
 
 import React, { memo, useMemo, useEffect } from 'react';
 import FluidMallMessage from './components/FluidMallMessage';
-import { useChunkProgressiveStreaming } from './hooks/useChunkProgressiveStreaming.keyvalue';
+import { useChunkProgressiveStreaming } from './hooks/useChunkProgressiveStreaming.debug';
 import './styles/mall-unified.css';
 
 interface FluidMallMessageWrapperProps {

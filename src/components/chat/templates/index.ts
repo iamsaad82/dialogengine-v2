@@ -23,6 +23,9 @@ const ShoppingMallMessage = lazy(() => import('./mall/ShoppingMallMessage'));
 const FluidMallMessageWrapper = lazy(() => import('./mall/FluidMallMessageWrapper'));
 const MallTemplateRenderer = lazy(() => import('./mall/MallTemplateRenderer.progressive'));
 
+// Debug-Version des Chunk-Parsers für Fehlersuche
+import { useChunkProgressiveStreaming } from './mall/hooks/useChunkProgressiveStreaming.debug';
+
 // Ninfly Sports Arena Template-Komponenten
 const NinflyMessage = lazy(() => import('./ninfly/NinflyMessage'));
 const NinflyKeyFacts = lazy(() => import('./ninfly/NinflyKeyFacts'));
