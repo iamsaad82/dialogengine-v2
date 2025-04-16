@@ -5,7 +5,7 @@ import React, { memo } from 'react';
 import ProgressiveMallTemplateRenderer from './MallTemplateRenderer.progressive';
 import './styles/mall-unified.css';
 import styles from './ShoppingMallMessage.module.css';
-import './styles/progressive-streaming.css';
+// Progressive Streaming CSS wird bereits in mall-unified.css importiert
 
 interface ShoppingMallMessageProps {
   content: string;
