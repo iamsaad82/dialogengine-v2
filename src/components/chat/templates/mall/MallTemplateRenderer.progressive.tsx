@@ -4,6 +4,7 @@ import React, { memo, useMemo, useEffect, useState, useRef } from 'react';
 import { useChunkProgressiveStreaming } from './hooks/useChunkProgressiveStreaming.keyvalue';
 import { MallSection } from './utils/contentParser';
 import { sanitizeHtml, sanitizeFollowUpContent } from './utils/htmlSanitizer';
+import ShopCard from './components/ShopCard';
 import './styles/mall-unified.css';
 
 // Memoized HTML-Content-Komponente
@@ -335,8 +336,7 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
                 {visibleShops.map((shop, index) => (
                   <ShopCard
                     key={`shop-${index}`}
-                    shop={shop}
-                    totalItems={shopsSection?.items?.length || visibleShops.length}
+                    data={shop}
                   />
                 ))}
                 {/* Platzhalter für noch nicht geladene Shops */}
@@ -359,8 +359,7 @@ const ProgressiveMallTemplateRenderer: React.FC<MallTemplateRendererProps> = ({
                 {visibleRestaurants.map((restaurant, index) => (
                   <ShopCard
                     key={`restaurant-${index}`}
-                    shop={restaurant}
-                    totalItems={restaurantsSection?.items?.length || visibleRestaurants.length}
+                    data={restaurant}
                   />
                 ))}
                 {/* Platzhalter für noch nicht geladene Restaurants */}
