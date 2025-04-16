@@ -109,6 +109,23 @@ export function StreamingChat({
       "currentStreamedMessage:", currentStreamedMessage ? "vorhanden" : "nicht vorhanden",
       "Nachrichten:", messages.length);
 
+    // Wenn wir im Ladezustand sind, aber noch keine gestreamte Nachricht haben,
+    // erstellen wir eine leere Platzhalter-Nachricht, um Flackern zu vermeiden
+    if (isLoading && (!currentStreamedMessage || !currentStreamedMessage.content)) {
+      console.log("STREAMINGCHAT-DEBUG-006: Erstelle Platzhalter-Nachricht für nahtlosen Übergang");
+
+      // Erstelle eine leere Streaming-Nachricht als Platzhalter
+      const placeholderMessage: Message = {
+        id: `streaming-placeholder-${Date.now()}`,
+        role: 'assistant',
+        content: ' ', // Leerer Inhalt mit Leerzeichen, damit er gerendert wird
+        streaming: true,
+        timestamp: Date.now()
+      };
+
+      return [...messages, placeholderMessage];
+    }
+
     // Wenn keine gestreamte Nachricht vorhanden ist, zeige nur die normalen Nachrichten
     if (!currentStreamedMessage) {
       console.log("STREAMINGCHAT-DEBUG-006: Nur normale Nachrichten anzeigen:", messages.length);

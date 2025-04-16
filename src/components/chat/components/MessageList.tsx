@@ -2,12 +2,8 @@
 
 import React, { useRef, useEffect } from 'react'
 import Message from './Message'
-import { ChevronDownIcon } from './ui/icons'
 import { Message as MessageType } from '../types'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import Image from 'next/image'
+// import { cn } from '@/lib/utils' // Wird aktuell nicht verwendet
 import { SuggestionsBar } from '../SuggestionsBar'
 import { CommonBotSettings } from '../types/common'
 import { BotSuggestion } from '@/types/bot'
@@ -41,10 +37,10 @@ interface MessageListProps {
   suggestions?: BotSuggestion[]
 }
 
-// Ladeindikator-Komponente
-function LoadingMessage({
+// Optimierte Ladeindikator-Komponente mit Stabilisierungseigenschaften
+const LoadingMessage = React.memo(function LoadingMessage({
   botName,
-  botPrimaryColor,
+  // botPrimaryColor, // Wird nicht verwendet
   botBgColor,
   botTextColor,
   botAccentColor,
@@ -52,17 +48,14 @@ function LoadingMessage({
   showNameInHeader = true
 }: {
   botName?: string,
-  botPrimaryColor?: string,
+  botPrimaryColor?: string, // Behalten für Typkompatibilität
   botBgColor?: string,
   botTextColor?: string,
   botAccentColor?: string,
   botAvatarUrl?: string,
   showNameInHeader?: boolean
 }) {
-  // Den Anzeigenamen verbessern, wenn es sich um einen technischen Namen handelt
-  const displayName = botName === 'creditreform' ? 'Creditreform Assistent' :
-                     botName === 'brandenburg' ? 'Brandenburg Dialog' :
-                     botName?.includes('-') || (botName?.length || 0) < 4 ? `${botName} Assistent` : botName || '';
+  // Anzeigename wird direkt verwendet, keine Transformation mehr nötig
 
   // Verschiedene Texte für die Lade-Animation
   const loadingTexts = [
@@ -85,31 +78,34 @@ function LoadingMessage({
   }, []);
 
   return (
-    <motion.div
-      className="group relative mb-4 flex items-start justify-start max-w-full"
-      initial={{ opacity: 0, y: 10, x: -10 }}
-      animate={{ opacity: 1, y: 0, x: 0 }}
-      transition={{ duration: 0.3 }}
+    <div
+      className="group relative mb-4 flex items-start justify-start max-w-full streaming-stable"
       role="status"
       aria-label="Nachricht wird geladen"
     >
       <div
-        className="max-w-3xl rounded-lg p-3 mb-4 glassmorphism-bot"
+        className="max-w-3xl rounded-lg p-3 mb-4 glassmorphism-bot streaming-stable"
         style={{
           backgroundColor: botBgColor || 'var(--bot-bg-color)',
           color: botTextColor || 'var(--bot-text-color)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+          willChange: 'contents',
+          contain: 'content'
         }}
       >
-        <div className="pb-1 flex flex-col items-center gap-1 text-xs text-gray-500 border-b border-gray-200 mb-2">
-          <div className="inline-flex items-center justify-center overflow-hidden" style={{ width: '200px', height: '60px' }}>
+        <div className="pb-1 flex flex-col items-center gap-1 text-xs text-gray-500 border-b border-gray-200 mb-2 streaming-stable">
+          <div className="inline-flex items-center justify-center overflow-hidden streaming-stable" style={{ width: '200px', height: '60px' }}>
             {botAvatarUrl ? (
               <img
                 src={botAvatarUrl}
                 alt={`${botName} Logo`}
-                className="h-auto max-h-full w-full object-contain"
+                className="h-auto max-h-full w-full object-contain streaming-stable"
                 width="200"
                 height="60"
+                style={{ transform: 'translateZ(0)' }}
               />
             ) : (
               <svg
@@ -119,7 +115,7 @@ function LoadingMessage({
                 fill="none"
                 stroke={botAccentColor || 'currentColor'}
                 strokeWidth="2"
-                className="text-primary"
+                className="text-primary streaming-stable"
                 style={{ aspectRatio: '1' }}
               >
                 <rect width="18" height="10" x="3" y="11" rx="2" />
@@ -130,78 +126,44 @@ function LoadingMessage({
               </svg>
             )}
           </div>
-          {showNameInHeader && <span className="text-sm font-semibold text-center leading-none" style={{ color: botTextColor }}>{botName}</span>}
+          {showNameInHeader && <span className="text-sm font-semibold text-center leading-none streaming-stable" style={{ color: botTextColor }}>{botName}</span>}
         </div>
 
-        <div className="py-1">
-          <div className="flex items-center mb-1">
-            <div className="flex items-center gap-1.5">
-              <motion.div
-                className="w-2 h-2 rounded-full"
+        <div className="py-1 streaming-stable">
+          <div className="flex items-center mb-1 streaming-stable">
+            <div className="flex items-center gap-1.5 streaming-stable">
+              <div
+                className="w-2 h-2 rounded-full streaming-stable"
                 style={{ backgroundColor: botAccentColor || 'hsl(var(--primary))' }}
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.7, 1, 0.7]
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 1.5,
-                  ease: "easeInOut"
-                }}
               />
-              <motion.div
-                className="w-2 h-2 rounded-full"
+              <div
+                className="w-2 h-2 rounded-full streaming-stable"
                 style={{ backgroundColor: botAccentColor || 'hsl(var(--primary))' }}
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.7, 1, 0.7]
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 1.5,
-                  ease: "easeInOut",
-                  delay: 0.2
-                }}
               />
-              <motion.div
-                className="w-2 h-2 rounded-full"
+              <div
+                className="w-2 h-2 rounded-full streaming-stable"
                 style={{ backgroundColor: botAccentColor || 'hsl(var(--primary))' }}
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.7, 1, 0.7]
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 1.5,
-                  ease: "easeInOut",
-                  delay: 0.4
-                }}
               />
             </div>
           </div>
 
-          <motion.div
-            key={textIndex}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.3 }}
-            className="text-sm"
+          <div
+            className="text-sm streaming-stable"
             style={{ color: botTextColor }}
           >
             {loadingTexts[textIndex]}
-          </motion.div>
+          </div>
         </div>
 
-        <div className="mt-1 flex items-center justify-end gap-2 text-xs" style={{ color: `${botTextColor}80` }}>
+        <div className="mt-1 flex items-center justify-end gap-2 text-xs streaming-stable" style={{ color: `${botTextColor}80` }}>
           <span>
             {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
-}
+});
 
 export function MessageList({
   messages,
@@ -218,7 +180,7 @@ export function MessageList({
   botAccentColor,
   userBgColor,
   userTextColor,
-  welcomeMessage,
+  // welcomeMessage, // Wird nicht verwendet
   botAvatarUrl,
   settings,
   isStreaming = false,
@@ -229,15 +191,7 @@ export function MessageList({
   const previousMessageCount = useRef<number>(0);
   const shouldScrollToBottom = useRef<boolean>(true);
 
-  // Erstelle ein colorStyle Objekt aus den Einstellungen
-  const colorStyle = {
-    primaryColor: settings?.primaryColor || botPrimaryColor || '#3b82f6',
-    botBgColor: settings?.botBgColor || botBgColor || 'rgba(245, 247, 250, 0.8)',
-    botTextColor: settings?.botTextColor || botTextColor || '#1a202c',
-    botAccentColor: settings?.botAccentColor || botAccentColor || '#3b82f6',
-    userBgColor: settings?.userBgColor || userBgColor || settings?.primaryColor || botPrimaryColor || '#3b82f6',
-    userTextColor: settings?.userTextColor || userTextColor || '#ffffff',
-  };
+  // Farbstile werden direkt an die Message-Komponente übergeben
 
   // Zustand für den Scroll-Button
   const [showScrollButton, setShowScrollButton] = React.useState(false);
@@ -336,8 +290,11 @@ export function MessageList({
       </div>
 
 
-      {/* Ladeindikator - wird angezeigt, wenn isLoading true ist und keine Nachricht gerade gestreamt wird */}
-      {isLoading && !messages.some(msg => msg.streaming === true) && (
+      {/* Ladeindikator - wird nur angezeigt, wenn isLoading true ist, keine Nachricht gerade gestreamt wird
+          UND keine Nachricht vom Assistenten vorhanden ist (verhindert Flackern) */}
+      {isLoading &&
+       !messages.some(msg => msg.streaming === true) &&
+       !messages.some(msg => msg.role === 'assistant' && msg.content.trim() !== '') && (
           <LoadingMessage
             botName={botName}
             botPrimaryColor={botPrimaryColor}

@@ -7,6 +7,25 @@
   will-change: auto !important;
 }
 
+/* Streaming-Stabilität für alle Komponenten */
+.streaming-stable {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: contents;
+  contain: content;
+  isolation: isolate;
+}
+
+/* Streaming-Platzhalter für nahtlosen Übergang */
+.streaming-placeholder {
+  min-height: 24px;
+  width: 100%;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
 /* Verhindert Layout-Shifts während des Streamings */
 .message-content-wrapper {
   contain: layout;
